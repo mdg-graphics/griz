@@ -156,7 +156,30 @@ static int node_vel_primal_sclasses[] =
 {
     G_NODE
 };
+static char *node_rot_vel_mag_shorts[] =
+{
+    "rotvelmag", NULL
+};
 
+static char *node_rot_vel_mag_longs[] =
+{
+    "Rotational Velocity Magnitude", NULL
+};
+
+static char *node_rot_vel_mag_primals1[] =
+{
+    "rotvel", NULL
+};
+
+static char *node_rot_vel_mag_primals2[] =
+{
+    "nodpos", NULL
+};
+
+static int node_rot_vel_mag_primal_sclasses[] =
+{
+    G_NODE
+};
 
 static char *node_acc_shorts_xy[] =
 {
@@ -1065,6 +1088,33 @@ Result_candidate possible_results[] =
         node_vel_mag_longs,
         node_vel_primals2,
         node_vel_primal_sclasses
+    },
+{
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_velocity,
+        NULL,
+        node_rot_vel_mag_shorts,
+        node_rot_vel_mag_longs,
+        node_rot_vel_mag_primals1,
+        node_rot_vel_mag_primal_sclasses
+    },
+
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_velocity,
+        NULL,
+        node_rot_vel_mag_shorts,
+        node_rot_vel_mag_longs,
+        node_rot_vel_mag_primals2,
+        node_rot_vel_mag_primal_sclasses
     },
 
     /*
@@ -3001,6 +3051,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
+    float * activity;
 
     strcpy( primal_spec, p_result->name );
     primals[0] = primal_spec;
@@ -3011,6 +3062,10 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 				   * that the EI message will not appear in the
 				   * render window.
 				   */
+
+    activity = analy->state_p->sand_present
+        ? analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index]
+        : NULL;
 
     if ( !analy->particle_nodes_enabled && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
         return;
@@ -3041,6 +3096,15 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
                            primals, (void *) result_buf );
 
+    if ( activity && analy->show_deleted_elements)
+    {
+        for ( i = 0; i < obj_qty; i++)
+	{
+            result_buf[i] = activity[i];
+	}
+
+    }
+    
     /* Re-order data if necessary. */
     if ( object_ids )
     {

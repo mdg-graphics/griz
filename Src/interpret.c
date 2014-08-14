@@ -2019,6 +2019,23 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->show_bbox = setval;
             else if ( strcmp( tokens[i], "echocmd" ) == 0 )
                 analy->echocmd = setval;
+            else if ( !strcmp( tokens[i], "fringe_all"))
+            {
+                if(setval)
+                {
+                    analy->auto_gray = FALSE;
+                }else
+                {
+                    analy->auto_gray = TRUE;
+                } 
+                if(analy->dimension == 3)
+                {
+                    draw_grid(analy);
+                } else
+                {
+                    draw_grid_2d( analy);
+                }
+            }
             else if ( strcmp( tokens[i], "coord" ) == 0 )
                 analy->show_coord = setval;
             else if ( strcmp( tokens[i], "time" ) == 0 )
@@ -2026,7 +2043,6 @@ parse_single_command( char *buf, Analysis *analy )
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {
                 analy->show_title      = setval;
-                analy->show_title_path = setval;
             }
             else if ( strcmp( tokens[i], "path" ) == 0 )
                 analy->show_title_path = setval;
@@ -2391,6 +2407,12 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 analy->material_greyscale = setval;
                 update_util_panel( VIEW_GS, NULL );
+                /* if(setval == TRUE)
+                {
+		   gray_colormap(TRUE);
+                } else {
+                   restore_colormap(); 
+                } */
             }
             else if ( strcmp( tokens[i], "damage_hide" ) == 0 )
             {
@@ -6403,6 +6425,79 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "vidttl" ) == 0 )
     {
         draw_vid_title();
+    }
+    else if ( strcmp( tokens[0], "dscala") == 0)
+    {
+        char cmd[32];
+        char scale[32];
+        int reps = 1;
+        int i, j;
+        float max, incr;
+        float amplification = 1.0;
+        float num_divisions;
+        float dmax;
+        max = 1;
+        parse_command("on dscal", analy);
+        if(token_cnt == 2)
+        {
+            sscanf(tokens[1], "%f", &num_divisions);
+            if( num_divisions < 1.0)
+            {
+                popup_dialog(USAGE_POPUP, " number of divisions specified must be greater than 1.0\n"); 
+                return;
+            }
+        } else if(token_cnt == 3)
+        {
+            sscanf(tokens[1], "%f", &num_divisions);
+            sscanf(tokens[2], "%d", &reps);
+            if(num_divisions < 1.0)
+            {
+                popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
+                return;
+            }
+            if(reps < 0)
+            {
+                popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
+                return;
+            }
+
+        }else if(token_cnt == 4)
+        {
+            sscanf(tokens[1], "%f", &num_divisions);
+            sscanf(tokens[2], "%d", &reps);
+            sscanf(tokens[3], "%f", &amplification);
+            if(num_divisions < 1.0)
+            {
+                popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
+                return;
+            }
+            if(reps < 0)
+            {
+                popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
+                return;
+            }
+            if(amplification < 0)
+            {
+                popup_dialog(USAGE_POPUP, "The amplification must be > 1\n");
+                return;
+            }
+        }
+
+        for(i = 0; i < reps; i++)
+        {
+            /*incr = (max - min)/num_divisions; */
+            incr = 1/num_divisions;
+            for(j = 0; j <= num_divisions; j++)
+            {
+                dmax = 1.0 - (amplification * sin(2*PI*j*incr));
+                sprintf(scale, "%f", dmax);
+                strcpy(cmd, "dscal ");
+                strcat(cmd, scale);
+                parse_command(cmd, analy);
+            }
+        
+       } 
+        
     }
     else if ( strcmp( tokens[0], "dscal" ) == 0 ||
               strcmp( tokens[0], "dscale" ) == 0 )
