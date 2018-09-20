@@ -12088,7 +12088,7 @@ void backup_current_colors(Analysis *analy, Bool_type use_default){
 }
 
 
-void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]){//, char*** plotLineDefinitions){
+void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]){//, char*** plotLineDefinitions){ am I on the branch?
 	//section 1
 	char*** finalPlotLines;
 	int finalLineCnt = 0;
