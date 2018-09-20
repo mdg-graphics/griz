@@ -620,6 +620,22 @@ typedef enum
 
 
 /*****************************************************************
+* TAG( MO_list_token_type_new )
+ *
+ * Types of tokens in a mesh object specification list.
+ */
+typedef enum
+{
+    NUMERIC,
+    RESULT_NAME,
+    MESH_OBJ_CLASS,
+    RANGE_SEPARATOR,
+    COMPOUND_TOKEN,
+    OTHER_TOKEN
+} MO_list_token_type_new;
+
+
+/*****************************************************************
  * TAG( Database_type )
  *
  * Enumerations of database types Griz can handle.

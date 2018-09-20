@@ -12087,25 +12087,68 @@ void backup_current_colors(Analysis *analy, Bool_type use_default){
 	}
 }
 
+/*****************************************************************
+ * TAG( get_token_type )
+ *
+ * Identify command-line tokens belonging to mesh object lists.
+ */
+static MO_list_token_type_new
+get_token_type_new( char *token, Analysis *analy, MO_class_data **class )
+{
+    MO_list_token_type rval;
+    Htable_entry *p_hte;
+
+    if ( strspn( token, "0123456789" ) == strlen( token ) )
+        rval = NUMERIC;
+    else if (  htable_search( MESH( analy ).class_table, token, FIND_ENTRY,
+                              &p_hte )
+               == OK )
+    {
+        rval = MESH_OBJ_CLASS;
+        *class = (MO_class_data *) p_hte->data;
+    }
+    else if ( strcmp( token, "-" ) == 0 )
+        rval = RANGE_SEPARATOR;
+    else if ( strchr( token, (int) '-' ) )
+        rval = COMPOUND_TOKEN;
+    else
+    {
+        rval = OTHER_TOKEN;
+        int i;
+        for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
+            {
+                p_rc = &possible_results[i];
+                for(j = 0; p_rc->short_names[j] != NULL; j++)
+                {
+                	if(strcmp(token, p_rc->short_names[j]) == 0)
+                	{
+                		rval = RESULT_NAME;
+                	}
+                }
+            }
+    }
+
+    return rval;
+}
 
 void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]){//, char*** plotLineDefinitions){ am I on the branch?
 	//section 1
 	char*** finalPlotLines;
 	int finalLineCnt = 0;
-	char** ordResList;
+	char** ordResList = (char**) malloc( MAXTOKENS*sizeof(char *));
 	int ordResCnt = 0;
-	char** absResList;
+	char** absResList = (char**) malloc( MAXTOKENS*sizeof(char *));
 	int absResCnt = 0;
 	char** curResList;
 	int curResCnt = 0;
-	char*** ordSOList;
+	char*** ordSOList = (char***) malloc( MAXTOKENS*sizeof(char **));
 	int ordSOCnt = 0;
-	char*** absSOList;
+	char*** absSOList = (char***) malloc( MAXTOKENS*sizeof(char **));
 	int absSOCnt = 0;
 	char*** curSOList;
 	int curSOCnt = 0;
     MO_class_data *p_class;
-    int range_start,range_stop,len;
+    int range_start,range_stop,len,num;
 
 
 	//section 2
@@ -12117,9 +12160,14 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 	curSOList = ordSOList;
 	curSOCnt = ordSOCnt;
 	int pos = 0;
+	int rpos = 0;
 	int tokType = -1;
 	for( pos = 0; pos < token_cnt; pos++){
 		if(strcmp( tokens[i], "vs" ) == 0){
+			ordResList = curResList;
+			ordResCnt = curResCnt;
+			ordSOList = curSOList;
+			ordSOCnt = curSOCnt;
 			curResList = absResList;
 			curResCnt = absResCnt;
 			curSOList = absSOList;
@@ -12129,20 +12177,46 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 		}
 		else{
 			//tokType = get_token_type();
-			switch(get_token_type( tokens[i], analy, &p_class )){
+			switch(get_token_type_new( tokens[i], analy, &p_class ))
+			{
+			//need to add this case in
+			case RESULT_NAME:
+				curResList[curResCnt] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				strcpy(curResList[curResCnt], tokens[pos]);
+				curResCnt++;
+				parsingRange = False;
+				break;
 			case MESH_OBJ_CLASS:
-
+				curClassName = (char*) malloc( TOKENLENGTH*sizeof(char));
+				strcpy(curClassName, tokens[pos]);
 				break;
 			case NUMERIC:
-
+				if(parsingRange){
+					range_stop = atoi(tokens[pos]);
+					for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
+						curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
+						curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						strcpy(curResList[curSOCnt][0], curClassName);
+						sprintf(curResList[curSOCnt][1], "%d", num);
+						curSOCnt++;
+					}
+					parsingRange = False;
+				}
+				else{
+					range_start = atoi(tokens[pos]);
+					curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
+					curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
+					curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+					strcpy(curResList[curSOCnt][0], curClassName);
+					strcpy(curResList[curSOCnt][1], tokens[pos]);
+					curSOCnt++;
+				}
 				break;
 			case RANGE_SEPARATOR:
-
+				parsingRange = True;
 				break;
 			case COMPOUND_TOKEN:
-
-				break;
-			case MESH_OBJ_CLASS:
 
 				break;
 			default:
