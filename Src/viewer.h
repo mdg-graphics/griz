@@ -626,12 +626,12 @@ typedef enum
  */
 typedef enum
 {
-    NUMERIC,
+    NUM,
     RESULT_NAME,
-    MESH_OBJ_CLASS,
-    RANGE_SEPARATOR,
-    COMPOUND_TOKEN,
-    OTHER_TOKEN
+    MESH_OBJ_C,
+    RANGE_SEP,
+    COMPOUND_TOK,
+    OTHER_TOK
 } MO_list_token_type_new;
 
 
