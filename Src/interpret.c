@@ -12142,7 +12142,7 @@ get_token_type_new( char *token, Analysis *analy, MO_class_data **class )
 
 void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]){//, char*** plotLineDefinitions){ am I on the branch?
 	//section 1
-	char*** finalPlotLines;
+	char*** finalPlotLines = (char***) malloc( MAXTOKENS*sizeof(char **));;
 	int finalLineCnt = 0;
 	char** ordResList = (char**) malloc( MAXTOKENS*sizeof(char *));
 	int ordResCnt = 0;
@@ -12202,6 +12202,10 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 					strcpy(curClassName, tokens[pos]);
 					break;
 				case NUM:
+					if(strcmp( curClassName, "" ) == 0){
+						printf("error, no class given for these numbers");
+						break;
+					}
 					if(parsingRange){
 						range_stop = atoi(tokens[pos]);
 						for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
@@ -12213,6 +12217,7 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 							curSOCnt++;
 						}
 						parsingRange = False;
+						range_start = -1;
 					}
 					else{
 						range_start = atoi(tokens[pos]);
@@ -12225,11 +12230,19 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 					}
 					break;
 				case RANGE_SEP:
+					if(range_start == -1){
+						printf("error, invalid range attempt");
+						break;
+					}
 					parsingRange = True;
 					break;
 				case COMPOUND_TOK:
 					len = strlen(tokens[pos]);
 					dashLoc = -1;
+					if(strcmp( curClassName, "" ) == 0){
+						printf("error, no class given for these numbers");
+						break;
+					}
 					for(dpos = 0; dpos < len; dpos++){
 						if(tokens[pos][dpos] == '-' && dashLoc == -1){
 							dashLoc = dpos;
@@ -12238,6 +12251,10 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 					if(dashLoc > -1){
 						//-number
 						if(dashLoc == 0){
+							if(range_start == -1){
+								printf("error, invalid range attempt");
+								break;
+							}
 							strncpy(buff,tokens[pos]+(dashLoc+1),(len-(dashLoc+1)));
 							range_stop = atoi(buff);
 							for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
@@ -12250,6 +12267,7 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 								curSOCnt++;
 							}
 							parsingRange = False;
+							range_start = -1;
 						}
 						//number-
 						else if(dashLoc == (strlen(tokens[pos])-1)){
@@ -12263,7 +12281,7 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 							range_start = atoi(buff);
 							strncpy(buff,tokens[pos]+(dashLoc+1),(len-(dashLoc+1)));
 							range_stop = atoi(buff);
-							for(rpos = (range_start); rpos < (range_stop); rpos++){
+							for(rpos = (range_start); rpos < (range_stop+1); rpos++){
 								curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
 								curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
 								curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
@@ -12273,6 +12291,7 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 								curSOCnt++;
 							}
 							parsingRange = False;
+							range_start = -1;
 						}
 					}
 					break;
@@ -12282,31 +12301,128 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 					break;
 				}
 			}
-
+		}
+		if(vsFound){
+			absResList = curResList;
+			absResCnt = curResCnt;
+			absSOList = curSOList;
+			absSOCnt = curSOCnt;
 		}
 	}
 	// fill ordinate results with current result if none found
 	if(ordResCnt == 0){
 		//res_list = duplicate_result( analy, analy->cur_result, TRUE )
+		ordResList[ordResCnt] = (char*) malloc( TOKENLENGTH*sizeof(char));
+		strcpy(ordResList[ordResCnt], analy->cur_result->name);
+		ordResCnt++;
+		printf("");
 	}
 	// fill abscissa result with time if none found
-	if(absResCnt == 0){
+	//if(absResCnt == 0){
 		//analy->times = new_time_tso( analy );
-	}
+	//}
 	// fill ordinate selected objects with currently selected objects if empty
 	if(ordSOCnt == 0){
 		//so_list = copy_obj_list( analy->selected_objects);
+		Specified_obj *so_list;
+		so_list = analy->selected_objects;
+		while(so_list != NULL){
+			ordSOList[ordSOCnt] = (char**) malloc( 2*sizeof(char*));
+			ordSOList[ordSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
+			ordSOList[ordSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+			strcpy(ordSOList[ordSOCnt][0], so_list->mo_class->short_name);
+			sprintf(ordSOList[ordSOCnt][1], "%d", so_list->label);
+			ordSOCnt++;
+			so_list = so_list->next;
+		}
+		printf("");
 	}
-	// if any of these 3 sets are empty after this we cannot proceed
-	if(ordResCnt == 0 || absResCnt == 0 || ordSOCnt == 0){
+	// if any of these 2 sets are empty after this we cannot proceed
+	if(ordResCnt == 0 || ordSOCnt == 0){
 		printf("error, need more information to perform plot");
 		return;
 	}
+
+
+
+
+	char ordRes[TOKENLENGTH];
+	char ordClass[TOKENLENGTH];
+	char ordNum[TOKENLENGTH];
+	char absRes[TOKENLENGTH];
+	char absClass[TOKENLENGTH];
+	char absNum[TOKENLENGTH];
+	int orpos,ospos,arpos,aspos;
 	// iterate over ordinate results
-		// iterate over abscissa results
-			// iterate over ordinate selected objects
-				// if abscissa selected objects list is not empty
-					// iterate over abscissa selected objects
+	for(orpos = 0; orpos < ordResCnt; orpos++){
+		sprintf(ordRes, "%s", ordResList[orpos]);
+		// iterate over ordinate selected objects
+		for(ospos = 0; ospos < ordSOCnt; ospos++){
+			sprintf(ordClass, "%s", ordSOList[ospos][0]);
+			sprintf(ordNum, "%s", ordSOList[ospos][1]);
+			// if abscissa result list is not empty
+			if(absResCnt > 0){
+				// iterate over abscissa results
+				for(arpos = 0; arpos < absResCnt; arpos++){
+					sprintf(absRes, "%s", absResList[arpos]);
+					// if abscissa selected objects list is not empty
+					if(absSOCnt > 0){
+						// iterate over abscissa selected objects
+						for(aspos = 0; aspos < absSOCnt; aspos++){
+							sprintf(absClass, "%s", absSOList[aspos][0]);
+							sprintf(absNum, "%s", absSOList[aspos][1]);
+							finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
+							finalPlotLines[finalLineCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							finalPlotLines[finalLineCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							finalPlotLines[finalLineCnt][2] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							finalPlotLines[finalLineCnt][3] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							finalPlotLines[finalLineCnt][4] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							finalPlotLines[finalLineCnt][5] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
+							sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
+							sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
+							sprintf(finalPlotLines[finalLineCnt][3],"%s",absRes);
+							sprintf(finalPlotLines[finalLineCnt][4],"%s",absClass);
+							sprintf(finalPlotLines[finalLineCnt][5],"%s",absNum);
+							finalLineCnt++;
+						}
+					}
+					else{
+						finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
+						finalPlotLines[finalLineCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						finalPlotLines[finalLineCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						finalPlotLines[finalLineCnt][2] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						finalPlotLines[finalLineCnt][3] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						finalPlotLines[finalLineCnt][4] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						finalPlotLines[finalLineCnt][5] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
+						sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
+						sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
+						sprintf(finalPlotLines[finalLineCnt][3],"%s",absRes);
+						sprintf(finalPlotLines[finalLineCnt][4],"%s","");
+						sprintf(finalPlotLines[finalLineCnt][5],"%s","");
+						finalLineCnt++;
+					}
+				}
+			}
+			else{
+				finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
+				finalPlotLines[finalLineCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				finalPlotLines[finalLineCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				finalPlotLines[finalLineCnt][2] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				finalPlotLines[finalLineCnt][3] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				finalPlotLines[finalLineCnt][4] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				finalPlotLines[finalLineCnt][5] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
+				sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
+				sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
+				sprintf(finalPlotLines[finalLineCnt][3],"%s","");
+				sprintf(finalPlotLines[finalLineCnt][4],"%s","");
+				sprintf(finalPlotLines[finalLineCnt][5],"%s","");
+				finalLineCnt++;
+			}
+		}
+	}
 	//section 3
 
 }
