@@ -411,8 +411,8 @@ void
 dump_selection_buff( char *buff_name, unsigned char *buff, int qty );
 int get_class_select_index( Analysis *analy, char *short_name );
 
-static MO_list_token_type_new
-get_token_type_new( char *token, Analysis *analy, MO_class_data **class );
+//static MO_list_token_type_new
+//get_token_type_new( char *token, Analysis *analy, MO_class_data **class );
 
 void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]);
 
@@ -5379,7 +5379,8 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 			}
 
-			plotTokenParser(analy,token_cnt,tokens);
+			create_plot_objects_new(analy,token_cnt,tokens);
+			//plotTokenParser(analy,token_cnt,tokens);
 
 			for(i = 0; i < token_cnt; i++)
 			{
@@ -12094,58 +12095,6 @@ void backup_current_colors(Analysis *analy, Bool_type use_default){
 		emission[colorPos][2] = v_win->mesh_materials.emission[colorPos][2];
 		shininess[colorPos] = v_win->mesh_materials.shininess[colorPos];
 	}
-}
-
-/*****************************************************************
- * TAG( get_token_type )
- *
- * Identify command-line tokens belonging to mesh object lists.
- */
-static MO_list_token_type_new
-get_token_type_new( char *token, Analysis *analy, MO_class_data **class )
-{
-    MO_list_token_type rval;
-    Htable_entry *p_hte;
-    Result_candidate *p_rc;
-
-    if ( strspn( token, "0123456789" ) == strlen( token ) )
-        rval = NUM;
-    else if (  htable_search( MESH( analy ).class_table, token, FIND_ENTRY,
-                              &p_hte )
-               == OK )
-    {
-        rval = MESH_OBJ_C;
-        *class = (MO_class_data *) p_hte->data;
-    }
-    else if ( strcmp( token, "-" ) == 0 )
-        rval = RANGE_SEP;
-    else if ( strchr( token, (int) '-' ) )
-        rval = COMPOUND_TOK;
-    else
-    {
-        rval = OTHER_TOK;
-        int i,j;
-        for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
-		{
-			p_rc = &possible_results[i];
-			for(j = 0; p_rc->short_names[j] != NULL; j++)
-			{
-				if(strcmp(token, p_rc->short_names[j]) == 0)
-				{
-					rval = RESULT_NAME;
-				}
-			}
-		}
-        if(rval != RESULT_NAME){
-        	//search refined result lists
-            Result result;
-        	if(find_result(analy, analy->result_source, TRUE, &result, token)){
-        		rval = RESULT_NAME;
-        	}
-        }
-    }
-
-    return rval;
 }
 
 

@@ -745,26 +745,10 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 {
 	//section 1
 
-//	char*** finalPlotLines = (char***) malloc( MAXTOKENS*sizeof(char **));;
-//	int finalLineCnt = 0;
-//	char** ordResList = (char**) malloc( MAXTOKENS*sizeof(char *));
-//	int ordResCnt = 0;
-//	char** absResList = (char**) malloc( MAXTOKENS*sizeof(char *));
-//	int absResCnt = 0;
-//	char** curResList;
-//	int curResCnt = 0;
-//	char*** ordSOList = (char***) malloc( MAXTOKENS*sizeof(char **));
-//	int ordSOCnt = 0;
-//	char*** absSOList = (char***) malloc( MAXTOKENS*sizeof(char **));
-//	int absSOCnt = 0;
-//	char*** curSOList;
-//	int curSOCnt = 0;
-
     MO_class_data *p_class;
     int range_start,range_stop,len,num,dashLoc,dpos;
-    //char buff[TOKENLENGTH];
 
-    //new idea, use lists that we will need for
+    //new idea, use lists that we will need during token parsing
     Result *ord_res_list, *abs_res_list, *temp_res;
     ord_res_list = NULL;
     abs_res_list = NULL;
@@ -781,30 +765,16 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
     char nstr[32];
     char *p_h;
 
-
-
 	//section 2
 	char* curClassName;
 	Bool_type vsFound = False;
 	Bool_type parsingRange = False;
-//	curResList = ordResList;
-//	curResCnt = ordResCnt;
-//	curSOList = ordSOList;
-//	curSOCnt = ordSOCnt;
 	int pos = 0;
 	int rpos = 0;
 	int tokType = -1;
 	if(token_cnt > 1){
 		for( pos = 1; pos < token_cnt; pos++){
 			if(strcmp( tokens[pos], "vs" ) == 0){
-//				ordResList = curResList;
-//				ordResCnt = curResCnt;
-//				ordSOList = curSOList;
-//				ordSOCnt = curSOCnt;
-//				curResList = absResList;
-//				curResCnt = absResCnt;
-//				curSOList = absSOList;
-//				curSOCnt = absSOCnt;
 				vsFound = True;
 				parsingRange = False;
 			}
@@ -814,9 +784,6 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 				{
 				//need to add this case in
 				case RESULT_NAME:
-//					curResList[curResCnt] = (char*) calloc(1, TOKENLENGTH);
-//					strcpy(curResList[curResCnt], tokens[pos]);
-//					curResCnt++;
 					if(find_result(analy, analy->result_source, TRUE, &temp_res, tokens[pos])){
 						if(vsFound){
 							APPEND(temp_res,ord_res_list);
@@ -829,8 +796,6 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 					parsingRange = False;
 					break;
 				case MESH_OBJ_C:
-//					curClassName = (char*) calloc(1, TOKENLENGTH);
-//					strcpy(curClassName, tokens[pos]);
 		            if ( p_class->superclass == G_MESH )
 		            {
 		                /*
@@ -905,47 +870,8 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                o_ident = p_so->ident;
 		                parsingRange = False;
 					}
-//					if(parsingRange){
-//						range_stop = atoi(tokens[pos]);
-//						for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
-//							curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-//							curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//							curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//							strcpy(curSOList[curSOCnt][0], curClassName);
-//							sprintf(curSOList[curSOCnt][1], "%d", num);
-//							curSOCnt++;
-//						}
-//		                /*
-//		                 * Must already have processed the range start ident so
-//		                 * process the range.
-//		                 */
-//		                range_stop = atoi( tokens[i] ) ;
-//		                if(vsFound){
-//		                	add_mo_nodes( &ord_so_list, p_class, range_start, range_stop );
-//		                }
-//						else{
-//							add_mo_nodes( &abs_so_list, p_class, range_start, range_stop );
-//						}
-//		                o_ident = NON_IDENT;
-//						range_start = -1;
-//						parsingRange = False;
-//					}
-//					else{
-//						range_start = atoi(tokens[pos]);
-//						curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-//						curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//						curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//						strcpy(curSOList[curSOCnt][0], curClassName);
-//						strcpy(curSOList[curSOCnt][1], tokens[pos]);
-//						curSOCnt++;
-//					}
 					break;
 				case RANGE_SEP:
-//					if(range_start == -1){
-//						printf("error, invalid range attempt");
-//						break;
-//					}
-//					parsingRange = True;
 		            if ( p_class != NULL && o_ident != NON_IDENT )
 		            {
 		                parsing_range = TRUE;
@@ -953,64 +879,6 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		            }
 					break;
 				case COMPOUND_TOK:
-//					len = strlen(tokens[pos]);
-//					dashLoc = -1;
-//					if(strcmp( curClassName, "" ) == 0){
-//						printf("error, no class given for these numbers");
-//						break;
-//					}
-//					for(dpos = 0; dpos < len; dpos++){
-//						if(tokens[pos][dpos] == '-' && dashLoc == -1){
-//							dashLoc = dpos;
-//						}
-//					}
-//					if(dashLoc > -1){
-//						//-number
-//						if(dashLoc == 0){
-//							if(range_start == -1){
-//								printf("error, invalid range attempt");
-//								break;
-//							}
-//							strncpy(buff,tokens[pos]+(dashLoc+1),(len-(dashLoc+1)));
-//							range_stop = atoi(buff);
-//							for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
-//								curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-//								curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//								curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//								//strcpy(curSOList[curSOCnt][0], curClassName);
-//								sprintf(curSOList[curSOCnt][0], "%s", curClassName);
-//								sprintf(curSOList[curSOCnt][1], "%d", num);
-//								curSOCnt++;
-//							}
-//							parsingRange = False;
-//							range_start = -1;
-//						}
-//						//number-
-//						else if(dashLoc == (strlen(tokens[pos])-1)){
-//							strncpy(buff,tokens[pos],dashLoc);
-//							range_start = atoi(buff);
-//							parsingRange = True;
-//						}
-//						//number-number
-//						else{
-//							strncpy(buff,tokens[pos],dashLoc);
-//							range_start = atoi(buff);
-//							strncpy(buff,tokens[pos]+(dashLoc+1),(len-(dashLoc+1)));
-//							range_stop = atoi(buff);
-//							for(rpos = (range_start); rpos < (range_stop+1); rpos++){
-//								curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-//								curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//								curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//								//strcpy(curSOList[curSOCnt][0], curClassName);
-//								sprintf(curSOList[curSOCnt][0], "%s", curClassName);
-//								sprintf(curSOList[curSOCnt][1], "%d", num);
-//								curSOCnt++;
-//							}
-//							parsingRange = False;
-//							range_start = -1;
-//						}
-//					}
-
 		            /* There should be at least one numeral in the string... */
 		            if ( extract_numeric_str( tokens[pos], nstr ) )
 		            {
@@ -1092,51 +960,14 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 				}
 			}
 		}
-//		if(vsFound){
-//			absResList = curResList;
-//			absResCnt = curResCnt;
-//			absSOList = curSOList;
-//			absSOCnt = curSOCnt;
-//		}
 	}
-	// fill ordinate results with current result if none found
-//	if(ordResCnt == 0){
-//		//res_list = duplicate_result( analy, analy->cur_result, TRUE )
-//		ordResList[ordResCnt] = (char*) calloc(1, TOKENLENGTH);
-//		strcpy(ordResList[ordResCnt], analy->cur_result->name);
-//		ordResCnt++;
-//		printf("");
-//	}
-	// fill abscissa result with time if none found
-	//if(absResCnt == 0){
-		//analy->times = new_time_tso( analy );
-	//}
-	// fill ordinate selected objects with currently selected objects if empty
-//	if(ordSOCnt == 0){
-//		//so_list = copy_obj_list( analy->selected_objects);
-//		Specified_obj *so_list;
-//		so_list = analy->selected_objects;
-//		while(so_list != NULL){
-//			ordSOList[ordSOCnt] = (char**) malloc( 2*sizeof(char*));
-//			ordSOList[ordSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//			ordSOList[ordSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//			strcpy(ordSOList[ordSOCnt][0], so_list->mo_class->short_name);
-//			sprintf(ordSOList[ordSOCnt][1], "%d", so_list->label);
-//			ordSOCnt++;
-//			so_list = so_list->next;
-//		}
-//		ord_so_list = copy_obj_list( analy->selected_objects );
-//	}
-	// if any of these 2 sets are empty after this we cannot proceed
-//	if(ordResCnt == 0 || ordSOCnt == 0){
-//		printf("error, need more information to perform plot");
-//		return;
-//	}
 
+
+	// fill ordinate selected objects with currently selected objects if empty
     if(ord_so_list == NULL && analy->selected_objects != NULL){
         ord_so_list = copy_obj_list( analy->selected_objects);
     }
-
+    // fill ordinate results with current result if none found
     if(ord_res_list == NULL){
     	if(analy->cur_result == NULL){
 			return;
@@ -1152,83 +983,6 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		}
     }
 
-//	char ordRes[TOKENLENGTH];
-//	char ordClass[TOKENLENGTH];
-//	char ordNum[TOKENLENGTH];
-//	char absRes[TOKENLENGTH];
-//	char absClass[TOKENLENGTH];
-//	char absNum[TOKENLENGTH];
-//	int orpos,ospos,arpos,aspos;
-//	// iterate over ordinate results
-//	for(orpos = 0; orpos < ordResCnt; orpos++){
-//		sprintf(ordRes, "%s", ordResList[orpos]);
-//		// iterate over ordinate selected objects
-//		for(ospos = 0; ospos < ordSOCnt; ospos++){
-//			sprintf(ordClass, "%s", ordSOList[ospos][0]);
-//			sprintf(ordNum, "%s", ordSOList[ospos][1]);
-//			// if abscissa result list is not empty
-//			if(absResCnt > 0){
-//				// iterate over abscissa results
-//				for(arpos = 0; arpos < absResCnt; arpos++){
-//					sprintf(absRes, "%s", absResList[arpos]);
-//					// if abscissa selected objects list is not empty
-//					if(absSOCnt > 0){
-//						// iterate over abscissa selected objects
-//						for(aspos = 0; aspos < absSOCnt; aspos++){
-//							sprintf(absClass, "%s", absSOList[aspos][0]);
-//							sprintf(absNum, "%s", absSOList[aspos][1]);
-//							finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
-//							finalPlotLines[finalLineCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//							finalPlotLines[finalLineCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//							finalPlotLines[finalLineCnt][2] = (char*) calloc(1, TOKENLENGTH);
-//							finalPlotLines[finalLineCnt][3] = (char*) calloc(1, TOKENLENGTH);
-//							finalPlotLines[finalLineCnt][4] = (char*) calloc(1, TOKENLENGTH);
-//							finalPlotLines[finalLineCnt][5] = (char*) calloc(1, TOKENLENGTH);
-//							sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
-//							sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
-//							sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
-//							sprintf(finalPlotLines[finalLineCnt][3],"%s",absRes);
-//							sprintf(finalPlotLines[finalLineCnt][4],"%s",absClass);
-//							sprintf(finalPlotLines[finalLineCnt][5],"%s",absNum);
-//							finalLineCnt++;
-//						}
-//					}
-//					else{
-//						finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
-//						finalPlotLines[finalLineCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//						finalPlotLines[finalLineCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//						finalPlotLines[finalLineCnt][2] = (char*) calloc(1, TOKENLENGTH);
-//						finalPlotLines[finalLineCnt][3] = (char*) calloc(1, TOKENLENGTH);
-//						finalPlotLines[finalLineCnt][4] = (char*) calloc(1, TOKENLENGTH);
-//						finalPlotLines[finalLineCnt][5] = (char*) calloc(1, TOKENLENGTH);
-//						sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
-//						sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
-//						sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
-//						sprintf(finalPlotLines[finalLineCnt][3],"%s",absRes);
-//						sprintf(finalPlotLines[finalLineCnt][4],"%s","");
-//						sprintf(finalPlotLines[finalLineCnt][5],"%s","");
-//						finalLineCnt++;
-//					}
-//				}
-//			}
-//			else{
-//				finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
-//				finalPlotLines[finalLineCnt][0] = (char*) calloc(1, TOKENLENGTH);
-//				finalPlotLines[finalLineCnt][1] = (char*) calloc(1, TOKENLENGTH);
-//				finalPlotLines[finalLineCnt][2] = (char*) calloc(1, TOKENLENGTH);
-//				finalPlotLines[finalLineCnt][3] = (char*) calloc(1, TOKENLENGTH);
-//				finalPlotLines[finalLineCnt][4] = (char*) calloc(1, TOKENLENGTH);
-//				finalPlotLines[finalLineCnt][5] = (char*) calloc(1, TOKENLENGTH);
-//				sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
-//				sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
-//				sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
-//				sprintf(finalPlotLines[finalLineCnt][3],"%s","");
-//				sprintf(finalPlotLines[finalLineCnt][4],"%s","");
-//				sprintf(finalPlotLines[finalLineCnt][5],"%s","");
-//				finalLineCnt++;
-//			}
-//		}
-//	}
 	//section 3 - we now have our ordinate result list, ordinate selected objects list, abscissa results list, and abscissa selected objects list
 
 
@@ -5657,6 +5411,57 @@ get_token_type( char *token, Analysis *analy, MO_class_data **class )
     return rval;
 }
 
+/*****************************************************************
+ * TAG( get_token_type_new )
+ *
+ * Identify command-line tokens belonging to mesh object lists.
+ */
+static MO_list_token_type_new
+get_token_type_new( char *token, Analysis *analy, MO_class_data **class )
+{
+    MO_list_token_type rval;
+    Htable_entry *p_hte;
+    Result_candidate *p_rc;
+
+    if ( strspn( token, "0123456789" ) == strlen( token ) )
+        rval = NUM;
+    else if (  htable_search( MESH( analy ).class_table, token, FIND_ENTRY,
+                              &p_hte )
+               == OK )
+    {
+        rval = MESH_OBJ_C;
+        *class = (MO_class_data *) p_hte->data;
+    }
+    else if ( strcmp( token, "-" ) == 0 )
+        rval = RANGE_SEP;
+    else if ( strchr( token, (int) '-' ) )
+        rval = COMPOUND_TOK;
+    else
+    {
+        rval = OTHER_TOK;
+        int i,j;
+        for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
+		{
+			p_rc = &possible_results[i];
+			for(j = 0; p_rc->short_names[j] != NULL; j++)
+			{
+				if(strcmp(token, p_rc->short_names[j]) == 0)
+				{
+					rval = RESULT_NAME;
+				}
+			}
+		}
+        if(rval != RESULT_NAME){
+        	//search refined result lists
+            Result result;
+        	if(find_result(analy, analy->result_source, TRUE, &result, token)){
+        		rval = RESULT_NAME;
+        	}
+        }
+    }
+
+    return rval;
+}
 
 #ifdef OLDMATTH
 /*****************************************************************
