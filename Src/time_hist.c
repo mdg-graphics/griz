@@ -923,10 +923,12 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                            temp_so->label = label_index;
 		                            temp_so->ident = get_class_label_index(p_class, label_index);
 		                        }
+
 		                        if(vsFound)
 		                        	INSERT( temp_so, ord_so_list );
 		                        else
 		                        	INSERT( temp_so, abs_so_list );
+
 		                        o_ident = temp_so->ident;
 		                        range_start = o_ident;
 
@@ -984,8 +986,6 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
     }
 
 	//section 3 - we now have our ordinate result list, ordinate selected objects list, abscissa results list, and abscissa selected objects list
-
-
 
 	//original code we want to keep
 	Time_series_obj *old_tsos, *ord_gather_list, *abs_gather_list, *gather_list;
