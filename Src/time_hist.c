@@ -238,6 +238,9 @@ static void create_oper_time_series( Analysis *, Result *, Specified_obj *,
                                      Plot_operation_type, Time_series_obj ** );
 static void prepare_plot_objects( Result *, Specified_obj *, Analysis *,
                                   Plot_obj ** );
+static void prepare_plot_objects_new( Result *, Specified_obj *,
+									  Result *, Specified_obj *,
+									  Analysis *, Plot_obj ** );
 static Time_series_obj * new_oper_time_series( Time_series_obj *,
         Time_series_obj *,
         Plot_operation_type );
@@ -272,22 +275,17 @@ static Bool_type match_spec_with_analy( Analysis *, Result_spec * );
 static void clear_plot_list( Plot_obj ** );
 static Specified_obj *copy_obj_list( Specified_obj * );
 static void add_mo_nodes( Specified_obj **, MO_class_data *, int, int );
-static MO_list_token_type get_token_type( char *, Analysis *,
-        MO_class_data ** );
+static MO_list_token_type get_token_type( char *, Analysis *, MO_class_data ** );
+static MO_list_token_type_new get_token_type_new( char *, Analysis *, MO_class_data ** );
 static void init_glyph_draw( float, float, float );
 static void draw_glyph( float[], Plot_glyph_data * );
 static void get_interval_min_max( float *, int, int, int, float *, float * );
-static void get_bounded_series_min_max( Time_series_obj *, int, int, float *,
-                                        float * );
-static void gen_blocks_intersection( int, Int_2tuple *, int, Int_2tuple *,
-                                     int *, Int_2tuple ** );
-static void init_aligned_glyph_func( int, int, float, Analysis *,
-                                     Plot_glyph_data * );
-static void init_staggered_glyph_func( int, int, float, Analysis *,
-                                       Plot_glyph_data * );
+static void get_bounded_series_min_max( Time_series_obj *, int, int, float *, float * );
+static void gen_blocks_intersection( int, Int_2tuple *, int, Int_2tuple *, int *, Int_2tuple ** );
+static void init_aligned_glyph_func( int, int, float, Analysis *, Plot_glyph_data * );
+static void init_staggered_glyph_func( int, int, float, Analysis *, Plot_glyph_data * );
 static Bool_type thresholded_glyph_func( float, Plot_glyph_data * );
-static void add_legend_text( Time_series_obj *, char **, int, int *, int *,
-                             Bool_type [] );
+static void add_legend_text( Time_series_obj *, char **, int, int *, int *, Bool_type [] );
 
 
 /* Defaults for glyph distribution function. */
@@ -784,7 +782,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 				{
 				//need to add this case in
 				case RESULT_NAME:
-					if(find_result(analy, analy->result_source, TRUE, &temp_res, tokens[pos])){
+					if(find_result(analy, analy->result_source, TRUE, temp_res, tokens[pos])){
 						if(vsFound){
 							APPEND(temp_res,ord_res_list);
 						}
@@ -844,13 +842,11 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                 */
 		                temp_so = NEW( Specified_obj, "Parsed MO" );
 		                temp_so->mo_class = p_class;
-		                if(!p_class->labels_found)
-		                {
-		                    p_so->label = atoi( tokens[pos] );
-		                    p_so->ident = p_so->label - 1;
+		                if(!p_class->labels_found){
+		                    temp_so->label = atoi( tokens[pos] );
+		                    temp_so->ident = temp_so->label - 1;
 		                }
-		                else
-		                {
+		                else{
 		                    label_index = atoi(tokens[pos]);
 		                    temp_so->label = label_index;
 		                    temp_so->ident = get_class_label_index(p_class, label_index);
@@ -867,75 +863,72 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                else{
 		                	APPEND( temp_so, abs_so_list );
 		                }
-		                o_ident = p_so->ident;
+		                o_ident = temp_so->ident;
 		                parsingRange = False;
 					}
 					break;
 				case RANGE_SEP:
 		            if ( p_class != NULL && o_ident != NON_IDENT )
 		            {
-		                parsing_range = TRUE;
+		                parsingRange = TRUE;
 		                range_start = label_index +1;
 		            }
 					break;
 				case COMPOUND_TOK:
 		            /* There should be at least one numeral in the string... */
-		            if ( extract_numeric_str( tokens[pos], nstr ) )
-		            {
-		                if ( tokens[pos][0] == '-' )
-		                {
+		            if ( extract_numeric_str( tokens[pos], nstr ) ){
+		                if ( tokens[pos][0] == '-' ){
 		                    /*
 		                     * Must be processing a range and this compound token
 		                     * contains the range stop ident.  Process the rest
 		                     * of the range here.
 		                     */
 		                    range_stop = atoi( nstr );
-		                    if(vsFound)
+		                    if(vsFound){
 		                    	add_mo_nodes( &ord_so_list, p_class, o_ident, range_stop );
-		                    else
+		                    }
+		                    else{
 		                    	add_mo_nodes( &abs_so_list, p_class, o_ident, range_stop );
-
+		                    }
 		                    o_ident = NON_IDENT;
 		                }
-		                else if ( p_class != NULL )
-		                {
+		                else if ( p_class != NULL ){
 		                    o_ident = atoi( nstr ) ;
 		                    range_start = o_ident;
 		                    p_h = strchr( tokens[pos], (int) '-' );
 
 		                    /* If the last char is a hyphen... */
 		                    len = strlen( tokens[pos] );
-		                    if ( tokens[pos][len - 1] == '-' )
-		                    {
+		                    if ( tokens[pos][len - 1] == '-' ){
 		                        /*
 		                         * This compound token has just the range start
 		                         * ident so process it here and continue.
 		                         */
 		                        temp_so = NEW( Specified_obj, "Parsed MO" );
 		                        temp_so->mo_class = p_class;
-		                        if(!p_class->labels_found)
-		                        {
-		                            temp_so->label = atoi( tokens[i] );
-		                            temp_so->ident = p_so->label - 1;
-		                        } else
-		                        {
+		                        if(!p_class->labels_found){
+		                            temp_so->label = atoi( tokens[pos] );
+		                            temp_so->ident = temp_so->label - 1;
+		                        }
+		                        else{
 		                            label_index = atoi(tokens[pos]);
 		                            temp_so->label = label_index;
 		                            temp_so->ident = get_class_label_index(p_class, label_index);
 		                        }
 
-		                        if(vsFound)
+		                        if(vsFound){
 		                        	INSERT( temp_so, ord_so_list );
-		                        else
+		                        }
+		                        else{
 		                        	INSERT( temp_so, abs_so_list );
+		                        }
 
 		                        o_ident = temp_so->ident;
 		                        range_start = o_ident;
 
-		                        parsing_range = TRUE;
+		                        parsingRange = TRUE;
 		                    }
-		                    else if ( extract_numeric_str( p_h , nstr ) )
-		                    {
+		                    else if ( extract_numeric_str( p_h , nstr ) ){
 		                        /*
 		                         * This compound token has both start and stop
 		                         * idents so process the whole range here.
@@ -947,10 +940,8 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                        	add_mo_nodes( &abs_so_list, p_class, range_start, range_stop );
 		                        o_ident = NON_IDENT;
 		                    }
-		                    else
-		                    {
-		                        popup_dialog( WARNING_POPUP,
-		                                      "Failed to parse compound token!\n" );
+		                    else{
+		                        popup_dialog( WARNING_POPUP, "Failed to parse compound token!\n" );
 		                    }
 		                }
 		            }
@@ -3781,8 +3772,7 @@ create_oper_time_series( Analysis *analy,
  * Allocate and initialize an operation time series.
  */
 static Time_series_obj *
-new_oper_time_series( Time_series_obj *p_tso1, Time_series_obj *p_tso2,
-                      Plot_operation_type otype )
+new_oper_time_series( Time_series_obj *p_tso1, Time_series_obj *p_tso2, Plot_operation_type otype )
 {
     Time_series_obj *p_op_tso;
     int i, j;
@@ -3859,8 +3849,7 @@ new_oper_time_series( Time_series_obj *p_tso1, Time_series_obj *p_tso2,
  * combination.
  */
 static void
-prepare_plot_objects_new( Result *ord_res_list, Specified_obj *ord_so_list, Result *abs_res_list, Specified_obj *abs_so_list,
-                      Analysis *analy, Plot_obj **p_plot_list )
+prepare_plot_objects_new( Result *ord_res_list, Specified_obj *ord_so_list, Result *abs_res_list, Specified_obj *abs_so_list, Analysis *analy, Plot_obj **p_plot_list )
 {
     Result *p_r, *p_r2;
     Result *abscissa_result;
