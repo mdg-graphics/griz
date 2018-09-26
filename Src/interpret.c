@@ -226,6 +226,7 @@
 #include "traction_force.h"
 #include "misc.h"
 #include "io_wrap.h"
+#include "time_hist.h"
 #include <errno.h>
 
 #ifdef VIDEO_FRAMER
@@ -12125,20 +12126,28 @@ get_token_type_new( char *token, Analysis *analy, MO_class_data **class )
         rval = OTHER_TOK;
         int i,j;
         for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
-            {
-                p_rc = &possible_results[i];
-                for(j = 0; p_rc->short_names[j] != NULL; j++)
-                {
-                	if(strcmp(token, p_rc->short_names[j]) == 0)
-                	{
-                		rval = RESULT_NAME;
-                	}
-                }
-            }
+		{
+			p_rc = &possible_results[i];
+			for(j = 0; p_rc->short_names[j] != NULL; j++)
+			{
+				if(strcmp(token, p_rc->short_names[j]) == 0)
+				{
+					rval = RESULT_NAME;
+				}
+			}
+		}
+        if(rval != RESULT_NAME){
+        	//search refined result lists
+            Result result;
+        	if(find_result(analy, analy->result_source, TRUE, &result, token)){
+        		rval = RESULT_NAME;
+        	}
+        }
     }
 
     return rval;
 }
+
 
 void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]){//, char*** plotLineDefinitions){ am I on the branch?
 	//section 1
@@ -12159,6 +12168,22 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
     MO_class_data *p_class;
     int range_start,range_stop,len,num,dashLoc,dpos;
     char buff[TOKENLENGTH];
+
+    //new idea, use lists that we will need for
+    Result *ord_res_list, *abs_res_list, *temp_res;
+    ord_res_list = NULL;
+    abs_res_list = NULL;
+    temp_res = NULL
+    Specified_obj *ord_so_list, *abs_so_list, *temp_so;
+    ord_so_list = NULL;
+    abs_so_list = NULL;
+    temp_so = NULL;
+    int orsize,arsize,ossize,assize;
+    orsize = 0;
+    arsize = 0;
+    ossize = 0;
+    assize = 0;
+
 
 
 	//section 2
@@ -12192,13 +12217,13 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 				{
 				//need to add this case in
 				case RESULT_NAME:
-					curResList[curResCnt] = (char*) malloc( TOKENLENGTH*sizeof(char));
+					curResList[curResCnt] = (char*) calloc(1, TOKENLENGTH);
 					strcpy(curResList[curResCnt], tokens[pos]);
 					curResCnt++;
 					parsingRange = False;
 					break;
 				case MESH_OBJ_C:
-					curClassName = (char*) malloc( TOKENLENGTH*sizeof(char));
+					curClassName = (char*) calloc(1, TOKENLENGTH);
 					strcpy(curClassName, tokens[pos]);
 					break;
 				case NUM:
@@ -12210,8 +12235,8 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 						range_stop = atoi(tokens[pos]);
 						for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
 							curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-							curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-							curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
+							curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
 							strcpy(curSOList[curSOCnt][0], curClassName);
 							sprintf(curSOList[curSOCnt][1], "%d", num);
 							curSOCnt++;
@@ -12222,8 +12247,8 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 					else{
 						range_start = atoi(tokens[pos]);
 						curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-						curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-						curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
+						curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
 						strcpy(curSOList[curSOCnt][0], curClassName);
 						strcpy(curSOList[curSOCnt][1], tokens[pos]);
 						curSOCnt++;
@@ -12259,8 +12284,8 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 							range_stop = atoi(buff);
 							for(rpos = (range_start+1); rpos < (range_stop+1); rpos++){
 								curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-								curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-								curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+								curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
+								curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
 								//strcpy(curSOList[curSOCnt][0], curClassName);
 								sprintf(curSOList[curSOCnt][0], "%s", curClassName);
 								sprintf(curSOList[curSOCnt][1], "%d", num);
@@ -12283,8 +12308,8 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 							range_stop = atoi(buff);
 							for(rpos = (range_start); rpos < (range_stop+1); rpos++){
 								curSOList[curSOCnt] = (char**) malloc( 2*sizeof(char*));
-								curSOList[curSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-								curSOList[curSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+								curSOList[curSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
+								curSOList[curSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
 								//strcpy(curSOList[curSOCnt][0], curClassName);
 								sprintf(curSOList[curSOCnt][0], "%s", curClassName);
 								sprintf(curSOList[curSOCnt][1], "%d", num);
@@ -12312,7 +12337,7 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 	// fill ordinate results with current result if none found
 	if(ordResCnt == 0){
 		//res_list = duplicate_result( analy, analy->cur_result, TRUE )
-		ordResList[ordResCnt] = (char*) malloc( TOKENLENGTH*sizeof(char));
+		ordResList[ordResCnt] = (char*) calloc(1, TOKENLENGTH);
 		strcpy(ordResList[ordResCnt], analy->cur_result->name);
 		ordResCnt++;
 		printf("");
@@ -12328,14 +12353,14 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 		so_list = analy->selected_objects;
 		while(so_list != NULL){
 			ordSOList[ordSOCnt] = (char**) malloc( 2*sizeof(char*));
-			ordSOList[ordSOCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-			ordSOList[ordSOCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
+			ordSOList[ordSOCnt][0] = (char*) calloc(1, TOKENLENGTH);
+			ordSOList[ordSOCnt][1] = (char*) calloc(1, TOKENLENGTH);
 			strcpy(ordSOList[ordSOCnt][0], so_list->mo_class->short_name);
 			sprintf(ordSOList[ordSOCnt][1], "%d", so_list->label);
 			ordSOCnt++;
 			so_list = so_list->next;
 		}
-		printf("");
+		ord_so_list = copy_obj_list( analy->selected_objects );
 	}
 	// if any of these 2 sets are empty after this we cannot proceed
 	if(ordResCnt == 0 || ordSOCnt == 0){
@@ -12372,12 +12397,12 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 							sprintf(absClass, "%s", absSOList[aspos][0]);
 							sprintf(absNum, "%s", absSOList[aspos][1]);
 							finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
-							finalPlotLines[finalLineCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-							finalPlotLines[finalLineCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
-							finalPlotLines[finalLineCnt][2] = (char*) malloc( TOKENLENGTH*sizeof(char));
-							finalPlotLines[finalLineCnt][3] = (char*) malloc( TOKENLENGTH*sizeof(char));
-							finalPlotLines[finalLineCnt][4] = (char*) malloc( TOKENLENGTH*sizeof(char));
-							finalPlotLines[finalLineCnt][5] = (char*) malloc( TOKENLENGTH*sizeof(char));
+							finalPlotLines[finalLineCnt][0] = (char*) calloc(1, TOKENLENGTH);
+							finalPlotLines[finalLineCnt][1] = (char*) calloc(1, TOKENLENGTH);
+							finalPlotLines[finalLineCnt][2] = (char*) calloc(1, TOKENLENGTH);
+							finalPlotLines[finalLineCnt][3] = (char*) calloc(1, TOKENLENGTH);
+							finalPlotLines[finalLineCnt][4] = (char*) calloc(1, TOKENLENGTH);
+							finalPlotLines[finalLineCnt][5] = (char*) calloc(1, TOKENLENGTH);
 							sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
 							sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
 							sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
@@ -12389,12 +12414,12 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 					}
 					else{
 						finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
-						finalPlotLines[finalLineCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-						finalPlotLines[finalLineCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
-						finalPlotLines[finalLineCnt][2] = (char*) malloc( TOKENLENGTH*sizeof(char));
-						finalPlotLines[finalLineCnt][3] = (char*) malloc( TOKENLENGTH*sizeof(char));
-						finalPlotLines[finalLineCnt][4] = (char*) malloc( TOKENLENGTH*sizeof(char));
-						finalPlotLines[finalLineCnt][5] = (char*) malloc( TOKENLENGTH*sizeof(char));
+						finalPlotLines[finalLineCnt][0] = (char*) calloc(1, TOKENLENGTH);
+						finalPlotLines[finalLineCnt][1] = (char*) calloc(1, TOKENLENGTH);
+						finalPlotLines[finalLineCnt][2] = (char*) calloc(1, TOKENLENGTH);
+						finalPlotLines[finalLineCnt][3] = (char*) calloc(1, TOKENLENGTH);
+						finalPlotLines[finalLineCnt][4] = (char*) calloc(1, TOKENLENGTH);
+						finalPlotLines[finalLineCnt][5] = (char*) calloc(1, TOKENLENGTH);
 						sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
 						sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
 						sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
@@ -12407,12 +12432,12 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 			}
 			else{
 				finalPlotLines[finalLineCnt] = (char**) malloc( 6*sizeof(char*));
-				finalPlotLines[finalLineCnt][0] = (char*) malloc( TOKENLENGTH*sizeof(char));
-				finalPlotLines[finalLineCnt][1] = (char*) malloc( TOKENLENGTH*sizeof(char));
-				finalPlotLines[finalLineCnt][2] = (char*) malloc( TOKENLENGTH*sizeof(char));
-				finalPlotLines[finalLineCnt][3] = (char*) malloc( TOKENLENGTH*sizeof(char));
-				finalPlotLines[finalLineCnt][4] = (char*) malloc( TOKENLENGTH*sizeof(char));
-				finalPlotLines[finalLineCnt][5] = (char*) malloc( TOKENLENGTH*sizeof(char));
+				finalPlotLines[finalLineCnt][0] = (char*) calloc(1, TOKENLENGTH);
+				finalPlotLines[finalLineCnt][1] = (char*) calloc(1, TOKENLENGTH);
+				finalPlotLines[finalLineCnt][2] = (char*) calloc(1, TOKENLENGTH);
+				finalPlotLines[finalLineCnt][3] = (char*) calloc(1, TOKENLENGTH);
+				finalPlotLines[finalLineCnt][4] = (char*) calloc(1, TOKENLENGTH);
+				finalPlotLines[finalLineCnt][5] = (char*) calloc(1, TOKENLENGTH);
 				sprintf(finalPlotLines[finalLineCnt][0],"%s",ordRes);
 				sprintf(finalPlotLines[finalLineCnt][1],"%s",ordClass);
 				sprintf(finalPlotLines[finalLineCnt][2],"%s",ordNum);
@@ -12423,68 +12448,126 @@ void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKE
 			}
 		}
 	}
-	//section 3
+	//section 3 - we now have our ordinate result list, ordinate selected objects list, abscissa results list, and abscissa selected objects list
 
+
+
+	//original code we want to keep
+	Time_series_obj *old_tsos, *ord_gather_list, *abs_gather_list, *gather_list;
+    Gather_segment *control_list;
+    int good_time_series;
+
+    /* Ensure there's a global object if the results need one. */
+    check_for_global( ord_res_list, &ord_so_list, analy );
+    check_for_global( abs_res_list, &abs_so_list, analy );
+
+    clear_plot_list( &analy->current_plots );
+
+    good_time_series = 0;
+    good_time_series = gen_gather( ord_res_list, ord_so_list, analy, &ord_gather_list );
+
+    if ( good_time_series == 0 )
+	{
+		remove_unused_results( &ord_res_list );
+		DELETE_LIST( ord_so_list );
+		popup_dialog( INFO_POPUP, "No valid result/mesh object combinations "
+					  "found; aborting." );
+		return;
+	}
+    if(vsFound){
+    	good_time_series = 0;
+		good_time_series = gen_gather( abs_res_list, abs_so_list, analy, &abs_gather_list );
+
+		if ( good_time_series == 0 )
+		{
+			remove_unused_results( &abs_res_list );
+			DELETE_LIST( abs_so_list );
+			popup_dialog( INFO_POPUP, "No valid result/mesh object combinations "
+						  "found; aborting." );
+			return;
+		}
+	    APPEND(abs_gather_list, ord_gather_list);
+	    old_tsos = NULL;
+    }
+
+    /* Generate state "segments" with constant gather lists. */
+    gen_control_list( ord_gather_list, analy, &control_list );
+
+    /* Update "evaluated at" limits for each time series. */
+    update_eval_states( ord_gather_list, analy );
+
+    /* Keep a reference to first of any extant time series'. */
+    old_tsos = analy->time_series_list;
+
+    /* Attach the old series list to the tail of the new list. */
+	if ( old_tsos != NULL )
+		APPEND( old_tsos, gather_list );
+
+    /* Update time series list pointer. */
+    analy->time_series_list = ord_gather_list;
+
+    //get time values if no abscissa
+    if ( abs_res_list == NULL)
+	{
+		/* Retrieve time array from db if necessary. */
+		if ( analy->times == NULL )
+			analy->times = new_time_tso( analy );
+		else if ( analy->times->state_blocks[0][1] != analy->last_state )
+		{
+			destroy_time_series( &analy->times );
+			analy->times = new_time_tso( analy );
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/* Create plot objects. */
+	prepare_plot_objects_new( ord_res_list, ord_so_list, abs_res_list, abs_so_list, analy, &analy->current_plots );
+
+	if(*&analy->current_plots == NULL)
+	{
+	   popup_dialog(USAGE_POPUP, "specifiying the same element class on both sides of \"vs\" is not supported.");
+	   return;
+	}
+
+	/* Don't need Specified_obj list anymore. */
+	DELETE_LIST( ord_so_list );
+	DELETE_LIST( abs_so_list );
+
+	/*
+	 * Clean-up any unreferenced time series' among the new ones.
+	 * This could happen if one of an abscissa/ordinate pair were
+	 * unavailable for a plot, in which case no Plot_obj would have been
+	 * created and the existing half of the pair would have a zero
+	 * reference count.
+	 */
+	remove_unused_time_series( &analy->time_series_list, old_tsos, analy );
+
+	/* Remove unused results then hang the remainder for long-term storage. */
+	remove_unused_results( &ord_res_list );
+	remove_unused_results( &abs_res_list );
+
+	if ( abs_res_list != NULL )
+		APPEND( ord_res_list, analy->series_results );
+	if ( abs_res_list != NULL )
+		APPEND( ord_res_list, analy->series_results );
+
+	/* Gather the time series data. */
+	gather_time_series( control_list, analy );
+
+	/* Clean up. */
+	clear_gather_resources( &control_list, analy );
 }
-
-///************************************************************
-// * TAG( restore_colors )
-// *
-// * restore a material's rendering properties.
-// */
-//void restore_colors(Analysis* analy, Bool_type lastColors){
-//
-//	Bool_type continueRestore = FALSE;
-//    float** ambient;
-//    float** diffuse;
-//    float** specular;
-//    float** emission;
-//    float* shininess;
-//
-//	if(lastColors){
-//		if(analy->lastColorActive){
-//			ambient = analy->last_ambient;
-//			diffuse = analy->last_diffuse;
-//			specular = analy->last_specular;
-//			emission = analy->last_emission;
-//			shininess = analy->last_shininess;
-//			continueRestore = TRUE;
-//		}
-//	}
-//	else{
-//		if(analy->defaultColorActive){
-//			ambient = analy->default_ambient;
-//			diffuse = analy->default_diffuse;
-//			specular = analy->default_specular;
-//			emission = analy->default_emission;
-//			shininess = analy->default_shininess;
-//			continueRestore = TRUE;
-//		}
-//	}
-//	if(continueRestore){
-//		int mtl = 0;
-//		for(mtl = 1; mtl <= analy->max_mesh_mat_qty; mtl++){
-//			char cmd_str[100];
-//			//ambient
-//			sprintf(cmd_str, "mat %s amb %f %f %f", mtl, ambient[mtl][0], ambient[mtl][1], ambient[mtl][2]);
-//			parse_single_command(cmd_str, analy);
-//			//diffuse
-//			sprintf(cmd_str, "mat %s dif %f %f %f", mtl, diffuse[mtl][0], diffuse[mtl][1], diffuse[mtl][2]);
-//			parse_single_command(cmd_str, analy);
-//			//specular
-//			sprintf(cmd_str, "mat %s spec %f %f %f", mtl, specular[mtl][0], specular[mtl][1], specular[mtl][2]);
-//			parse_single_command(cmd_str, analy);
-//			//emission
-//			sprintf(cmd_str, "mat %s emis %f %f %f", mtl, emission[mtl][0], emission[mtl][1], emission[mtl][2]);
-//			parse_single_command(cmd_str, analy);
-//			//shininess
-//			sprintf(cmd_str, "mat %s shine %f", mtl, shininess);
-//			parse_single_command(cmd_str, analy);
-//			//alpha
-//			sprintf(cmd_str, "mat %s alpha %f", mtl, diffuse[mtl][3]);
-//			parse_single_command(cmd_str, analy);
-//		}
-//	}
-//
-//}
 
