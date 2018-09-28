@@ -960,6 +960,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
     if(ord_so_list == NULL && analy->selected_objects != NULL){
         ord_so_list = copy_obj_list( analy->selected_objects);
     }
+
     // fill ordinate results with current result if none found
     if(ord_res_list == NULL){
     	if(analy->cur_result == NULL){
