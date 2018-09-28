@@ -778,8 +778,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 			}
 			else{
 				tokType = get_token_type_new( tokens[pos], analy, &p_class, &temp_res );
-				switch(tokType)
-				{
+				switch(tokType){
 				//need to add this case in
 				case RESULT_NAME:
 					if(!vsFound){
@@ -802,8 +801,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 					parsingRange = False;
 					break;
 				case MESH_OBJ_CLASS:
-		            if ( p_class->superclass == G_MESH )
-		            {
+		            if ( p_class->superclass == G_MESH ){
 		                /*
 		                 * A G_MESH class will have no idents following so just
 		                 * add it to the list, reset the current type, and continue.
@@ -825,17 +823,13 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		            o_ident = NON_IDENT;
 					break;
 				case NUMERIC:
-					if(strcmp( curClassName, "" ) == 0){
-						printf("error, no class given for these numbers");
-						break;
-					}
 					if(parsingRange){
 		                /*
 		                 * Must already have processed the range start ident so
 		                 * process the range.
 		                 */
 		                range_stop = atoi( tokens[pos] ) ;
-		                if(vsFound){
+		                if(!vsFound){
 		                	add_mo_nodes( &ord_so_list, p_class, range_start, range_stop );
 		                }
 						else{
@@ -858,14 +852,13 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                    label_index = atoi(tokens[pos]);
 		                    temp_so->label = label_index;
 		                    temp_so->ident = get_class_label_index(p_class, label_index);
-		                    if(temp_so->ident == M_INVALID_LABEL)
-		                    {
+		                    if(temp_so->ident == M_INVALID_LABEL){
 		                        free(temp_so);
 		                        continue;
 		                    }
 
 		                }
-		                if(vsFound){
+		                if(!vsFound){
 		                	APPEND( temp_so, ord_so_list );
 		                }
 		                else{
@@ -876,8 +869,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 					}
 					break;
 				case RANGE_SEPARATOR:
-		            if ( p_class != NULL && o_ident != NON_IDENT )
-		            {
+		            if ( p_class != NULL && o_ident != NON_IDENT ){
 		                parsingRange = TRUE;
 		                range_start = label_index +1;
 		            }
@@ -892,7 +884,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                     * of the range here.
 		                     */
 		                    range_stop = atoi( nstr );
-		                    if(vsFound){
+		                    if(!vsFound){
 		                    	add_mo_nodes( &ord_so_list, p_class, o_ident, range_stop );
 		                    }
 		                    else{
@@ -924,7 +916,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                            temp_so->ident = get_class_label_index(p_class, label_index);
 		                        }
 
-		                        if(vsFound){
+		                        if(!vsFound){
 		                        	INSERT( temp_so, ord_so_list );
 		                        }
 		                        else{
@@ -942,7 +934,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                         * idents so process the whole range here.
 		                         */
 		                        range_stop = atoi( nstr ) ;
-		                        if(vsFound)
+		                        if(!vsFound)
 		                        	add_mo_nodes( &ord_so_list, p_class, range_start, range_stop );
 		                        else
 		                        	add_mo_nodes( &abs_so_list, p_class, range_start, range_stop );
@@ -1035,7 +1027,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 
     /* Attach the old series list to the tail of the new list. */
 	if ( old_tsos != NULL )
-		APPEND( old_tsos, gather_list );
+		APPEND( old_tsos, ord_gather_list );
 
     /* Update time series list pointer. */
     analy->time_series_list = ord_gather_list;
@@ -1079,10 +1071,10 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 	remove_unused_results( &ord_res_list );
 	remove_unused_results( &abs_res_list );
 
-	if ( abs_res_list != NULL )
+	if ( ord_res_list != NULL )
 		APPEND( ord_res_list, analy->series_results );
 	if ( abs_res_list != NULL )
-		APPEND( ord_res_list, analy->series_results );
+		APPEND( abs_res_list, analy->series_results );
 
 	/* Gather the time series data. */
 	gather_time_series( control_list, analy );

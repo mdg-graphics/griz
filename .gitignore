@@ -3,3 +3,15 @@ Src/GRIZ*/
 Src/*.log
 Src/test/scripts
 Src/autom4te.cache/
+Src/.*
+Src/log.*
+Src/test/log.*
+Src/test/run.log.*
+Src/*~
+Src/test/toss_3_x86_64_ib.serial
+log.*
+scripts
+Src/Test.py
+Src/test/chaos_5_x86_64_ib.serial
+*~
+Src/junk
