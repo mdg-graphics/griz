@@ -276,7 +276,7 @@ static void clear_plot_list( Plot_obj ** );
 static Specified_obj *copy_obj_list( Specified_obj * );
 static void add_mo_nodes( Specified_obj **, MO_class_data *, int, int );
 static MO_list_token_type get_token_type( char *, Analysis *, MO_class_data ** );
-static MO_list_token_type_new get_token_type_new( char *, Analysis *, MO_class_data ** );
+static MO_list_token_type get_token_type_new( char *, Analysis *, MO_class_data **, Result **);
 static void init_glyph_draw( float, float, float );
 static void draw_glyph( float[], Plot_glyph_data * );
 static void get_interval_min_max( float *, int, int, int, float *, float * );
@@ -777,23 +777,31 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 				parsingRange = False;
 			}
 			else{
-				tokType = get_token_type_new( tokens[pos], analy, &p_class );
+				tokType = get_token_type_new( tokens[pos], analy, &p_class, &temp_res );
 				switch(tokType)
 				{
 				//need to add this case in
 				case RESULT_NAME:
-					if(find_result(analy, analy->result_source, TRUE, temp_res, tokens[pos])){
-						if(vsFound){
+					if(!vsFound){
+						if(ord_res_list == NULL){
+							ord_res_list = temp_res;
+						}
+						else{
 							APPEND(temp_res,ord_res_list);
+						}
+					}
+					else{
+						if(abs_res_list == NULL){
+							abs_res_list = temp_res;
 						}
 						else{
 							APPEND(temp_res,abs_res_list);
 						}
-						temp_res = NULL;
 					}
+					temp_res = NULL;
 					parsingRange = False;
 					break;
-				case MESH_OBJ_C:
+				case MESH_OBJ_CLASS:
 		            if ( p_class->superclass == G_MESH )
 		            {
 		                /*
@@ -805,7 +813,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                temp_so = NEW( Specified_obj, "Parsed G_MESH MO" );
 		                temp_so->ident = 0;
 		                temp_so->mo_class = p_class;
-		                if(vsFound){
+		                if(!vsFound){
 		                	INSERT( temp_so, ord_so_list );
 		                }
 		                else{
@@ -816,7 +824,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		            }
 		            o_ident = NON_IDENT;
 					break;
-				case NUM:
+				case NUMERIC:
 					if(strcmp( curClassName, "" ) == 0){
 						printf("error, no class given for these numbers");
 						break;
@@ -867,14 +875,14 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 		                parsingRange = False;
 					}
 					break;
-				case RANGE_SEP:
+				case RANGE_SEPARATOR:
 		            if ( p_class != NULL && o_ident != NON_IDENT )
 		            {
 		                parsingRange = TRUE;
 		                range_start = label_index +1;
 		            }
 					break;
-				case COMPOUND_TOK:
+				case COMPOUND_TOKEN:
 		            /* There should be at least one numeral in the string... */
 		            if ( extract_numeric_str( tokens[pos], nstr ) ){
 		                if ( tokens[pos][0] == '-' ){
@@ -5405,48 +5413,66 @@ get_token_type( char *token, Analysis *analy, MO_class_data **class )
  *
  * Identify command-line tokens belonging to mesh object lists.
  */
-static MO_list_token_type_new
-get_token_type_new( char *token, Analysis *analy, MO_class_data **class )
+static MO_list_token_type
+get_token_type_new( char *token, Analysis *analy, MO_class_data **class, Result **result )
 {
     MO_list_token_type rval;
     Htable_entry *p_hte;
-    Result_candidate *p_rc;
+    Result *p_r;
+    Bool_type found;
 
     if ( strspn( token, "0123456789" ) == strlen( token ) )
-        rval = NUM;
-    else if (  htable_search( MESH( analy ).class_table, token, FIND_ENTRY,
-                              &p_hte )
-               == OK )
-    {
-        rval = MESH_OBJ_C;
+        rval = NUMERIC;
+    else if (  htable_search( MESH( analy ).class_table, token, FIND_ENTRY, &p_hte ) == OK ){
+        rval = MESH_OBJ_CLASS;
         *class = (MO_class_data *) p_hte->data;
     }
     else if ( strcmp( token, "-" ) == 0 )
-        rval = RANGE_SEP;
+        rval = RANGE_SEPARATOR;
     else if ( strchr( token, (int) '-' ) )
-        rval = COMPOUND_TOK;
-    else
-    {
-        rval = OTHER_TOK;
+        rval = COMPOUND_TOKEN;
+    else{
+        rval = OTHER_TOKEN;
         int i,j;
-        for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
+        p_r = NULL;
+        /* First search among extant time history results. */
+		found = analy->result_mod ? FALSE : find_named_result_in_list( analy, token, analy->series_results, &p_r );
+		if ( found )
 		{
-			p_rc = &possible_results[i];
-			for(j = 0; p_rc->short_names[j] != NULL; j++)
+			/* Remove this result from the list */
+
+			UNLINK( p_r, analy->series_results );
+			INIT_PTRS( p_r );
+
+			/* IRC: Added May 23, 2005
+			 *      SCR#: 316
+			 */
+			if (p_r->must_recompute)
 			{
-				if(strcmp(token, p_rc->short_names[j]) == 0)
-				{
-					rval = RESULT_NAME;
-				}
+				cleanse_result( p_r );
+				p_r = NEW( Result, "History result" );
+				found = find_result( analy, ALL, FALSE, p_r, token );
 			}
 		}
-        if(rval != RESULT_NAME){
-        	//search refined result lists
-            Result result;
-        	if(find_result(analy, analy->result_source, TRUE, &result, token)){
+		else{
+			/* If necessary, search among possible results for db. */
+			p_r = NEW( Result, "History result" );
+			found = find_result( analy, ALL, FALSE, p_r, token );
+		}
+
+		if ( !p_r->single_valued ){
+			/* Can only plot scalars. */
+			cleanse_result( p_r );
+			free( p_r );
+			p_r = NULL;
+			popup_dialog( INFO_POPUP, "Ignoring non-scalar result \"%s\".", token);
+			rval = OTHER_TOKEN;
+		}
+		else if(found){
+			/* Good result; return it */
         		rval = RESULT_NAME;
-        	}
-        }
+        		*result = p_r;
+		}
     }
 
     return rval;

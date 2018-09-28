@@ -615,24 +615,9 @@ typedef enum
     MESH_OBJ_CLASS,
     RANGE_SEPARATOR,
     COMPOUND_TOKEN,
-    OTHER_TOKEN
+    OTHER_TOKEN,
+    RESULT_NAME
 } MO_list_token_type;
-
-
-/*****************************************************************
-* TAG( MO_list_token_type_new )
- *
- * Types of tokens in a mesh object specification list.
- */
-typedef enum
-{
-    NUM,
-    RESULT_NAME,
-    MESH_OBJ_C,
-    RANGE_SEP,
-    COMPOUND_TOK,
-    OTHER_TOK
-} MO_list_token_type_new;
 
 
 /*****************************************************************
