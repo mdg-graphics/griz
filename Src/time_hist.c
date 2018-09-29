@@ -739,7 +739,7 @@ update_plots( Analysis *analy )
  * <abscissa result> defaults to "time".
  */
 extern void
-create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH])
+create_plot_objects_new( int token_cnt, char tokens[][TOKENLENGTH], Analysis *analy, Plot_obj **p_plot_list )
 {
 	//section 1
 
@@ -988,7 +988,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
     check_for_global( ord_res_list, &ord_so_list, analy );
     check_for_global( abs_res_list, &abs_so_list, analy );
 
-    clear_plot_list( &analy->current_plots );
+    clear_plot_list( p_plot_list );
 
     good_time_series = 0;
     good_time_series = gen_gather( ord_res_list, ord_so_list, analy, &ord_gather_list );
@@ -1047,9 +1047,9 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 	}
 
 	/* Create plot objects. */
-	prepare_plot_objects_new( ord_res_list, ord_so_list, abs_res_list, abs_so_list, analy, &analy->current_plots );
+	prepare_plot_objects_new( ord_res_list, ord_so_list, abs_res_list, abs_so_list, analy, p_plot_list );
 
-	if(*&analy->current_plots == NULL)
+	if(p_plot_list != NULL && *p_plot_list == NULL)
 	{
 	   popup_dialog(USAGE_POPUP, "specifiying the same element class on both sides of \"vs\" is not supported.");
 	   return;
@@ -1070,10 +1070,10 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
 
 	/* Remove unused results then hang the remainder for long-term storage. */
 	remove_unused_results( &ord_res_list );
-	remove_unused_results( &abs_res_list );
-
 	if ( ord_res_list != NULL )
 		APPEND( ord_res_list, analy->series_results );
+
+	remove_unused_results( &abs_res_list );
 	if ( abs_res_list != NULL )
 		APPEND( abs_res_list, analy->series_results );
 
@@ -1099,8 +1099,7 @@ create_plot_objects_new(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][T
  * <abscissa result> defaults to "time".
  */
 extern void
-create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
-                     Analysis *analy, Plot_obj **p_plot_list )
+create_plot_objects( int token_qty, char tokens[][TOKENLENGTH], Analysis *analy, Plot_obj **p_plot_list )
 {
     int i;
     Result *res_list;

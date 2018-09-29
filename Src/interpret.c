@@ -5378,7 +5378,7 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 			}
 
-			create_plot_objects_new(analy,token_cnt,tokens);
+			create_plot_objects_new(token_cnt,tokens,analy,&analy->current_plots);
 			//plotTokenParser(analy,token_cnt,tokens);
 
 			for(i = 0; i < token_cnt; i++)
