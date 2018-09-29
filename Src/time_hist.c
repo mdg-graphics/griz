@@ -546,11 +546,12 @@ parse_gather_command( int token_qty, char tokens[MAXTOKENS][TOKENLENGTH],
     /* Preclude saving the plot specification. */
     refresh = TRUE;
 
-    if ( is_operation_token( tokens[1], &oper_type ) )
+    if ( is_operation_token( tokens[1], &oper_type ) ){
         create_oper_plot_objects( token_qty, tokens, analy, &dummy_plots );
-    else
-        create_plot_objects( token_qty, tokens, analy, &dummy_plots );
-
+    }
+    else{
+        create_plot_objects_new( token_qty, tokens, analy, &dummy_plots );
+    }
     refresh = FALSE;
 
     /* Don't need the plot objects. */
@@ -612,7 +613,7 @@ output_time_series( int token_qty, char tokens[MAXTOKENS][TOKENLENGTH],
         {
             output_plots = NULL;
             refresh = TRUE; /* Preclude saving the plot specification. */
-            create_plot_objects( token_qty - 1, tokens + 1, analy, &output_plots );
+            create_plot_objects_new( token_qty - 1, tokens + 1, analy, &output_plots );
             refresh = FALSE;
             if ( output_plots == NULL )
             {
@@ -711,7 +712,7 @@ update_plots( Analysis *analy )
 
     /* On refresh, use existing command. */
     if ( strcmp( current_tokens[0], "plot" ) == 0 )
-        create_plot_objects( current_token_qty, current_tokens, analy,
+        create_plot_objects_new( current_token_qty, current_tokens, analy,
                              &analy->current_plots );
     else if ( strcmp( current_tokens[0], "oplot" ) == 0 )
         create_oper_plot_objects( current_token_qty, current_tokens, analy,
@@ -739,7 +740,7 @@ update_plots( Analysis *analy )
  * <abscissa result> defaults to "time".
  */
 extern void
-create_plot_objects_new( int token_cnt, char tokens[][TOKENLENGTH], Analysis *analy, Plot_obj **p_plot_list )
+create_plot_objects_new( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], Analysis *analy, Plot_obj **p_plot_list )
 {
 	//section 1
 
@@ -997,19 +998,22 @@ create_plot_objects_new( int token_cnt, char tokens[][TOKENLENGTH], Analysis *an
 	{
 		remove_unused_results( &ord_res_list );
 		DELETE_LIST( ord_so_list );
-		popup_dialog( INFO_POPUP, "No valid result/mesh object combinations "
+		popup_dialog( INFO_POPUP, "No valid ordinate result/mesh object combinations "
 					  "found; aborting." );
 		return;
 	}
-    if(vsFound){
+    if(vsFound && abs_res_list != NULL){
     	good_time_series = 0;
-		good_time_series = gen_gather( abs_res_list, abs_so_list, analy, &abs_gather_list );
+    	if(abs_so_list == NULL)
+    		good_time_series = gen_gather( abs_res_list, ord_so_list, analy, &abs_gather_list );
+    	else
+    		good_time_series = gen_gather( abs_res_list, abs_so_list, analy, &abs_gather_list );
 
 		if ( good_time_series == 0 )
 		{
 			remove_unused_results( &abs_res_list );
 			DELETE_LIST( abs_so_list );
-			popup_dialog( INFO_POPUP, "No valid result/mesh object combinations "
+			popup_dialog( INFO_POPUP, "No valid abscissa result/mesh object combinations "
 						  "found; aborting." );
 			return;
 		}

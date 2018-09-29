@@ -5378,23 +5378,22 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 			}
 
-			create_plot_objects_new(token_cnt,tokens,analy,&analy->current_plots);
-			//plotTokenParser(analy,token_cnt,tokens);
 
-			for(i = 0; i < token_cnt; i++)
-			{
-
-				rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
-				if(rval == OK)
-				{
-					/* we found an element class */
-					p_class = (MO_class_data *) p_hte->data;
-					elem_class[p_class->superclass] = 1;
-					start = i;
-					break;
-				}
-
-			}
+//
+//			for(i = 0; i < token_cnt; i++)
+//			{
+//
+//				rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+//				if(rval == OK)
+//				{
+//					/* we found an element class */
+//					p_class = (MO_class_data *) p_hte->data;
+//					elem_class[p_class->superclass] = 1;
+//					start = i;
+//					break;
+//				}
+//
+//			}
 			/* Delete the plot for this result if computing an EI result */
 			if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
 			{
@@ -5402,300 +5401,305 @@ parse_single_command( char *buf, Analysis *analy )
 				strcat(tmp_token, analy->ei_result_name);
 				parse_command( tmp_token, analy );
 			}
+//
+//			if ( token_cnt>1 || check_for_result( analy, TRUE ) || analy->ei_result )
+//			{
+//
+//				if(token_cnt > 1)
+//				{
+//
+//					for(i = 1; i < token_cnt; i++)
+//					{
+//						rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+//						if(rval == OK && start == -1)
+//						{
+//							start = i;
+//						}
+//					}
+//					i = 1;
+//					int qty = 0;
+//					for(j = 0; j < token_cnt; j++)
+//					{
+//						strcpy(original_tokens[j], tokens[j]);
+//					}
+//					//WHY? --V
+//					for(; i < start; i++)
+//					{
+//						res_ptr = create_result_list(original_tokens[i], analy);
+//						for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
+//						{
+//							qty += ptr->qty;
+//						}
+//						delete_result_list(&res_ptr, analy);
+//					}
+//
+//					j = 1;
+//					if(start > 1)
+//					{
+//					  /* we know the plot command line specifies at least one element class
+//	 *                   and that the value of start is the token index of the first element class*/
+//					  for(i = 1; i < start; i++)
+//					  {
+//						  res_ptr = create_result_list(original_tokens[i], analy);
+//						  for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
+//						  {
+//							  for(k = 0; k < ptr->qty; k++)
+//							  {
+//								  if(elem_class[ptr->superclasses[k]] == 1)
+//								  {
+//									  strcpy(tokens[j], ptr->original_name);
+//									  j++;
+//								  }
+//							  }
+//						  }
+//					  }
+//					  /* now finish adding in the element class specifications from the original tokens */
+//					  for(i = start; i < cnt; i++)
+//					  {
+//						  strcpy(tokens[j], original_tokens[i]);
+//						  j++;
+//					  }
+//					  token_cnt = j;
+//					} else
+//					{
+//						int qty = 0;
+//						for(i = 1; i < cnt; i++)
+//						{
+//							if(strcmp(original_tokens[i],"vs")==0)
+//							{
+//								qty++;
+//								strcpy(tokens[j],original_tokens[i]);
+//								j++;
+//							}
+//							res_ptr = create_result_list(original_tokens[i], analy);
+//							for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
+//							{
+//								qty += ptr->qty;
+//								strcpy(tokens[j], ptr->original_name);
+//								j++;
+//							}
+//						}
+//						if(qty > 0)
+//						{
+//							token_cnt = qty + 1;
+//						}
+//					}
+//
+//					  i = 0;
+//					token_cnt = 0;
+//					while(strcmp(tokens[i], ""))
+//					{
+//						token_cnt++;
+//						i++;
+//					}
+//					cnt = token_cnt;
+//					for(i = 1; i < cnt; i++) {
+//						for(j = i+1; j < cnt; j++) {
+//							if(!strcmp(tokens[i], tokens[j])) {
+//								strcpy(tokens[j], "");
+//							}
+//						}
+//					}
+//
+//					/* now adjust the token_cnt */
+//					for( i = 0; i < cnt; i++ ) {
+//						if(!strcmp(tokens[i], "")) {
+//							token_cnt--;
+//						}
+//					}
+//
+//					/* final cleanup */
+//					for(i = 1; i < cnt; i++)
+//					{
+//						if(!strcmp(tokens[i], ""))
+//						{
+//							/* find the next token that is not the empty string */
+//							for(j = i+1; j < cnt; j++)
+//							{
+//								if(strcmp(tokens[j], ""))
+//								{
+//									strcpy(tokens[i], tokens[j]);
+//									strcpy(tokens[j], "");
+//									break;
+//								}
+//							}
+//						}
+//					}
+//
+//					cnt = token_cnt;
+//
+//					if(analy->cur_result != NULL && analy->cur_result->result_funcs[0] == load_primal_result)
+//					{
+//						for(i = 1; i < token_cnt; i++)
+//						{
+//							if(strstr(tokens[i], "sxy") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "sxy");
+//							} else if(strstr(tokens[i], "syz") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "syz");
+//							} else if(strstr(tokens[i], "szx") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "szx");
+//							} else if(strstr(tokens[i], "sx") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "sx");
+//							} else if(strstr(tokens[i], "sy") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "sy");
+//							} else if(strstr(tokens[i], "sz") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "sz");
+//							}
+//							if(strstr(tokens[i], "exy") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "exy");
+//							} else if(strstr(tokens[i], "eyz") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "eyz");
+//							} else if(strstr(tokens[i], "ezx") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "ezx");
+//							} else if(strstr(tokens[i], "ex") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "ex");
+//							} else if(strstr(tokens[i], "ey") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "ey");
+//							} else if(strstr(tokens[i], "ez") && strstr(tokens[i], "es_") == NULL)
+//							{
+//								strcpy(tokens[i], "ez");
+//							}
+//
+//						}
+//					}
+//				}
+//				else if(token_cnt == 1 &&
+//						  analy->cur_result != NULL &&
+//						  analy->cur_result->result_funcs[0] == load_primal_result)
+//				{
+//					i = 1;
+//					if(strstr(analy->cur_result->name, "sxy"))
+//					{
+//						strcpy(tokens[i], "sxy");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "syz"))
+//					{
+//						strcpy(tokens[i], "syz");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "szx"))
+//					{
+//						strcpy(tokens[i], "szx");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "sx"))
+//					{
+//						strcpy(tokens[i], "sx");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "sy"))
+//					{
+//						strcpy(tokens[i], "sy");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "sz"))
+//					{
+//						strcpy(tokens[i], "sz");
+//						token_cnt = 2;
+//					}
+//					if(strstr(analy->cur_result->name, "exy"))
+//					{
+//						strcpy(tokens[i], "exy");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "eyz"))
+//					{
+//						strcpy(tokens[i], "eyz");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "ezx"))
+//					{
+//						strcpy(tokens[i], "ezx");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "ex"))
+//					{
+//						strcpy(tokens[i], "ex");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "ey"))
+//					{
+//						strcpy(tokens[i], "ey");
+//						token_cnt = 2;
+//					} else if(strstr(analy->cur_result->name, "ez"))
+//					{
+//						strcpy(tokens[i], "ez");
+//						token_cnt = 2;
+//					}
+//					token_cnt += analy->cur_result->qty;
+//					for(i = 0; i < analy->cur_result->qty; i++)
+//					{
+//						if(analy->cur_result->original_names != NULL)
+//						{
+//							strcpy(tokens[i+1], analy->cur_result->original_names[i]);
+//						}
+//					}
+//					/* now remove duplicate token names */
+//					for(i = token_cnt; i > 0; i--)
+//					{
+//						for(j = 1; j < i; j++)
+//						{
+//							if(!strcmp(tokens[j], tokens[i]))
+//							{
+//								strcpy(tokens[i], "");
+//								token_cnt--;
+//								break;
+//							}
+//						}
+//					}
+//				}
+//
+//				if(!strcmp(original_tokens[0], "") && analy->cur_result != NULL)
+//				{
+//					if(token_cnt == 1)
+//					{
+//						cnt = 2;
+//						strcpy(original_tokens[0], tokens[0]);
+//						strcpy(original_tokens[1], analy->cur_result->name);
+//					}
+//				}
+//				old_autoselect = analy->autoselect;
+//
+//				Bool_type error_flag = FALSE;
+//
+//				if((res_ptr != NULL && res_ptr->result_funcs[0] == load_primal_result) || (analy->cur_result != NULL &&
+//					analy->cur_result->result_funcs[0] == load_primal_result))
+//				{
+//					analy->autoselect = FALSE;
+//					create_plot_objects( token_cnt, tokens, analy, &analy->current_plots );
+//					analy->autoselect = old_autoselect;
+//				} else
+//				{
+//					//if we didnt find a result pointer
+//					if(res_ptr == NULL){
+//						//and our second argument does not match the current result
+//						if(strcmp(original_tokens[1], analy->cur_result->name)){
+//							error_flag = TRUE;
+//						}
+//					}
+//					if(!error_flag){
+//						analy->autoselect = FALSE;
+//						create_plot_objects( cnt, original_tokens, analy, &analy->current_plots );
+//						analy->autoselect = old_autoselect;
+//					}
+//				}
+//				if(!error_flag){
+//					redraw = BINDING_PLOT_VISUAL;
+//				}
+//				else{
+//					popup_dialog( INFO_POPUP, "Unknown result name entered" );
+//				}
+//
+//			}
 
-			if ( token_cnt>1 || check_for_result( analy, TRUE ) || analy->ei_result )
-			{
-
-				if(token_cnt > 1)
-				{
-
-					for(i = 1; i < token_cnt; i++)
-					{
-						rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
-						if(rval == OK && start == -1)
-						{
-							start = i;
-						}
-					}
-					i = 1;
-					int qty = 0;
-					for(j = 0; j < token_cnt; j++)
-					{
-						strcpy(original_tokens[j], tokens[j]);
-					}
-					//WHY? --V
-					for(; i < start; i++)
-					{
-						res_ptr = create_result_list(original_tokens[i], analy);
-						for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-						{
-							qty += ptr->qty;
-						}
-						delete_result_list(&res_ptr, analy);
-					}
-
-					j = 1;
-					if(start > 1)
-					{
-					  /* we know the plot command line specifies at least one element class
-	 *                   and that the value of start is the token index of the first element class*/
-					  for(i = 1; i < start; i++)
-					  {
-						  res_ptr = create_result_list(original_tokens[i], analy);
-						  for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-						  {
-							  for(k = 0; k < ptr->qty; k++)
-							  {
-								  if(elem_class[ptr->superclasses[k]] == 1)
-								  {
-									  strcpy(tokens[j], ptr->original_name);
-									  j++;
-								  }
-							  }
-						  }
-					  }
-					  /* now finish adding in the element class specifications from the original tokens */
-					  for(i = start; i < cnt; i++)
-					  {
-						  strcpy(tokens[j], original_tokens[i]);
-						  j++;
-					  }
-					  token_cnt = j;
-					} else
-					{
-						int qty = 0;
-						for(i = 1; i < cnt; i++)
-						{
-							if(strcmp(original_tokens[i],"vs")==0)
-							{
-								qty++;
-								strcpy(tokens[j],original_tokens[i]);
-								j++;
-							}
-							res_ptr = create_result_list(original_tokens[i], analy);
-							for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-							{
-								qty += ptr->qty;
-								strcpy(tokens[j], ptr->original_name);
-								j++;
-							}
-						}
-						if(qty > 0)
-						{
-							token_cnt = qty + 1;
-						}
-					}
-
-					  i = 0;
-					token_cnt = 0;
-					while(strcmp(tokens[i], ""))
-					{
-						token_cnt++;
-						i++;
-					}
-					cnt = token_cnt;
-					for(i = 1; i < cnt; i++) {
-						for(j = i+1; j < cnt; j++) {
-							if(!strcmp(tokens[i], tokens[j])) {
-								strcpy(tokens[j], "");
-							}
-						}
-					}
-
-					/* now adjust the token_cnt */
-					for( i = 0; i < cnt; i++ ) {
-						if(!strcmp(tokens[i], "")) {
-							token_cnt--;
-						}
-					}
-
-					/* final cleanup */
-					for(i = 1; i < cnt; i++)
-					{
-						if(!strcmp(tokens[i], ""))
-						{
-							/* find the next token that is not the empty string */
-							for(j = i+1; j < cnt; j++)
-							{
-								if(strcmp(tokens[j], ""))
-								{
-									strcpy(tokens[i], tokens[j]);
-									strcpy(tokens[j], "");
-									break;
-								}
-							}
-						}
-					}
-
-					cnt = token_cnt;
-
-					if(analy->cur_result != NULL && analy->cur_result->result_funcs[0] == load_primal_result)
-					{
-						for(i = 1; i < token_cnt; i++)
-						{
-							if(strstr(tokens[i], "sxy") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "sxy");
-							} else if(strstr(tokens[i], "syz") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "syz");
-							} else if(strstr(tokens[i], "szx") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "szx");
-							} else if(strstr(tokens[i], "sx") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "sx");
-							} else if(strstr(tokens[i], "sy") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "sy");
-							} else if(strstr(tokens[i], "sz") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "sz");
-							}
-							if(strstr(tokens[i], "exy") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "exy");
-							} else if(strstr(tokens[i], "eyz") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "eyz");
-							} else if(strstr(tokens[i], "ezx") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "ezx");
-							} else if(strstr(tokens[i], "ex") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "ex");
-							} else if(strstr(tokens[i], "ey") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "ey");
-							} else if(strstr(tokens[i], "ez") && strstr(tokens[i], "es_") == NULL)
-							{
-								strcpy(tokens[i], "ez");
-							}
-
-						}
-					}
-				}
-				else if(token_cnt == 1 &&
-						  analy->cur_result != NULL &&
-						  analy->cur_result->result_funcs[0] == load_primal_result)
-				{
-					i = 1;
-					if(strstr(analy->cur_result->name, "sxy"))
-					{
-						strcpy(tokens[i], "sxy");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "syz"))
-					{
-						strcpy(tokens[i], "syz");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "szx"))
-					{
-						strcpy(tokens[i], "szx");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "sx"))
-					{
-						strcpy(tokens[i], "sx");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "sy"))
-					{
-						strcpy(tokens[i], "sy");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "sz"))
-					{
-						strcpy(tokens[i], "sz");
-						token_cnt = 2;
-					}
-					if(strstr(analy->cur_result->name, "exy"))
-					{
-						strcpy(tokens[i], "exy");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "eyz"))
-					{
-						strcpy(tokens[i], "eyz");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "ezx"))
-					{
-						strcpy(tokens[i], "ezx");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "ex"))
-					{
-						strcpy(tokens[i], "ex");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "ey"))
-					{
-						strcpy(tokens[i], "ey");
-						token_cnt = 2;
-					} else if(strstr(analy->cur_result->name, "ez"))
-					{
-						strcpy(tokens[i], "ez");
-						token_cnt = 2;
-					}
-					token_cnt += analy->cur_result->qty;
-					for(i = 0; i < analy->cur_result->qty; i++)
-					{
-						if(analy->cur_result->original_names != NULL)
-						{
-							strcpy(tokens[i+1], analy->cur_result->original_names[i]);
-						}
-					}
-					/* now remove duplicate token names */
-					for(i = token_cnt; i > 0; i--)
-					{
-						for(j = 1; j < i; j++)
-						{
-							if(!strcmp(tokens[j], tokens[i]))
-							{
-								strcpy(tokens[i], "");
-								token_cnt--;
-								break;
-							}
-						}
-					}
-				}
-
-				if(!strcmp(original_tokens[0], "") && analy->cur_result != NULL)
-				{
-					if(token_cnt == 1)
-					{
-						cnt = 2;
-						strcpy(original_tokens[0], tokens[0]);
-						strcpy(original_tokens[1], analy->cur_result->name);
-					}
-				}
-				old_autoselect = analy->autoselect;
-
-				Bool_type error_flag = FALSE;
-
-				if((res_ptr != NULL && res_ptr->result_funcs[0] == load_primal_result) || (analy->cur_result != NULL &&
-					analy->cur_result->result_funcs[0] == load_primal_result))
-				{
-					analy->autoselect = FALSE;
-					create_plot_objects( token_cnt, tokens, analy, &analy->current_plots );
-					analy->autoselect = old_autoselect;
-				} else
-				{
-					//if we didnt find a result pointer
-					if(res_ptr == NULL){
-						//and our second argument does not match the current result
-						if(strcmp(original_tokens[1], analy->cur_result->name)){
-							error_flag = TRUE;
-						}
-					}
-					if(!error_flag){
-						analy->autoselect = FALSE;
-						create_plot_objects( cnt, original_tokens, analy, &analy->current_plots );
-						analy->autoselect = old_autoselect;
-					}
-				}
-				if(!error_flag){
-					redraw = BINDING_PLOT_VISUAL;
-				}
-				else{
-					popup_dialog( INFO_POPUP, "Unknown result name entered" );
-				}
-
+			create_plot_objects_new(token_cnt,tokens,analy,&analy->current_plots);
+			if(analy->current_plots != NULL){
+				redraw = BINDING_PLOT_VISUAL;
+				analy->th_plotting = TRUE;
 			}
-			analy->th_plotting = TRUE;
 		}
 		else if ( strcmp( tokens[0], "oplot" ) == 0 )
 		{
