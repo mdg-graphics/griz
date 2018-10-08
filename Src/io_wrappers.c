@@ -2190,10 +2190,6 @@ mili_db_set_results( Analysis *analy )
     for ( i = 0; i < qty_candidates; i++ )
     {
         p_rc = &possible_results[i];
-        if(i < qty_es_candidates)
-        {
-           p_es_rc = &possible_es_results[i];
-        }
 
         /* Ensure mesh dimensionality matches result requirements. */
         if ( analy->dimension == 2 )
@@ -2237,12 +2233,6 @@ mili_db_set_results( Analysis *analy )
                 p_pr = (Primal_result *) p_hte->data;
             else
                 continue;
-    
-            rval = htable_search( p_pr_ht, p_es_rc->primals[j], FIND_ENTRY, &p_hte2);
-            if(rval == OK )
-            {
-                p_es_pr = (Primal_result *) p_hte2->data;
-            }
 
             found_th=FALSE;
 

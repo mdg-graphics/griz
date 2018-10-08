@@ -6303,7 +6303,7 @@ draw_plots( Analysis *analy )
     Int_2tuple *blocks;
     int qty_blocks, cnt;
     int blk_start, blk_stop, start_state, limit_state;
-    Bool_type cross_plot, ordinates_same, assume_have_shell, oper_plot;
+    Bool_type cross_plot, ordinates_same, abscissas_same, assume_have_shell, oper_plot;
     MO_class_data *ord_class;
     Plot_glyph_data *glyph_data;
     Plot_operation_type op_type;
@@ -6387,17 +6387,16 @@ draw_plots( Analysis *analy )
     /* Count plots; determine if ordinate results are all the same. */
     qty_plots = 0;
     ordinates_same = TRUE;
-    for ( ; p_po != NULL; NEXT( p_po ) )
-    {
+    abscissas_same = TRUE;
+    for ( ; p_po != NULL; NEXT( p_po ) ){
         qty_plots++;
 
         /* Check for varying ordinate results.*/
-        if ( !oper_plot )
-        {
-            if ( p_po->next != NULL
-                    && ( strcmp( p_po->ordinate->result->title,
-                                 p_po->next->ordinate->result->title ) != 0 ) )
+        if ( !oper_plot ){
+            if ( p_po->next != NULL && ( strcmp( p_po->ordinate->result->title, p_po->next->ordinate->result->title ) != 0 ) )
                 ordinates_same = FALSE;
+            if ( p_po->next != NULL && ( strcmp( p_po->abscissa->result->title, p_po->next->abscissa->result->title ) != 0 ) )
+                abscissas_same = FALSE;
         }
     }
 
@@ -6405,8 +6404,7 @@ draw_plots( Analysis *analy )
         for ( i = 0; i < QTY_RESULT_MODIFIER_TYPES; i++ )
             mods_used[i] = FALSE;
 
-    legend_labels = NEW_N( char *, qty_plots + QTY_RESULT_MODIFIER_TYPES,
-                           "Legend label ptr array" );
+    legend_labels = NEW_N( char *, qty_plots + QTY_RESULT_MODIFIER_TYPES, "Legend label ptr array" );
 
     /* Loop over plots and accumulate info for managing/annotating the plots. */
     j = 0;

@@ -5394,6 +5394,7 @@ parse_single_command( char *buf, Analysis *analy )
 //				}
 //
 //			}
+
 			/* Delete the plot for this result if computing an EI result */
 			if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
 			{
@@ -5401,6 +5402,7 @@ parse_single_command( char *buf, Analysis *analy )
 				strcat(tmp_token, analy->ei_result_name);
 				parse_command( tmp_token, analy );
 			}
+
 //
 //			if ( token_cnt>1 || check_for_result( analy, TRUE ) || analy->ei_result )
 //			{
