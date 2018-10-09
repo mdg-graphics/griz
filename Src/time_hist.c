@@ -286,6 +286,7 @@ static void init_aligned_glyph_func( int, int, float, Analysis *, Plot_glyph_dat
 static void init_staggered_glyph_func( int, int, float, Analysis *, Plot_glyph_data * );
 static Bool_type thresholded_glyph_func( float, Plot_glyph_data * );
 static void add_legend_text( Time_series_obj *, char **, int, int *, int *, Bool_type [] );
+extern void create_plot_objects_new( int , char [MAXTOKENS][TOKENLENGTH], Analysis *, Plot_obj ** );
 
 
 /* Defaults for glyph distribution function. */
@@ -5432,43 +5433,48 @@ get_token_type_new( char *token, Analysis *analy, MO_class_data **class, Result 
         int i,j;
         p_r = NULL;
         /* First search among extant time history results. */
-		found = analy->result_mod ? FALSE : find_named_result_in_list( analy, token, analy->series_results, &p_r );
-		if ( found )
-		{
-			/* Remove this result from the list */
-
-			UNLINK( p_r, analy->series_results );
-			INIT_PTRS( p_r );
-
-			/* IRC: Added May 23, 2005
-			 *      SCR#: 316
-			 */
-			if (p_r->must_recompute)
-			{
-				cleanse_result( p_r );
-				p_r = NEW( Result, "History result" );
-				found = find_result( analy, ALL, FALSE, p_r, token );
-			}
-		}
-		else{
-			/* If necessary, search among possible results for db. */
-			p_r = NEW( Result, "History result" );
-			found = find_result( analy, ALL, FALSE, p_r, token );
-		}
-
-		if ( !p_r->single_valued ){
-			/* Can only plot scalars. */
-			cleanse_result( p_r );
-			free( p_r );
-			p_r = NULL;
-			popup_dialog( INFO_POPUP, "Ignoring non-scalar result \"%s\".", token);
-			rval = OTHER_TOKEN;
-		}
-		else if(found){
-			/* Good result; return it */
-        		rval = RESULT_NAME;
-        		*result = p_r;
-		}
+//		found = analy->result_mod ? FALSE : find_named_result_in_list( analy, token, analy->series_results, &p_r );
+//		if ( found )
+//		{
+//			/* Remove this result from the list */
+//
+//			UNLINK( p_r, analy->series_results );
+//			INIT_PTRS( p_r );
+//
+//			/* IRC: Added May 23, 2005
+//			 *      SCR#: 316
+//			 */
+//			if (p_r->must_recompute)
+//			{
+//				cleanse_result( p_r );
+//				p_r = NEW( Result, "History result" );
+//				found = find_result( analy, ALL, FALSE, p_r, token );
+//			}
+//		}
+//		else{
+//			/* If necessary, search among possible results for db. */
+//			p_r = NEW( Result, "History result" );
+//			found = find_result( analy, ALL, FALSE, p_r, token );
+//		}
+//
+//		if ( !p_r->single_valued ){
+//			/* Can only plot scalars. */
+//			cleanse_result( p_r );
+//			free( p_r );
+//			p_r = NULL;
+//			popup_dialog( INFO_POPUP, "Ignoring non-scalar result \"%s\".", token);
+//			rval = OTHER_TOKEN;
+//		}
+//		else if(found){
+//			/* Good result; return it */
+//        		rval = RESULT_NAME;
+//        		*result = p_r;
+//		}
+        p_r = create_result_list(token,analy);
+        if(p_r != NULL){
+        	rval = RESULT_NAME;
+        	*result = p_r;
+        }
     }
 
     return rval;
@@ -6395,8 +6401,23 @@ draw_plots( Analysis *analy )
         if ( !oper_plot ){
             if ( p_po->next != NULL && ( strcmp( p_po->ordinate->result->title, p_po->next->ordinate->result->title ) != 0 ) )
                 ordinates_same = FALSE;
-            if ( p_po->next != NULL && ( strcmp( p_po->abscissa->result->title, p_po->next->abscissa->result->title ) != 0 ) )
-                abscissas_same = FALSE;
+            if ( p_po->next != NULL){
+            	if( (p_po->abscissa->result != NULL)){
+            		if((p_po->next->abscissa->result != NULL)){
+            			if( strcmp( p_po->abscissa->result->title, p_po->next->abscissa->result->title ) != 0 ){
+							abscissas_same = FALSE;
+						}
+            		}
+            		else{
+            			abscissas_same = FALSE;
+            		}
+            	}
+            	else{
+            		if(p_po->next->abscissa->result != NULL){
+            			abscissas_same = FALSE;
+            		}
+            	}
+            }
         }
     }
 
