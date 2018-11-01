@@ -3053,8 +3053,8 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
     int idcnt=0;
     int num_nodes=0;
 
-    int        particle_count, *particle_nodes;
-    int        subrec=0, srec=0;
+    int particle_count, *particle_nodes;
+    int subrec=0, srec=0;
     Subrec_obj *p_subrec;
 
     if ( extreme_result==FALSE && analy->extreme_result == TRUE )

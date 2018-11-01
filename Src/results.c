@@ -5392,7 +5392,40 @@ Result * create_result_list( char * token, Analysis *analy)
             }
         } 
     } 
-   
+
+    // removing any results with duplicate subrecord numbers, keeping item with largest set to minimize list length
+    Result *res1;
+    Result *res2;
+    int res1subrec,res2subrec,res1srcnt,res2srcnt,count, tempint;
+    //for each result
+    for(res1 = res_ptr; res1->next != NULL; res1 = res1->next){
+    	count = 0;
+    	//for each subrecord in result
+    	for(res1srcnt = 0; res1srcnt < res1->qty; res1srcnt++){
+    		res1subrec = res1->subrecs[res1srcnt];
+    		for(res2 = res1->next; res2 != NULL; res2 = res2->next){
+    			for(res2srcnt = 0; res2srcnt < res2->qty; res2srcnt++){
+    			    res2subrec = res2->subrecs[res2srcnt];
+    			    if(res1subrec == res2subrec){
+    			    	//remove duplicate subrecord entries
+//    			    	for(tempint = res2srcnt; tempint < res2->qty-1; tempint++){
+//    			    		res2->subrecs[tempint] = res2->subrecs[tempint+1];
+//    			    	}
+//    			    	res2->subrecs[(res2->qty)-1] = NULL;
+//    			    	res2->qty--;
+//    			    	res2srcnt--;
+    			    	//for completely removing duplicates
+    			    	count++;
+    			    }
+    			}
+    		}
+    	}
+    	// delete duplicate result
+    	if(count == res1->qty){
+    		DELETE(res1,res_ptr);
+    	}
+    }
+
     free(subrecs); 
     return res_ptr;        
 }
