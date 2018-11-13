@@ -2606,6 +2606,7 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
  * TAG( search_result_tables )
  *
  * Search the result tables for a specified result.
+ * swapping primal and derived
  */
 extern Bool_type
 search_result_tables( Analysis *analy, Result_table_type table, char *name,
