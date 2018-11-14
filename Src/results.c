@@ -2677,7 +2677,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         rval = htable_search( analy->primal_results, root, FIND_ENTRY,
                               &p_hte );
 
-        if ( rval != OK )
+        if ( rval != OK  && table == PRIMAL)
             return FALSE; /* Unable to match requested result. */
         else if ( component[0] != '\0' )
         {
@@ -2695,90 +2695,93 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
                 return FALSE; /* Unable to match vector component. */
         }
 
-        /* Found Primal result matching name. */
-        p_pr = (Primal_result *) p_hte->data;
-
-        /*
-         * Additional checks for specification errors.
-         */
-        switch ( p_pr->var->agg_type )
+        if(rval == OK)
         {
-        case SCALAR:
-            if ( index_qty > 0 || component[0] != '\0' )
-                return FALSE;
-            break;
+			/* Found Primal result matching name. */
+			p_pr = (Primal_result *) p_hte->data;
 
-        case VECTOR:
-            if ( index_qty > 0 )
-                return FALSE;
-            break;
+			/*
+			 * Additional checks for specification errors.
+			 */
+			switch ( p_pr->var->agg_type )
+			{
+			case SCALAR:
+				if ( index_qty > 0 || component[0] != '\0' )
+					return FALSE;
+				break;
 
-        case ARRAY:
-            if ( component[0] != '\0' )
-                return FALSE;
-            else if ( index_qty > p_pr->var->rank )
-                return FALSE;
-            else
-            {
-                for ( i = 0; i < index_qty; i++ )
-                    if ( indices[i] > p_pr->var->dims[i] )
-                        break;
-                if ( i < index_qty )
-                    return FALSE;
-            }
-            break;
+			case VECTOR:
+				if ( index_qty > 0 )
+					return FALSE;
+				break;
 
-        case VEC_ARRAY:
-            if ( index_qty > p_pr->var->rank )
-                return FALSE;
-            else
-            {
-                for ( i = 0; i < index_qty; i++ )
-                    if ( indices[i] > p_pr->var->dims[i] || indices[i] < 1 )
-                        break;
-                if ( i < index_qty )
-                    return FALSE;
-            }
-            break;
+			case ARRAY:
+				if ( component[0] != '\0' )
+					return FALSE;
+				else if ( index_qty > p_pr->var->rank )
+					return FALSE;
+				else
+				{
+					for ( i = 0; i < index_qty; i++ )
+						if ( indices[i] > p_pr->var->dims[i] )
+							break;
+					if ( i < index_qty )
+						return FALSE;
+				}
+				break;
+
+			case VEC_ARRAY:
+				if ( index_qty > p_pr->var->rank )
+					return FALSE;
+				else
+				{
+					for ( i = 0; i < index_qty; i++ )
+						if ( indices[i] > p_pr->var->dims[i] || indices[i] < 1 )
+							break;
+					if ( i < index_qty )
+						return FALSE;
+				}
+				break;
+			}
+
+			/*
+			 * Determine if the specified request is ultimately scalar,
+			 * i.e., either the result is scalar or the result modified
+			 * by a subset specification results in a singly-valued quantity.
+			 */
+			switch( p_pr->var->agg_type )
+			{
+			case VECTOR:
+				if ( *component == '\0' )
+					scalar = FALSE;
+				break;
+			case ARRAY:
+				if ( index_qty < p_pr->var->rank )
+					scalar = FALSE;
+				break;
+			case VEC_ARRAY:
+				if ( *component == '\0' )
+					scalar = FALSE;
+				else if ( index_qty < p_pr->var->rank )
+					scalar = FALSE;
+				break;
+			}
+
+			found = TRUE;
+
+			/* Assign return parameters for primal results. */
+			if ( p_srec_map != NULL )
+				*p_srec_map = p_pr->srec_map;
+			if ( pp_pr != NULL )
+				*pp_pr = p_pr;
+			if ( p_component != NULL )
+				strcpy( p_component, component );
+			if ( p_index_qty != NULL )
+				*p_index_qty = index_qty;
+			if ( p_indices != NULL )
+				for ( i = 0; i < index_qty; i++ )
+					p_indices[i] = indices[i];
         }
-
-        /*
-         * Determine if the specified request is ultimately scalar,
-         * i.e., either the result is scalar or the result modified
-         * by a subset specification results in a singly-valued quantity.
-         */
-        switch( p_pr->var->agg_type )
-        {
-        case VECTOR:
-            if ( *component == '\0' )
-                scalar = FALSE;
-            break;
-        case ARRAY:
-            if ( index_qty < p_pr->var->rank )
-                scalar = FALSE;
-            break;
-        case VEC_ARRAY:
-            if ( *component == '\0' )
-                scalar = FALSE;
-            else if ( index_qty < p_pr->var->rank )
-                scalar = FALSE;
-            break;
-        }
-
-        found = TRUE;
-
-        /* Assign return parameters for primal results. */
-        if ( p_srec_map != NULL )
-            *p_srec_map = p_pr->srec_map;
-        if ( pp_pr != NULL )
-            *pp_pr = p_pr;
-        if ( p_component != NULL )
-            strcpy( p_component, component );
-        if ( p_index_qty != NULL )
-            *p_index_qty = index_qty;
-        if ( p_indices != NULL )
-            for ( i = 0; i < index_qty; i++ )
-                p_indices[i] = indices[i];
     }
 
 
