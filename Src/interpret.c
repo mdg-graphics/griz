@@ -370,7 +370,6 @@ static int  check_for_result( Analysis *analy, int display_warning );
 static int select_integration_pts(char [MAXTOKENS][TOKENLENGTH], int, Analysis *);
 static int set_inpt(int, int, char *, int, int, Analysis *);
 static void show_ipt_avail(Analysis *);
-static void intpts_selected(Analysis *, int*);
 
 int
 mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
@@ -2746,10 +2745,7 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->result_mod = analy->check_mod_required( analy,
 										REFERENCE_SURFACE, old,
 										analy->ref_surf );
-					if(analy->int_labels != NULL) // && analy->int_labels->use_combined)
-					{
-						parse_command("set_ipt middle", analy);
-					}
+					
 				}
 				else if ( strcmp( tokens[i], "inner" ) == 0 )
 				{
@@ -2758,10 +2754,7 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->result_mod = analy->check_mod_required( analy,
 										REFERENCE_SURFACE, old,
 										analy->ref_surf );
-					if(analy->int_labels != NULL) // && analy->int_labels->use_combined)
-					{
-						parse_command("set_ipt inner", analy);
-					}
+					
 				}
 				else if ( strcmp( tokens[i], "outer" ) == 0 )
 				{
@@ -2770,10 +2763,7 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->result_mod = analy->check_mod_required( analy,
 										REFERENCE_SURFACE, old,
 										analy->ref_surf );
-					if(analy->int_labels != NULL) // && analy->int_labels->use_combined)
-					{
-						parse_command("set_ipt outer", analy);
-					}
+					
 				}
 
 				/* Strain basis. */
@@ -2870,92 +2860,6 @@ parse_single_command( char *buf, Analysis *analy )
 			if ( redraw_mesh )
 				redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
 		} /* end sw */
-		else if ( strcmp( tokens[0], "switches" ) == 0 || strcmp( tokens[0], "swes" ) == 0 )
-		{
-			Bool_type valid_command=TRUE, show_command=FALSE;
-			char show_txt[256], temp_txt[256];
-			int es_id=0, es_index=0, es_intpoint=-1;
-			int label_index=-1;
-			char es_command[64]="";
-			int ref_surf_index=0;
-
-			if ( token_cnt >= 1 )
-			{
-				es_id = atoi( tokens[1] );
-				if ( es_id<1 || es_id>analy->es_cnt )
-				{
-					popup_dialog( USAGE_POPUP, "switches - Element set id out of range." );
-					valid_command = FALSE;
-				}
-				else es_index = get_element_set_index( analy, es_id );
-			}
-
-			if ( token_cnt >= 2 && valid_command )
-			{
-				strcpy( es_command, tokens[2] );
-				if ( strcmp( es_command, "inner" ) == 0 )
-				{
-					ref_surf_index = 0;
-				}
-				else if ( strcmp( es_command, "middle" ) == 0 )
-				{
-					ref_surf_index = 1;
-				}
-				else if ( strcmp( es_command, "outer" ) == 0 )
-				{
-					ref_surf_index = 2;
-				}
-				else if ( strcmp( es_command, "show" ) == 0 )
-				{
-					show_command = TRUE;
-					sprintf( show_txt, "\n\nElement Set %d: \n\t\tTotal Points:\t%d\n", es_id,
-							 analy->es_intpoints[es_index].intpoints_total);
-					sprintf( temp_txt, "\t\tInner Label:\t%d\n",
-							 analy->es_intpoints[es_index].in_mid_out_set[0] );
-					strcat( show_txt, temp_txt );
-					if ( analy->es_intpoints[es_index].in_mid_out_set[1]>0 )
-						sprintf( temp_txt, "\t\tMiddle Label:\t%d\n",
-								 analy->es_intpoints[es_index].in_mid_out_set[1] );
-					else
-						sprintf( temp_txt, "\t\tMiddle Label:\tUndefined\n" );
-
-					strcat( show_txt, temp_txt );
-					sprintf( temp_txt, "\t\tOuter Label:\t%d",
-							 analy->es_intpoints[es_index].in_mid_out_set[2] );
-					strcat( show_txt, temp_txt );
-					wrt_text( show_txt );
-				}
-				else
-				{
-					valid_command = FALSE;
-					popup_dialog( USAGE_POPUP, "switches - Invalid keyword.\nExpecting [inner | middle | outer | show]" );
-				}
-
-			}
-
-			if ( token_cnt >3 && valid_command )
-			{
-				es_intpoint = atoi( tokens[3] );
-				if ( es_intpoint>=1 || es_intpoint<=analy->es_intpoints[es_index].intpoints_total )
-				{
-					label_index = get_intpoint_index ( es_intpoint, analy->es_intpoints[es_index].labels_cnt,
-													   analy->es_intpoints[es_index].labels );
-					if ( label_index<0 )
-						valid_command = FALSE;
-				}
-				else valid_command = FALSE;
-			}
-
-			if ( valid_command && !show_command )
-			{
-				if ( token_cnt >= 3 )
-					analy->es_intpoints[es_index].in_mid_out_set[ref_surf_index] = es_intpoint;
-				else
-					analy->es_intpoints[es_index].in_mid_out_set[ref_surf_index] =
-						analy->es_intpoints[es_index].in_mid_out_default[ref_surf_index];
-			}
-
-		}
 		else if ( strcmp( tokens[0], "setpath" ) == 0 )
 		{
 			if ( token_cnt == 1 ) /* Clear path 0 */
@@ -5372,7 +5276,8 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->ref_surf = MIDDLE;
 				}
 			}
-			for(i = 0; i < token_cnt; i++)
+			
+         for(i = 0; i < token_cnt; i++)
 			{
 
 				rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
@@ -11415,369 +11320,11 @@ get_class_select_index( Analysis *analy, char *class_name )
     return (-1);
 }
 
-/*************************************************************************
- * TAG( select_integration_pts )
- *  selects/deselects integrations points specified in the command line
- *  returns TRUE or FALSE depending on the command line syntax
- ************************************************************************/
-int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Analysis * analy)
+int
+setElementSet_integration_point(ElementSet* element_set,int selection, 
+                                int temp_value,int pt)
 {
-    char tokens[MAXTOKENS][TOKENLENGTH];
-    char warning_templates[8][256];
-    char suffix[124];
-    char showcmd[124];
-    int i, j, k;
-    int pt, index;
-    int size;
-    int usetoken = 0;
-    Bool_type found = FALSE;
-    int mat_qty;
-    int mat_min;
-    int mat_max;
-    int return_status;
-    int message_map[23];
-    intPtMessages * message;
-    intPtMessages * p;
-    intPtMessages * q;
-    int *chosen_materials = NULL;
-
-    mat_qty = MESH(analy).material_qty;
-    if(analy->int_labels == NULL)
-    {
-        return GRIZ_FAIL;
-    }
-
-    strcpy(warning_templates[0], "\nINFO: Label array invalid for element set");        
-    strcpy(warning_templates[1], "INFO: The integration point desired is lower than the lowest point available \n for element set");
-    strcpy(warning_templates[2], "INFO: The integration point is between two values written for element set");        
-    strcpy(warning_templates[3], "INFO: The integration point specified is between \ntwo values written for element set");        
-    strcpy(warning_templates[4], "INFO: The integration point specified is higher \nthan the value written for element set");        
-    strcpy(warning_templates[5], "INFO: The integration point specified is lower \nthan the value written for element set");        
-    strcpy(warning_templates[6], "INFO: The integration point specified is higher \nthan the highest value written for element set");
-    strcpy(warning_templates[7], "WARNING: The desired integration point for element set/material is not availiable for\n\n:");        
-    for(i = 0; i < 23; i++)
-    {
-        message_map[i] = 0;
-    } 
-
-    message_map[21] = 0;
-    message_map[22] = 1;
-    message_map[1] = 2;
-    message_map[2] = 3;
-    message_map[3] = 4;
-    message_map[10] = 5;
-    message_map[20] = 6;
-
-    IntLabels *labels = analy->int_labels;
-    Bool_type select;
-
-    message = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-    if(message == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-        parse_command("quit", analy);
-    }
-    message->next = NULL;
-    message->prev = NULL;
-    strcpy(message->messages, "");
-
-    /*Initialize tokens */
-    for(i = 0; i < MAXTOKENS; i++)
-    {
-        strcpy(tokens[i], "");
-    } 
-
-    for(i = 0; i < token_cnt; i++)
-    {
-       strcpy(tokens[i], tok[i]);
-    }
-
-    if(!strcmp(tokens[0], "set_ipt"))
-    {
-        select = TRUE; 
-    } else
-    {
-        select = FALSE;
-    }
-    // Use case "set_ipt [inner]| [middle] | [outer]"
-    if((!strcmp(tokens[1], "inner") || !strcmp(tokens[1], "middle") || !strcmp(tokens[1], "outer")) && token_cnt == 2)
-    {
-        pt = 0;
-        usetoken = 1;
-        
-        for(index = 0; index < labels->numLabels; index++)
-        {
-            size = labels->labelSizes[index] - 1;
-            if(!strcmp(tokens[1], "inner"))
-            {
-                pt = 1;
-            } else if(!strcmp(tokens[1], "middle"))
-            {
-                pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
-            } else
-            {
-               pt = labels->labels[index][size];
-            } 
-            
-            return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-            
-            if(return_status != 0)
-            {
-                p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-                if(p == NULL)
-                {
-                    popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-                    parse_command("quit", analy);
-                }
- 
-                p->next = NULL;
-                p->prev = NULL;
-                strcpy(p->messages, "");
-                q = message;
-                while(q->next != NULL)
-                {
-                    q = q->next;
-                }
-               
-                q->next = p;
-                p->prev = q;
-                p->next = NULL;
-                sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                
-            }
-       }
-    }
-    else if(strcmp(tokens[1], "inner") && strcmp(tokens[1], "middle") && strcmp(tokens[1], "outer"))
-    {
-        pt = atoi(tokens[1]);
-        if(pt == 0)
-        {
-            popup_dialog(WARNING_POPUP, "Invalid command syntax for set_ipt.\n");
-            return FALSE;
-        }
-    }
-  
-    if(token_cnt == 2 && !usetoken)
-    {
-        for(index = 0; index < labels->numLabels; index++)
-        {
-            return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-            
-            if(return_status != 0)
-            {
-                p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-                if(p == NULL)
-                {
-                    popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-                    parse_command("quit", analy);
-                }
- 
-                p->next = NULL;
-                p->prev = NULL;
-                strcpy(p->messages, "");
-                q = message;
-                while(q->next != NULL)
-                {
-                    q = q->next;
-                }
-               
-                q->next = p;
-                p->prev = q;
-                p->next = NULL;
-                
-                sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                
-            }
-        }
-    }
-    if(token_cnt > 2 )
-    {
-        if(!strcmp(tokens[1], "inner") || !strcmp(tokens[1], "middle") || !strcmp(tokens[1], "outer"))
-        {
-           usetoken = 1;
-           pt = 0;
-        }
-
-        chosen_materials = calloc(labels->mapsize,sizeof(int));
-        for(i = 2; i < token_cnt; i++)
-        {
-           
-
-        	if(strcmp( tokens[i], "" ) == 0){
-        		wrt_text("\n Argument %d was invalid \n",i);
-        		continue;
-        	}
-
-        	parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);
-			if(mat_min < mat_max)
-			{
-				for(j = mat_min ; j <= mat_max; j++)
-				{
-					found = FALSE;
-					if(labels->map[j] <=0)
-					{
-					 continue;
-					}
-
-					chosen_materials[j]=1;
-					index = labels->map[j];
-					size = labels->labelSizes[index] - 1;
-					if(!strcmp(tokens[1], "inner"))
-					{
-					   pt = 1;
-					} else if(!strcmp(tokens[1], "middle"))
-					{
-					   pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
-					} else if(!strcmp(tokens[index], "outer"))
-					{
-					   pt = labels->labels[index][size];
-					}
-
-
-					return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-					if(return_status != 0)
-					{
-					   p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-					   if(p == NULL)
-					   {
-						   popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-						   parse_command("quit", analy);
-					   }
-
-					   p->next = NULL;
-					   p->prev = NULL;
-					   strcpy(p->messages, "");
-					   q = message;
-					   while(q->next != NULL)
-					   {
-						   q = q->next;
-					   }
-
-					   q->next = p;
-					   p->prev = q;
-					   p->next = NULL;
-					   sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-
-					}
-				}
-			}
-			else
-			{
-			   found = FALSE;
-			   j = mat_min - 1; /* convert to zero based material numbers */
-			   if(labels->map[mat_min] > -1)
-			   {
-				   found = TRUE;
-				   index = labels->map[mat_min]    ;
-			   }
-			   chosen_materials[mat_min]=1;
-			   if(found)
-			   {
-				   size = labels->labelSizes[index] - 1;
-				   if(!strcmp(tokens[1], "inner"))
-				   {
-					   pt = 1;
-				   } else if(!strcmp(tokens[1], "middle"))
-				   {
-					   pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
-				   } else if(!strcmp(tokens[1], "outer"))
-				   {
-					   pt = labels->labels[index][size];
-				   } else
-				   {
-					   pt = atoi(tokens[1]);
-				   }
-				   return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-				   if(return_status != 0)
-				   {
-					   p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-					   if(p == NULL)
-					   {
-						   popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-						   parse_command("quit", analy);
-					   }
-
-					   p->next = NULL;
-					   p->prev = NULL;
-					   strcpy(p->messages, "");
-					   q = message;
-					   while(q->next != NULL)
-					   {
-						   q = q->next;
-					   }
-
-					   q->next = p;
-					   p->prev = q;
-					   p->next = NULL;
-					   sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-
-				  }
-			   }
-			}
-        }
-    }
-     
-
-    
-    intpts_selected(analy,chosen_materials);
-    if(chosen_materials != NULL)
-    {
-        free(chosen_materials);
-    }
-    if(message->next != NULL)
-    {
-        wrt_text("\n\nWARNING: The desired integration point for element set/material\n is not available for:\n\n");
-        wrt_text("Material/          Desired Int             Selected Int.\n");
-        wrt_text("Element Set          Point                   Point    \n");
-        p = message->next;
-        q = p;
-        do{
-            wrt_text(p->messages);
-            p = p->next;
-            if(p != NULL)
-            {
-                q = p;
-            }
-        }while(p != NULL);
-        
-       do{
-           q = q->prev;
-           if(q != NULL)
-           {
-               free(q->next);
-           }
-           
-       }while(q != NULL);
-       if(message != NULL)
-       {
-           free(message);
-       }      
-       popup_dialog(WARNING_POPUP, "The exact Integration point(s) are unavailable for select materials/element sets. See feedback window.\n");
-    }
-    if(analy->cur_result != NULL)
-    {
-        sprintf(showcmd, "show %s", analy->cur_result->name);
-        parse_command(showcmd, analy);
-    }
-    return TRUE;
-}
-
-int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysis * analy)
-{
-    int i, j, k;
-    int pt = 0;
-    int size = 0;
-    int return_status = 0;
-    IntLabels *labels;
- 
-    if(analy->int_labels == NULL)
-    {
-        return 0;
-    }
-    labels = analy->int_labels;
-    size = labels->labelSizes[index] - 1;
-
-    /* The return_status convention is as follows:
+     /* The return_status convention is as follows:
  *     Value         Meaning
  *     21------------This label array was marked as invalid and will not be used
  *     0-------------The ipt was found in the labels array and was selected.
@@ -11807,82 +11354,261 @@ int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysi
  *     20------------The labels->labels[index][size - 1] < labels->labels[index][size].  The
  *                   value set is the the value in labels->labels[index][size - 1] 
  */
-   
-    /* Ignore labels that were previously marked as invalid */
-    if(labels->valid[index] == 0)
+    int i;
+    int return_value=0;
+    switch(selection)
     {
-        return 21;
-    }
- 
-    if(usetoken == 0)
-    {
-        if(ipt < labels->labels[index][0])
-        {
-            labels->int_pts_selected[index] = labels->labels[index][0] * select;
-            return 22;
-        }
-        if(ipt > labels->labels[index][size - 1])
-        {
-            labels->int_pts_selected[index] = labels->labels[index][size - 1] * select;
-            return 3;
-        }
-        for(i = 0; i < size; i++)
-        {
-            if(ipt == labels->labels[index][i])
+        case(0):
+            element_set->current_index = 0;
+            break;
+        case(1):
+            element_set->current_index = element_set->middle_index;
+            break;
+        case(2):
+            element_set->current_index = element_set->size-2;
+            break;
+        case(3):
+            // It is not inner, middle, or outer
+            if(pt < 1)
             {
-                labels->int_pts_selected[index] = ipt * select;
-                /*The specified integration point matches one which was written out*/
-                return 0; 
-            } 
-        }
-        /* If we make it to this part of the code then the specified integration point
-         * falls in between two points that were written out.  The convention is that
-         * the integration points written out are in ascending order */
-        i = 0;
-        while(ipt > labels->labels[index][i])
-        {
-            i++;
-        }
-
-        if(abs(ipt - labels->labels[index][i - 1]) <= abs(ipt - labels->labels[index][i]))
-        {
-            labels->int_pts_selected[index] = labels->labels[index][i-1] * select;
-            return 1;
-        } else
-        {
-            labels->int_pts_selected[index] = labels->labels[index][i] * select;
-            return 2;
-        } 
+            }
+            else if(element_set->integration_points[0] >= pt)
+            {
+               if(temp_value)
+               {
+                   element_set->tempIndex = 0;
+               }else
+               {
+                   element_set->current_index = 0;
+                   element_set->tempIndex = -1; 
+               }
+            }else if(element_set->integration_points[element_set->size-1] <= pt)
+            {
+               if(temp_value)
+               {
+                   element_set->tempIndex = element_set->size-1;
+               }else
+               {
+                   element_set->current_index = element_set->size-1;
+                   element_set->tempIndex = -1;
+               }
+            }else
+            {
+                // We will need to search the integration point and find the closest
+                // We already know that it is larger than 0 index so start at 1.
+                for(i=1; i< element_set->size; i++)
+                {
+                   if(pt <= element_set->integration_points[i])
+                   {
+                      if(pt- element_set->integration_points[i-1] < element_set->integration_points[i]-pt)
+                      {
+                          if(temp_value)
+                          {
+                              element_set->tempIndex = i-1;
+                          }else
+                          {
+                              element_set->current_index = i-1;
+                              element_set->tempIndex = -1;
+                          }    
+                      }else
+                      {
+                          if(temp_value)
+                          {
+                              element_set->tempIndex = i;
+                          }else
+                          {
+                              element_set->current_index = i;
+                              element_set->tempIndex = -1;
+                          }
+                      }
+                      break;
+                   }
+                }
+            }
+            break;
+        default:
+            //We should not get here as the only choices are 0-3
+            //We opt to doing nothing
+            break;
+    }
+    
+    
+    return return_value;
+}
+/*************************************************************************
+ * TAG( select_integration_pts )
+ *  selects/deselects integrations points specified in the command line
+ *  returns TRUE or FALSE depending on the command line syntax
+ ************************************************************************/
+int select_integration_pts(char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt, 
+                           Analysis * analy)
+{
+    //char tokens[MAXTOKENS][TOKENLENGTH];
+    char suffix[124];
+    char showcmd[124];
+    Htable_entry *tempEnt;
+    int i, j, k, status;
+    int pt, index;
+    int size;
+    int selection;
+    int usetoken = 0;
+    Bool_type found = FALSE;
+    int mat_qty;
+    int mat_min;
+    int mat_max;
+    int return_status;
+    int message_map[23];
+    intPtMessages * message = NULL;
+    intPtMessages * current_message = NULL;
+    
+    intPtMessages * p;
+    intPtMessages * q;
+    int *chosen_materials = NULL;
+    ElementSet *element_set; 
+    
+    if (token_cnt <2)
+    {
+        return GRIZ_FAIL;
+    }
+    mat_qty = MESH(analy).material_qty;
+    selection = -1;
+    index = -1;
+    if(!strcmp(tokens[1], "inner"))
+    {
+        selection = 0;
+    } else if(!strcmp(tokens[1], "middle"))
+    {
+        selection = 1;
+    } else if(!strcmp(tokens[1], "outer"))
+    {
+        selection = 2;
+    }
+              
+    if(selection < 0 )
+    {
+        // We must have an integer value
+        pt = atoi(tokens[1]);
         
-    } else if(!strcmp(token, "inner"))
+        if(pt == 0)
+        {
+            popup_dialog(WARNING_POPUP, "Invalid command syntax for set_ipt.\n");
+            return FALSE;
+        } 
+        selection = 3;   
+    }
+    
+    if(token_cnt >2)
     {
-        labels->int_pts_selected[index] = labels->labels[index][0] * select;
-        if(labels->labels[index][0] > 1)
+        char target[20];
+        char *start = "IntLabel_es_";
+        for(i=2; i<token_cnt;i++)
         {
-            return 10;
-        } else
+            parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);
+            for(j=mat_min;j<=mat_max;j++)
+            {
+                sprintf(target,"%s%d",start,j);
+                tempEnt = NULL;
+                status = htable_search( analy->Element_sets, target, FIND_ENTRY,&tempEnt);
+                if(status == OK)
+                {
+                    element_set = (ElementSet*)tempEnt->data;
+                    return_status = setElementSet_integration_point(element_set,selection,0,pt);
+                    if(return_status != OK)
+                    {
+                        if(message == NULL)
+                        {
+                            current_message = message = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                            if(message == NULL)
+                            {
+                                popup_dialog(WARNING_POPUP, 
+                                             "Out of memory in function select_integration_pts. exiting\n");
+                                parse_command("quit", analy);
+                            }
+                            message->next = NULL;
+                            message->prev = NULL;
+                         }else
+                         {
+                             current_message->next = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                             current_message->next->next = NULL;
+                             current_message->next->prev = current_message;
+                             current_message = current_message->next;
+                             
+                         }
+                                                        
+                         sprintf(current_message->messages, "  %d                    %d                       %d      \n", 
+                                 j, 
+                                 pt, 
+                                 element_set->current_index);
+                        
+                    }
+                }
+            }
+        } 
+    }else{
+    
+        for(i=0;i<analy->es_cnt;i++)
         {
-            return 0;
-        }
-    } else if(!strcmp(token, "middle"))
-    {
-        i = size;
-        pt = (labels->labels[index][i])/2 + (labels->labels[index][i] % 2);
-        return(set_inpt(index, pt, NULL, select, 0, analy));
-    } else if(!strcmp(token, "outer"))
-    {
-        labels->int_pts_selected[index] = labels->labels[index][size - 1] * select;
-        if(labels->labels[index][size - 1] == labels->labels[index][size])
-        {
-           return 0; 
-        } else
-        {
-           return 20;
+            tempEnt = NULL;
+            status = htable_search( analy->Element_sets, analy->Element_set_names[i], FIND_ENTRY,&tempEnt);
+            if(status == OK)
+            {
+                return_status = setElementSet_integration_point((ElementSet*)tempEnt->data,selection,0,pt);
+                if(return_status != OK)
+                {
+                    if(message == NULL)
+                    {
+                         current_message = message = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                         if(message == NULL)
+                         {
+                             popup_dialog(WARNING_POPUP, 
+                                          "Out of memory in function select_integration_pts. exiting\n");
+                             parse_command("quit", analy);
+                         }
+                         message->next = NULL;
+                         message->prev = NULL;
+                     }else
+                     {
+                         current_message->next = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                         current_message->next->next = NULL;
+                         current_message->next->prev = current_message;
+                         current_message = current_message->next;
+                             
+                     }
+                                                        
+                     sprintf(current_message->messages, "  %d                    %d                       %d      \n", 
+                             i, 
+                             pt, 
+                             element_set->current_index);
+                        
+                }
+            }
         }
     }
     
-    return return_status;
+    i=0;
+    if( message != NULL)
+    {
+        wrt_text("\n\nWARNING: The desired integration point for element set/material\n is not available for:\n\n");
+        wrt_text("Material            Desired Int             Selected Int.\n");
+        wrt_text("Element Set          Point                   Point    \n");
+        p = message;
+        do{
+            wrt_text(p->messages);
+            p = p->next;
+            free(p->prev);
+        }while(p != NULL);
+            
+        popup_dialog(WARNING_POPUP, "The exact Integration point(s) are unavailable for select materials/element sets. See feedback window.\n");
+    }
+    
+    if(analy->cur_result != NULL)
+    {
+        sprintf(showcmd, "show %s", analy->cur_result->name);
+        parse_command(showcmd, analy);
+    }
+    return TRUE;
 }
+
 
 /********************************************************
  * TAG( show_ipt_avail )
@@ -11893,97 +11619,58 @@ int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysi
 void show_ipt_avail(Analysis * analy)
 {
     int i, j;
-    int index, mat;
-    IntLabels *labels;
-    
-    if(analy->int_labels == NULL)
-    {
-        return;
-    }
-    labels = analy->int_labels;
+    int index, mat,status;
+    ElementSet *element_set;
     wrt_text("\n\nAvailable Integration Points in this plot file are as follows:\n");
     
 	Htable_entry *tempEnt;
+   Htable_entry *matEntry;
 	char label[34];
 	char intpts[40];
 	char intpt[4];
+   char mat_num[5];
 	int snum;
+   intpts[0] = '\0';
 	char *line = "--------------------------------------------------------------------";
 	wrt_text(" %-34s| %-10s | %-30s\n", "Material", "Int. Point", "Int. Point");
 	wrt_text(" %-34s| %-10s | %-30s\n", "", "Selected", "Available");
-    wrt_text("%-62s\n", line);
-    for(i = 1; i < labels->mapsize; i++)
-    {
-		// INSERT NEW CODE
-		sprintf(label,"%s",analy->sorted_labels[i-1]);
-		htable_search(analy->mat_labels,label,FIND_ENTRY,&tempEnt);
-		snum = atoi((char*)tempEnt->data);
-        if(labels->map[snum] < 0)
-        {
-            continue;
-        }
-	    if(labels->valid[labels->map[snum]] == 1)
-        {
-	    	sprintf(intpts,"");
-	        index =  labels->map[snum];
-	    	int k = labels->int_pts_selected[index];
-            for(j = 0; j < labels->labelSizes[labels->map[snum]] - 1; j++)
-            {
-            	sprintf(intpt,"%d ",labels->labels[labels->map[snum]][j]);
-                strcat(intpts, intpt);
-            }
-            wrt_text(" %-34s|    %-6d  | %-30s\n", label, k, intpts);
-        } 
-    } 
-    return;
-}
-
-/********************************************************
- * TAG( intpts_selected )
- * prints the integration points selected on the 
- * feedback window 
- * passed in analy and an array which show which of all the materials have been changed
- *******************************************************/
-void intpts_selected(Analysis * analy, int* materials_changed)
-{
-    int i, j, k;
-    int index, mat;
-    IntLabels *labels;
-
-    if(analy->int_labels == NULL)
-    {
-        return;
-    }
-    labels = analy->int_labels;
-    wrt_text("\n\nIntegration Points selected:\n");
-    wrt_text("%.*s %s \n", 34,"Material/Element Set","Integration Point");
-
-	Htable_entry *tempEnt;
-	char label[34];
-	int snum;
+   wrt_text("%-62s\n", line);
     
-    for(i = 1; i < labels->mapsize; i++)
-    {
-		// INSERT NEW CODE
-		sprintf(label,"%s",analy->sorted_labels[i-1]);
-		htable_search(analy->mat_labels,label,FIND_ENTRY,&tempEnt);
-		snum = atoi((char*)tempEnt->data);
-        index =  labels->map[snum];
-
-        if(labels->valid[index] == 1)
-        {
-            k = labels->int_pts_selected[index];
-            if((materials_changed != NULL && materials_changed[snum]) || materials_changed == NULL )
-            {
-				// INSERT NEW CODE
-				wrt_text("  %.*s        %d\n", 34, label, k);
-            }
-        
-        }
-    }
-
+   for(i=0; i<analy->es_cnt;i++)
+   {
+       status = htable_search(analy->Element_sets,analy->Element_set_names[i],FIND_ENTRY,&tempEnt);
+       if(status != OK)
+       {
+           wrt_text("%s %d\n" , "Error loading Integration points for element set ", analy->Element_set_names[i] );
+           return;
+       }
+       
+       element_set = (ElementSet*)tempEnt->data;
+       
+       index = element_set->current_index;
+       sprintf(mat_num,"%d", element_set->material_number);
+       status = htable_search(analy->mat_labels_reversed,mat_num,FIND_ENTRY,&matEntry);
+       sprintf(label,"%s" , (char*)matEntry->data);
+       for(j=0;j<element_set->size;j++)
+       {
+           if(j<element_set->size-1)
+           {
+               sprintf(intpt,"%d, ",element_set->integration_points[j]);
+           }else
+           {
+               sprintf(intpt,"%d ",element_set->integration_points[j]);
+           }
+           strcat(intpts, intpt);
+           
+       }
+       wrt_text(" %-34s|    %-6d  | %-30s\n", label, element_set->integration_points[index], intpts);
+       intpts[0] = '\0';
+   } 
+    
     return;
 }
+
+
 
 void restore_color(Analysis * analy, Bool_type use_default){
 

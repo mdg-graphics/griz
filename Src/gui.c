@@ -1432,17 +1432,7 @@ gui_start( int argc, char **argv , Analysis *analy )
         put_window_attributes() ;
         put_griz_session( env.curr_analy, session );
     }
-    //labels = analy->int_labels;
-    if(analy->int_labels != NULL)
-    {
-        for(i = 0; i < analy->int_labels->numLabels; i++)
-        {
-            if(analy->int_labels->valid[i] == 0)
-            { 
-                wrt_text("\nelement set %d was marked as invalid because the labels array \nwas not in ascending order\n", analy->int_labels->mats[i]);
-            }
-        }
-    }
+    
 
     env.curr_analy->update_display( env.curr_analy );
     /* Start event processing. */
@@ -2144,7 +2134,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     int spec_qty;
     Analysis *analy;
     State_variable *comp_svar;
-    Hash_table * p_es_components_ht;
+    //Hash_table * p_es_components_ht;
     Htable_entry * p_hte2;
     ES_in_menu * p_es;
     static char *cell_nums[] =
@@ -2159,7 +2149,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
     analy = env.curr_analy;
 
-    p_es_components_ht = analy->es_components_table;
+    //p_es_components_ht = analy->es_components_table;
 
     qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
 
@@ -2223,7 +2213,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
     /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type != SCALAR && strncmp(p_pr->short_name, "es_", 3))
+    if ( p_pr->var->agg_type != SCALAR)// && strncmp(p_pr->short_name, "es_", 3))
     {
         /* Non-scalar types require another submenu level. */
         n = 0;
@@ -2235,7 +2225,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         p_specs = analy->component_menu_specs;
         spec_qty = analy->component_spec_qty;
 
-        if ( p_pr->var->agg_type == VECTOR )
+        if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type ==VEC_ARRAY)
         {
             for ( i = 0; i < p_pr->var->vec_size; i++ )
             {
@@ -2250,8 +2240,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 else
                     p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
                                        "Extend menu specs" );
-                sprintf( cbuf, "%s[%s]", p_pr->short_name,
-                         comp_svar->short_name );
+                sprintf( cbuf, "%s", comp_svar->short_name );
                 griz_str_dup( p_specs + spec_qty, cbuf );
 
                 /* Create button. */
@@ -2334,7 +2323,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 }
             }
         }
-        else
+        else  
         {
             for ( i = 0; i < p_pr->var->dims[0]; i++ )
             {
@@ -2443,7 +2432,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         XtAddCallback( button, XmNactivateCallback, res_menu_CB,
                        p_pr->short_name );
     } 
-    else if( !strncmp(p_pr->short_name, "es_", 3))
+    /*else if( 0 && !strncmp(p_pr->short_name, "es_", 3))
     {   
         strcpy(parent_menu, cbuf); 
         for(i = 0; i < p_pr->var->vec_size; i++)
@@ -2462,7 +2451,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
             p_es->in_menu = TRUE;
             strcpy(p_es->parent_menu, parent_menu);
-            /*rval = htable_add_entry_data(p_es_components_ht, p_es->component_name, ENTER_MERGE, (ES_in_menu *) p_es); */
+            //rval = htable_add_entry_data(p_es_components_ht, p_es->component_name, ENTER_MERGE, (ES_in_menu *) p_es); 
 
             sprintf( cbuf, "%s (%s)", p_pr->var->component_titles[i], p_pr->var->components[i] );
             n = 0;
@@ -2471,312 +2460,10 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
             XtAddCallback( button, XmNactivateCallback, res_menu_CB,
                            p_pr->var->components[i] );
        } 
-    }
+    }*/
     else
         popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s",
                       p_pr->long_name, "not included in pulldown menu." );
-}
-
-
-/*****************************************************************
- * TAG( add_ti_result_button )
- *
- * Add a single primal result button to the menu.
- */
-static void
-add_ti_result_button( Widget parent, Primal_result *p_pr )
-{
-    Widget submenu_cascade, submenu, result_menu;
-    Widget button, cascade, result_submenu, subsubmenu_cascade;
-    int position, vec_size;
-    int i, j, n;
-    char cbuf[M_MAX_NAME_LEN];
-    Bool_type make_submenu;
-    Arg args[10];
-    char **comps, **p_specs;
-    int spec_qty;
-    Analysis *analy;
-    State_variable *comp_svar;
-    static char *cell_nums[] =
-    {
-        "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]",
-        "[11]", "[12]", "[13]", "[14]", "[15]", "[16]", "[17]", "[18]", "[19]",
-        "[20]"
-    };
-    int qty_cell_nums;
-    Htable_entry *p_hte;
-
-    Bool_type found_hex=FALSE,
-              found_shell=FALSE,
-              found_beam=FALSE,
-              shared_found=FALSE;
-
-    analy = env.curr_analy;
-
-    /* First make a tally of the TI objects that we have */
-    for (i=0;
-            i<analy->ti_var_count;
-            i++)
-    {
-        if ( analy->ti_vars[i].superclass==M_HEX )
-            found_hex = TRUE;
-        if ( analy->ti_vars[i].superclass==M_QUAD)
-            found_shell = TRUE;
-        if ( analy->ti_vars[i].superclass==M_BEAM)
-            found_beam = TRUE;
-
-    }
-
-    /* Add the first-level sub-menus */
-
-    if ( found_hex )
-    {
-        strcpy(cbuf, "Bricks");
-        n = 0;
-        submenu = XmCreatePulldownMenu( ti_menu_widg, "submenu_pane", args,
-                                        n );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, submenu );
-        n++;
-        submenu_cascade = XmCreateCascadeButton( ti_menu_widg, cbuf, args,
-                          n );
-        XtManageChild( submenu_cascade );
-    }
-
-
-
-#ifdef AAA
-    /* Arrays and Vector Arrays that are too big don't go in menu. */
-    if ( ( p_pr->var->agg_type == ARRAY
-            && ( p_pr->var->rank > 2
-                 || p_pr->var->dims[0] > qty_cell_nums
-                 || ( p_pr->var->rank == 2
-                      && p_pr->var->dims[1] > qty_cell_nums
-                    )
-               )
-         )
-
-            ||
-
-            ( p_pr->var->agg_type == VEC_ARRAY
-              && ( p_pr->var->rank > 1
-                   || p_pr->var->dims[0] > qty_cell_nums
-                 )
-            )
-       )
-    {
-        popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\n%s",
-                      p_pr->long_name,
-                      "entries for inclusion in pulldown menu." );
-        return;
-    }
-
-    /* Determine correct submenu name ("Shared" or class name). */
-    get_primal_submenu_name( analy, p_pr, cbuf );
-
-    /* See if submenu exists. */
-    make_submenu = !find_labelled_child( primal_menu_widg, cbuf,
-                                         &submenu_cascade, &position );
-
-    if ( make_submenu )
-    {
-        n = 0;
-        submenu = XmCreatePulldownMenu( primal_menu_widg, "submenu_pane", args,
-                                        n );
-
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, submenu );
-        n++;
-        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, cbuf, args,
-                          n );
-        XtManageChild( submenu_cascade );
-    }
-    else
-        /* Submenu exists; get the pane from the cascade button. */
-        XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
-
-    /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type != SCALAR )
-    {
-        /* Non-scalar types require another submenu level. */
-        n = 0;
-        result_menu = XmCreatePulldownMenu( submenu, "submenu_pane", args, n );
-
-        comps = p_pr->var->components;
-        p_specs = analy->component_menu_specs;
-        spec_qty = analy->component_spec_qty;
-
-        if ( p_pr->var->agg_type == VECTOR )
-        {
-            for ( i = 0; i < p_pr->var->vec_size; i++ )
-            {
-                /* Find State_variable to provide component long name. */
-                htable_search( analy->st_var_table, comps[i], FIND_ENTRY,
-                               &p_hte );
-                comp_svar = (State_variable *) p_hte->data;
-
-                /* Build/save complete result specification string. */
-                if( p_specs == NULL )
-                    p_specs = NEW( char *, "New menu specs" );
-                else
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                sprintf( cbuf, "%s[%s]", p_pr->short_name,
-                         comp_svar->short_name );
-                griz_str_dup( p_specs + spec_qty, cbuf );
-
-                /* Create button. */
-                sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                         comp_svar->short_name );
-                n = 0;
-                button = XmCreatePushButtonGadget( result_menu, cbuf, args,
-                                                   n );
-                XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                               p_specs[spec_qty] );
-
-                spec_qty++;
-            }
-        }
-        else if ( p_pr->var->agg_type == ARRAY )
-        {
-            if ( p_pr->var->rank == 1 )
-            {
-                for ( i = 0; i < p_pr->var->dims[0]; i++ )
-                {
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                    sprintf( cbuf, "%s[%d]", p_pr->short_name, i + 1 );
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    n = 0;
-                    button = XmCreatePushButtonGadget( result_menu,
-                                                       cell_nums[i], args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
-                }
-            }
-            else /* rank is 2 */
-            {
-                for ( i = 0; i < p_pr->var->dims[1]; i++ )
-                {
-                    /* Create button. */
-                    n = 0;
-                    result_submenu = XmCreatePulldownMenu( result_menu,
-                                                           "subsubmenu_pane",
-                                                           args, n );
-
-                    n = 0;
-                    XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                    n++;
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         cell_nums[i],
-                                         args, n );
-                    XtManageChild( subsubmenu_cascade );
-
-                    for ( j = 0; j < p_pr->var->dims[0]; j++ )
-                    {
-                        /* Build/save complete result specification string. */
-                        p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                           "Extend menu specs" );
-
-                        sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1,
-                                 j + 1 );
-                        griz_str_dup( p_specs + spec_qty, cbuf );
-
-                        /* Create button. */
-                        n = 0;
-                        button = XmCreatePushButtonGadget( result_submenu,
-                                                           cell_nums[j],
-                                                           args, n );
-                        XtManageChild( button );
-                        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                       p_specs[spec_qty] );
-
-                        spec_qty++;
-                    }
-                }
-            }
-        }
-        else
-        {
-            for ( i = 0; i < p_pr->var->dims[0]; i++ )
-            {
-                /* Create button. */
-                n = 0;
-                result_submenu = XmCreatePulldownMenu( result_menu,
-                                                       "subsubmenu_pane",
-                                                       args, n );
-
-                n = 0;
-                XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                n++;
-                subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                     cell_nums[i],
-                                     args, n );
-                XtManageChild( subsubmenu_cascade );
-
-                vec_size = p_pr->var->vec_size;
-
-                for ( j = 0; j < vec_size; j++ )
-                {
-                    /* Find State_variable to provide component long name. */
-                    htable_search( analy->st_var_table, comps[j], FIND_ENTRY,
-                                   &p_hte );
-                    comp_svar = (State_variable *) p_hte->data;
-
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-
-                    sprintf( cbuf, "%s[%d,%s]", p_pr->short_name, i + 1,
-                             comp_svar->short_name );
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                             comp_svar->short_name );
-                    n = 0;
-                    button = XmCreatePushButtonGadget( result_submenu, cbuf,
-                                                       args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
-                }
-            }
-        }
-
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, result_menu );
-        n++;
-        cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-        XtManageChild( cascade );
-
-        /* Update analy ("p_specs" could have been re-located). */
-        analy->component_menu_specs = p_specs;
-        analy->component_spec_qty = spec_qty;
-    }
-    else if ( p_pr->var->agg_type == SCALAR )
-    {
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-        XtManageChild( button );
-        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                       p_pr->short_name );
-    }
-    else
-        popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s",
-                      p_pr->long_name, "not included in pulldown menu." );
-#endif
 }
 
 
@@ -2914,9 +2601,7 @@ add_derived_result_button( Derived_result *p_dr )
     Subrecord_result *p_subr_res;
 
     /* Vars added to add element set derived results */
-    int es_id=0;
     char submenu_name[64], *cb_name=NULL, cb_name_temp[64];
-    Bool_type es_found=FALSE;
     State_variable sv;
     Subrecord subrec;
     Hash_table *p_pr_ht;
@@ -2962,114 +2647,7 @@ add_derived_result_button( Derived_result *p_dr )
     p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
     idx = p_subr_res->index;
 
-    /* If we have element set derived results then add them now */
-
-    p_pr_ht = env.curr_analy->primal_results;
-    if ( analy->es_cnt>0 && p_pr_ht != NULL )
-    {
-
-        /* Get state record format count for this database. */
-        dbid = env.curr_analy->db_ident;
-        srec_qty = 0;
-        env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL,
-                                  (void *) &srec_qty );
-
-        /* Loop over srecs */
-        for ( i = 0;
-                i < srec_qty;
-                i++ )
-        {
-            /* Get subrecord count for this state record. */
-            rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i,
-                                             NULL, (void *) &subrec_qty );
-            if ( rval != OK )
-                continue;
-
-            /* Loop over subrecs */
-            for ( j = 0;
-                    j < subrec_qty;
-                    j++ )
-            {
-                /* Get binding */
-                rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
-                if ( rval != OK )
-                    continue;
-
-                /* Look for element set svars to add to sub-menu */
-
-                if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name)
-                        && !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
-                {
-                    continue;
-                    es_id = get_element_set_id( subrec.svar_names[0] );
-                    sprintf( nambuf, "Element Set %d (%s)", es_id,
-                             subrec.svar_names[0] );
-
-                    /* See if submenu exists. */
-                    make_submenu = !find_labelled_child( submenu, nambuf,
-                                                         &submenu_cascade, &position );
-
-                    /* Use bound state vars as keys into Primal_result hash table.
-                     */
-                    rval = htable_search( p_pr_ht, subrec.svar_names[0], FIND_ENTRY, &p_hte );
-                    if ( rval != OK )
-                        continue;
-
-                    p_pr = (Primal_result *) p_hte->data;
-
-                    if ( make_submenu )
-                    {
-                        n = 0;
-                        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                        n++;
-                        subsubmenu = XmCreatePulldownMenu( submenu, "es_submenu_pane",
-                                                           args, n );
-
-                        n = 0;
-                        XtSetArg( args[n], XmNsubMenuId, subsubmenu );
-                        n++;
-                        sub_cascade = XmCreateCascadeButton( submenu, nambuf, args, n );
-                        XtManageChild( sub_cascade );
-                    }
-                    else
-                        /* Submenu exists; get the pane from the cascade button. */
-                        XtVaGetValues( submenu_cascade, XmNsubMenuId, &subsubmenu, NULL );
-
-                    if ( p_pr->var->num_type == M_STRING )
-                        continue;
-
-                    rval = mc_get_svar_def( dbid, subrec.svar_names[0], &sv );
-                    if ( rval == 0 )
-                    {
-                        for ( k=0;
-                                k<sv.vec_size;
-                                k++ )
-                            if ( !strcmp( sv.components[k], p_subr_res->candidate->short_names[idx] ) )
-                            {
-                                /* Add derived element set result button. */
-                                for ( i = 0; i < analy->qty_srec_fmts; i++ )
-                                    if ( p_dr->srec_map[i].qty > 0 )
-                                        break;
-                                p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
-
-                                sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
-                                         p_subr_res->candidate->short_names[idx] );
-                                n = 0;
-                                button = XmCreatePushButtonGadget( subsubmenu, nambuf, args, n );
-                                XtManageChild( button );
-                                sprintf( cb_name_temp, "%s[%s]", subrec.svar_names[0], p_subr_res->candidate->short_names[idx] );
-                                cb_name = NEW_N( char, strlen(cb_name_temp), "Static cb name" );
-                                strcpy( cb_name, cb_name_temp );
-                                XtAddCallback( button, XmNactivateCallback, res_menu_CB, cb_name );
-                            }
-                    }
-                } /* es variable test */
-
-                /* Don't care about return value for this. */
-                env.curr_analy->db_cleanse_subrec( &subrec );
-            } /* for on j */
-        }
-    }
+    
 
     /* Add derived result button. */
 
@@ -11106,7 +10684,7 @@ string_convert( XmString str, char *buf )
             *p++ = '\n';
             *p = 0;
         }
-
+        
         XtFree( text );
     }
 

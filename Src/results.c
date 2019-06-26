@@ -957,7 +957,7 @@ static int particle_prin_primal_sclasses[] =
     G_PARTICLE
 };
 
-
+/*
 es_Result_candidate possible_es_results[] =
 {
     {
@@ -1085,7 +1085,7 @@ es_Result_candidate possible_es_results[] =
         es_prin_primals,
         es_prin_primal_sclasses
     },
-    /* array terminator */
+    // array terminator 
     {
         QTY_SCLASS,
         { 0, 0 },
@@ -1101,7 +1101,7 @@ es_Result_candidate possible_es_results[] =
     }
     
 
-};
+};*/
 
 Result_candidate possible_results[] =
 {
@@ -1890,7 +1890,7 @@ Result_candidate possible_results[] =
         shell_eeff_primals,
         shell_eeff_primal_sclasses
     },
-
+/*
     {
         G_HEX,
         { 0, 1 },
@@ -1904,7 +1904,7 @@ Result_candidate possible_results[] =
         hex_stress_primals,
         hex_stress_primal_sclasses
     },
-
+*/
     {
         G_HEX,
         { 0, 1 },
@@ -2349,8 +2349,8 @@ parse_result_spec( char *res_spec, char *root, int *p_qty_indices,
             strcpy( comp_str, p_c_idx );
 
             /* Shouldn't be anything left after a comp_str name. */
-            if ( strtok( NULL, delimiters ) != NULL )
-                return FALSE;
+            //if ( strtok( NULL, delimiters ) != NULL )
+            //    return FALSE;
         }
 
         p_c_idx = strtok( NULL, delimiters );
@@ -2438,23 +2438,13 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
      * Array and Vector-array names must be in column-major format
      * for database requests.
      */
-    if ( index_qty > 0 )
+    if (component[0] != '\0' )
     {
-        sprintf( col_major_name, "%s[", root );
-        if ( component[0] != '\0' )
-            sprintf( col_major_name + strlen( col_major_name ),
-                     "%s,", component );
-        for ( i = 0; i < index_qty - 1; i++ )
-            sprintf( col_major_name + strlen( col_major_name ),
-                     "%d,", indices[i] );
-        sprintf( col_major_name + strlen( col_major_name ), "%d]",
-                 indices[index_qty - 1] );
-
-        strcpy( p_result->name, col_major_name );
-    }
-    else
+        strcpy( p_result->name, component);
+    }else
+    {
         strcpy( p_result->name, name );
-
+    }
     analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id,
                      NULL, (void *) &mesh_id );
     p_result->mesh_id = mesh_id;
@@ -2530,6 +2520,11 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
         for ( i = 0; i < qty; i++ )
         {
             p_result->subrecs[i] = p_i[i];
+            if(analy->srec_tree[srec_id].subrecs[p_i[i]].element_set)
+            {
+                setElementSet_integration_point(analy->srec_tree[srec_id].subrecs[p_i[i]].element_set,
+                                                3,1,indices[0]);
+            }
             p_s = &(analy->srec_tree[srec_id].subrecs[p_i[i]].subrec);
             analy->db_query( analy->db_ident, QRY_CLASS_SUPERCLASS,
                              (void *) &mesh_id, p_s->class_name,
@@ -2548,53 +2543,44 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
 
         p_result->origin = p_pr->origin;
         p_result->original_result = (void *) p_pr;
-        strcpy( p_result->title, p_pr->long_name );
-
-        if ( index_qty > 0 || *component != '\0' )
+        if(component[0] != '\0')
         {
-            /*
-             * Append additional specifying text onto title.  Note that
-             * this string is composed in Griz's UI standard row-major
-             * format, unlike p_result->name, which is used to make
-             * db requests.
-             */
-            strcat( p_result->title, "[" );
-
-            if ( index_qty > 0 )
+            if(p_pr->possible_owning_vector_result)
             {
-                sprintf( str, "%d", indices[index_qty - 1] );
-                strcat( p_result->title, str );
-            }
-            for ( i = index_qty - 2; i >= 0; i-- )
-            {
-                sprintf( str, ", %d", indices[i] );
-                strcat( p_result->title, str );
-            }
-
-            if ( *component != '\0' )
-            {
-                /* Find the component's State_variable to get title. */
-                rval = htable_search( analy->st_var_table, component,
-                                      FIND_ENTRY, &p_hte );
-                if ( rval != 0 )
-                {
-                    popup_dialog( WARNING_POPUP,
-                                  "Vector primal component svar missing." );
-                    cleanse_result( p_result );
-                    return 0;
-                }
-
-                p_sv = (State_variable *) p_hte->data;
-
+                strcpy( p_result->title, p_pr->possible_owning_vector_result[0]->long_name);
+                strcat( p_result->title, "[" );
                 if ( index_qty > 0 )
-                    sprintf( str, ", %s", p_sv->long_name );
-                else
-                    strcpy( str, p_sv->long_name );
+                {
+                    sprintf( str, "%d", indices[index_qty - 1] );
+                    strcat( p_result->title, str );
+                }
+                for ( i = index_qty - 2; i >= 0; i-- )
+                {
+                    sprintf( str, ", %d", indices[i] );
+                    strcat( p_result->title, str );
+                }
+                if ( *component != '\0' )
+                {
+                    if ( index_qty > 0 )
+                    {
+                        sprintf( str, ", %s", component );
+                    }else
+                    {
+                        strcpy( str, component );
+                    }
 
                 strcat( p_result->title, str );
             }
 
             strcat( p_result->title, "]" );
+                
+            }else 
+            {
+                strcpy( p_result->title, p_pr->long_name );                
+            }
+        }else
+        {
+            strcpy( p_result->title, p_pr->long_name );
         }
     }
 
@@ -2670,8 +2656,89 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
      * Search tables indicated for specified result.  If all tables
      * are to be searched, look for a derived result first.
      */
+    if ( ( table == PRIMAL || table == ALL ) )
+    {
+        if(component[0] == '\0')
+        {
+            rval = htable_search( analy->primal_results, root, 
+                                  FIND_ENTRY, &p_hte );
 
-    if ( table == DERIVED || table == ALL )
+        }else
+        {
+            rval = htable_search( analy->primal_results, component, 
+                                  FIND_ENTRY, &p_hte );
+        }
+        if ( rval != OK && table == PRIMAL)
+        {
+            return FALSE; /* Unable to match requested result. */
+        }else if(rval == OK) // Must be searching ALL
+        {
+        
+
+            /* Found Primal result matching name. */
+            p_pr = (Primal_result *) p_hte->data;
+            found = TRUE;
+            /*
+             * Determine if the specified request is ultimately scalar,
+             * i.e., either the result is scalar or the result modified
+             * by a subset specification results in a singly-valued quantity.
+             */
+            switch( p_pr->var->agg_type )
+            {
+                case VECTOR:
+                    if ( *component == '\0' )
+                    {
+                        scalar = FALSE;
+                    }
+                    break;
+                case ARRAY:
+                    if ( index_qty < p_pr->var->rank )
+                    {
+                        scalar = FALSE;
+                    }
+                    break;
+                case VEC_ARRAY:
+                    if ( *component == '\0' )
+                    {
+                        scalar = FALSE;
+                    }
+                    else if ( index_qty < p_pr->var->rank )
+                    {
+                        scalar = FALSE;
+                    }
+                    break;
+            }
+
+        
+
+            /* Assign return parameters for primal results. */
+            if ( p_srec_map != NULL )
+            {
+                *p_srec_map = p_pr->srec_map;
+            }
+            if ( pp_pr != NULL )
+            {
+                *pp_pr = p_pr;
+            }
+            if ( p_component != NULL )
+            {
+                strcpy( p_component, component );
+            }
+            if ( p_index_qty != NULL )
+            {
+                *p_index_qty = index_qty;
+            }
+            if ( p_indices != NULL )
+            {
+                for ( i = 0; i < index_qty; i++ )
+                {
+                    p_indices[i] = indices[i];
+                }
+            }
+        }
+    }
+    if (!found
+            && ( table == DERIVED || table == ALL ))
     {
         rval = htable_search( analy->derived_results, root, FIND_ENTRY,
                               &p_hte );
@@ -2705,113 +2772,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         }
     }
 
-    if ( !found
-            && ( table == PRIMAL || table == ALL ) )
-    {
-        rval = htable_search( analy->primal_results, root, FIND_ENTRY,
-                              &p_hte );
-
-        if ( rval != OK )
-            return FALSE; /* Unable to match requested result. */
-        else if ( component[0] != '\0' )
-        {
-            /* Search for specified vector component. */
-            comp_names = ((Primal_result *) p_hte->data)->var->components;
-            if(comp_names == NULL)
-            {
-                return FALSE;
-            }
-            comp_qty = ((Primal_result *) p_hte->data)->var->vec_size;
-            for ( i = 0; i < comp_qty; i++ )
-                if ( strcmp( comp_names[i], component ) == 0 )
-                    break;
-            if ( i == comp_qty )
-                return FALSE; /* Unable to match vector component. */
-        }
-
-        /* Found Primal result matching name. */
-        p_pr = (Primal_result *) p_hte->data;
-
-        /*
-         * Additional checks for specification errors.
-         */
-        switch ( p_pr->var->agg_type )
-        {
-        case SCALAR:
-            if ( index_qty > 0 || component[0] != '\0' )
-                return FALSE;
-            break;
-
-        case VECTOR:
-            if ( index_qty > 0 )
-                return FALSE;
-            break;
-
-        case ARRAY:
-            if ( component[0] != '\0' )
-                return FALSE;
-            else if ( index_qty > p_pr->var->rank )
-                return FALSE;
-            else
-            {
-                for ( i = 0; i < index_qty; i++ )
-                    if ( indices[i] > p_pr->var->dims[i] )
-                        break;
-                if ( i < index_qty )
-                    return FALSE;
-            }
-            break;
-
-        case VEC_ARRAY:
-            if ( index_qty > p_pr->var->rank )
-                return FALSE;
-            else
-            {
-                for ( i = 0; i < index_qty; i++ )
-                    if ( indices[i] > p_pr->var->dims[i] || indices[i] < 1 )
-                        break;
-                if ( i < index_qty )
-                    return FALSE;
-            }
-            break;
-        }
-
-        /*
-         * Determine if the specified request is ultimately scalar,
-         * i.e., either the result is scalar or the result modified
-         * by a subset specification results in a singly-valued quantity.
-         */
-        switch( p_pr->var->agg_type )
-        {
-        case VECTOR:
-            if ( *component == '\0' )
-                scalar = FALSE;
-            break;
-        case ARRAY:
-            if ( index_qty < p_pr->var->rank )
-                scalar = FALSE;
-            break;
-        case VEC_ARRAY:
-            if ( *component == '\0' )
-                scalar = FALSE;
-            else if ( index_qty < p_pr->var->rank )
-                scalar = FALSE;
-            break;
-        }
-
-        /* Assign return parameters for primal results. */
-        if ( p_srec_map != NULL )
-            *p_srec_map = p_pr->srec_map;
-        if ( pp_pr != NULL )
-            *pp_pr = p_pr;
-        if ( p_component != NULL )
-            strcpy( p_component, component );
-        if ( p_index_qty != NULL )
-            *p_index_qty = index_qty;
-        if ( p_indices != NULL )
-            for ( i = 0; i < index_qty; i++ )
-                p_indices[i] = indices[i];
-    }
+    
 
     /* Assign remaining return parameters. */
     if ( p_root != NULL )
@@ -2821,7 +2782,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
     if ( p_scalar != NULL )
         *p_scalar = scalar;
 
-    return TRUE;
+    return found;
 }
 
 
@@ -2993,14 +2954,7 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
     if ( p_result == NULL )
         return FALSE;
 
-    if(analy->int_labels != NULL && analy->int_labels->use_combined)
-    {
-        if(analy->original_results[p_mo_class->superclass] != NULL)
-        {
-            return TRUE;
-        }
-    }
-
+    
     if ( p_result->origin.is_derived )
     {
         p_dr = (Derived_result *) p_result->original_result;
@@ -3038,43 +2992,14 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
     }
     else
     {
-        if(analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            for(i = 0; i < p_result->qty; i++)
-            {
-                if(p_mo_class->superclass == p_result->superclasses[i])
-                {
-                    p_pr = (Primal_result *) analy->original_results[p_mo_class->superclass];
-                    if(p_pr == NULL)
-                    {
-                        return FALSE;
-                    }
-                    break;
-                }
-            } 
-        } else
-        { 
-            p_pr = (Primal_result *) p_result->original_result;
-        }
+         
+        p_pr = (Primal_result *) p_result->original_result;
+        
         if(p_pr == NULL)
         {
             return FALSE;
         }       
  
-        if(!strncmp(p_pr->var->short_name, "es_", 3) && analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            /* We are dealing with a combined element set result */
-            /* loop thru the superclasses of the combined result and see if there is a superclass match with the 
- *             class passed in. */
-            for(i = 0; i < p_result->qty; i++)
-            {
-               if(p_result->superclasses[i] == p_mo_class->superclass)
-               {
-                   return TRUE;
-               } 
-            }
-        }
-
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
             if ( (qty = p_pr->srec_map[i].qty) > 0 )
@@ -3120,9 +3045,12 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
         return FALSE;
 
 
-    /* with element sets we now need to deal with a result that is a mixture of primal and derived results
- *     so if the passed in superclass has a results function that is not load_primal_result then it needs
- *     to be treated as derived even if the origin flag is set to primal */
+    /* with element sets we now need to deal with a result that is 
+     * a mixture of primal and derived results so if the passed in 
+     * superclass has a results function that is not load_primal_result 
+     * then it needs to be treated as derived even if the origin flag 
+     * is set to primal 
+     */
     for(i = 0; i < p_result->qty; i++)
     {
         if(p_result->superclasses[i] == superclass)
@@ -3131,10 +3059,6 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
             {
                 is_derived = TRUE;
                 index = i;
-                if(p_result->original_names != NULL && strstr(p_result->original_names[i], "es_") != NULL)
-                {
-                    is_elemset = TRUE;
-                } 
                 break;
             }
         }
@@ -3147,28 +3071,7 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
 
     if ( p_result->origin.is_derived || is_derived)
     {
-        if(!is_elemset)
-        {
-            p_dr = (Derived_result *) analy->original_results[superclass];
-            if(p_dr == NULL)
-            {
-                p_dr = (Derived_result *) p_result->original_result;
-            }
-            for ( i = 0; i < analy->qty_srec_fmts; i++ )
-            {
-                qty = p_dr->srec_map[i].qty;
-                if ( qty > 0 )
-                {
-                    p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
-
-                    for ( j = 0; j < qty; j++ )
-                        if ( p_sr[j].candidate->superclass == superclass )
-                        /* Found superclass match. */
-                            return TRUE;
-                }
-            
-            }
-        } else if( is_derived )
+        if( is_derived )
         {
            for(i = 0; i < p_result->qty; i++)
            {
@@ -3192,27 +3095,8 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
     }
     else
     {
-        if(analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            for(i = 0; i < p_result->qty; i++)
-            {
-                p_pr = (Primal_result *) analy->original_results[superclass];
-
-                if(p_pr == NULL)
-                {
-                    return FALSE;
-                }
-                found = TRUE;
-                break;
-            }
-            if(!found)
-            {
-                p_pr = (Primal_result *) analy->original_results[p_result->superclasses[0]];
-            } 
-        } else
-        {
-            p_pr = (Primal_result *) p_result->original_result;
-        }
+        p_pr = (Primal_result *) p_result->original_result;
+        
 
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
@@ -3377,7 +3261,7 @@ void
 load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
-    int i;
+    int i , rval;
     float *result_buf;
     Result *p_result;
     Result test_result;
@@ -3399,43 +3283,62 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     obj_qty = p_subrec->subrec.qty_objects;
     float * activity;
     Bool_type found = FALSE;
- 
-    if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE && p_result->original_names != NULL &&
-       !strncmp(p_result->original_names[index], "es_", 3))
-    {
-        es_qty = analy->int_labels->num_es_sets;
-        for(i = 0; i < es_qty; i++)
-        {
-            for(j = 0; j < p_subrec->subrec.qty_svars; j++)
-            {
-                if(!strcmp(analy->int_labels->es_names[i], p_subrec->subrec.svar_names[j]))
-                {
-                    strcpy(primal_spec, analy->int_labels->result_names[i]);
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-            {
-                break;
-            }
-        }
-    } else if(index < p_result->qty && p_result->original_names != NULL)
-    {
-        for(i = 0; i < p_subrec->subrec.qty_svars; i++)
-        {
-            if(strstr(p_result->original_names[index], p_subrec->subrec.svar_names[i]) != NULL)
-            {
-                strcpy(primal_spec, p_result->original_names[index]);
-                break;
-            }
-        }
-    } else
-    {
-        strcpy(primal_spec, p_result->name);
-    } 
+    Primal_result * primal_result;
+    Htable_entry *table_result;
     
-    primals[0] = primal_spec;
+    rval = htable_search(analy->primal_results, p_result->name, 
+                         FIND_ENTRY, &table_result);
+    
+    if(rval == OK)
+    {
+        primal_result = (Primal_result*)table_result->data;
+    }
+    
+    if( primal_result->possible_owning_vector_result[0])
+    {
+        int *list = (int*)primal_result->possible_owning_vector_result[0]->srec_map->list;
+        for(i=0;i<primal_result->possible_owning_vector_result[0]->srec_map->qty;i++)
+        {
+            if(list[i] == subrec)
+            {
+                break;
+            }
+        }
+        strcpy(primal_spec, 
+               primal_result->possible_owning_vector_result[0]->original_names_per_subrec[i]);
+        if(p_subrec->element_set)
+        {
+            if(p_subrec->element_set->tempIndex < 0)
+            {
+                sprintf(primal_spec,"%s[%d,%s]" ,primal_spec, 
+                        p_subrec->element_set->current_index+1,
+                        p_result->name);
+            }else
+            {
+                sprintf(primal_spec,"%s[%d,%s]" ,primal_spec, 
+                        p_subrec->element_set->tempIndex+1,
+                        p_result->name);                
+            }        
+        }else
+        {
+            sprintf(primal_spec,"%s[%s]" ,primal_spec, 
+                    p_result->name);
+        }
+        primals[0] = primal_spec;
+    }else
+    {
+        int *list = (int*)primal_result->srec_map->list;
+        for(i=0;i<primal_result->srec_map->qty;i++)
+        {
+            if(list[i] == subrec)
+            {
+                break;
+            }
+        }
+        primals[0] = primal_result->original_names_per_subrec[i];
+    }
+    
+    
     primals[1] = NULL;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
@@ -3459,7 +3362,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) &&
         analy->ref_frame == LOCAL)
     {
-        /* we have a shell result in the LOCCAL coordinate system. Now check for a stress result */
+        /* we have a shell result in the LOCAL coordinate system. Now check for a stress result */
         len = strlen(primal_spec);
         if(len == 2)
         {
@@ -3477,7 +3380,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             }
         } else if(len > 6)
         { 
-                if(!strncmp(primal_spec, "stress", 6) || !strncmp(primal_spec, "es_", 3))
+                if(!strncmp(primal_spec, "stress", 6) )
                 {
                     load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                     return;
@@ -3680,27 +3583,7 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
         }
     } 
 
-    if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE && p_result->original_names != NULL &&
-       !strncmp(p_result->original_names[index], "es_", 3))
-    {
-        es_qty = analy->int_labels->num_es_sets;
-        for(i = 0; i < es_qty; i++)
-        {
-            for(j = 0; j < p_subrec->subrec.qty_svars; j++)
-            {
-                if(!strcmp(analy->int_labels->es_names[i], p_subrec->subrec.svar_names[j]))
-                {
-                    strcpy(primal_spec, analy->int_labels->result_names[i]);
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-            {
-                break;
-            }
-        }
-    } else if(p_result->qty > 1 && p_result->original_names != NULL)
+    if(p_result->qty > 1 && p_result->original_names != NULL)
     {
         for(i = 0; i < p_subrec->subrec.qty_svars; i++)
         {
@@ -3741,35 +3624,7 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
     {
         primal_list[i] = malloc(32*sizeof(char));
     }
-    if(!strncmp(primal_spec, "es_", 3))
-    {
-        for(i = 0; i < 6; i++)
-        {
-            strcpy(primal_list[i], p_subrec->subrec.svar_names[0]);
-        }
-        strcat(primal_list[0], "[sx");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[0], p);
-        strcat(primal_list[1], "[sy");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[1], p);
-        strcat(primal_list[2], "[sz");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[2], p);
-        strcat(primal_list[3], "[sxy");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[3], p);
-        strcat(primal_list[4], "[syz");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[4], p);
-        strcat(primal_list[5], "[szx");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[5], p);
-        found = TRUE;
-               
-    } else
-    {
-       if(p_result->original_names != NULL)
+    if(p_result->original_names != NULL)
        {
            if(strstr(p_result->original_names[index], "stress_in") != NULL)
            {
@@ -3805,7 +3660,7 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
        primals[0] = malloc(strlen(name) + 1);
        strcpy(primals[0], name);
        primals[1] = NULL;
-    } 
+     
     
 
    primal_list[6] = NULL;
@@ -4955,7 +4810,7 @@ get_element_set_id( char *es_input_ptr )
  *
  * Returns the element set (es) index for the specified es id.
  *
- */
+ *
 int
 get_element_set_index( Analysis *analy, int es_id )
 {
@@ -4974,13 +4829,13 @@ get_element_set_index( Analysis *analy, int es_id )
     }
     return( es_index );
 }
-
+*/
 /*****************************************************************
  * TAG( get_intpoint_index )
  *
  * Returns the index of the specified label or -1 if not found.
  *
- */
+ *
 int
 get_intpoint_index ( int label, int num_labels, int *intpoint_labels )
 {
@@ -4996,14 +4851,14 @@ get_intpoint_index ( int label, int num_labels, int *intpoint_labels )
     }
     return ( label_index );
 }
-
+*/
 /*****************************************************************
  * TAG( get_intpoints )
  *
  * Returns the current integration points in array
  * intpoints for a specified element set id.
  *
- */
+ *
 void
 get_intpoints ( Analysis *analy, int es_id, int intpoints[3] )
 {
@@ -5024,7 +4879,7 @@ get_intpoints ( Analysis *analy, int es_id, int intpoints[3] )
     intpoints[0] =  intpoints[1] =  intpoints[2] = -1;
     return;
 }
-
+*/
 /*****************************************************************
  * TAG( set_default_intpoints )
  *
@@ -5090,7 +4945,7 @@ Result * create_result_list( char * token, Analysis *analy)
     Result * p2;
     Result result;
     Result_candidate *p_rc;
-    es_Result_candidate *p_es_rc;
+    //es_Result_candidate *p_es_rc;
     Bool_type raw = TRUE;
     Bool_type match = FALSE;
 
@@ -5104,159 +4959,17 @@ Result * create_result_list( char * token, Analysis *analy)
         return NULL;
     } 
    
-	k = 0;
-	if(!strncmp(token, "es_", 3))
-	{
-	   for(i = 0; i < strlen(token); i++)
-	   {
-		   if(token[i] == '[')
-		   {
-			   raw = FALSE;
-			   continue;
-		   }
-
-		   if(raw == FALSE && token[i] != ']')
-		   {
-			   raw_primal[k] = token[i];
-			   k++;
-		   } else if(raw == FALSE && token[i] == ']')
-		   {
-			   raw_primal[k] = '\0';
-			   break;
-		   }
-	   }
-	}
-            
-    /* allocate for a 1 based array so that the subrec number equals the indes into the array */
+	/* allocate for a 1 based array so that the subrec number equals the indes into the array */
     subrecs = (int *) calloc(analy->srec_tree->qty + 1, sizeof(int));
     if(subrecs == NULL)
     {
         popup_dialog(WARNING_POPUP, "Out of memory in function create_result_list. exiting\n");
         parse_command("quit", analy);
     }
-
-    
-    if(analy->int_labels != NULL)
-    { 
-        for(i = 0; possible_es_results[i].superclass != QTY_SCLASS; i++)
-        {
-            p_es_rc = &possible_es_results[i];
-            for(j = 0; p_es_rc->short_names[j] != NULL; j++)
-            {
-                if(strcmp(token, p_es_rc->short_names[j]) == 0)
-                {
-                    match = TRUE;
-                    break;
-                }
-            }
-            if(match == TRUE)
-            {
-                break;
-            }
-        }
- 
-    }
-
-    if(!match && analy->int_labels != NULL)
-    {
-        /*There are element sets and we are looking for primal results */
-        for(i = 0; i < analy->int_labels->num_es_sets; i++)
-        {
-            sprintf(ipt, "%d", analy->int_labels->int_pts_selected[i]);
-            strcpy(name, analy->int_labels->es_names[i]);
-            strcat(name, "[");
-            strcat(name, ipt);
-            strcat(name, ", ");
-            if(raw)
-            {
-                strcat(name, token);
-            } else
-            {
-                strcat(name, raw_primal);
-            }
-            strcat(name, "]");
-            init_result(&result);
-            if(find_result(analy, analy->result_source, TRUE, &result, name))
-            {
-                if(subrecs[result.subrecs[0]] == 0)
-                {
-                    res_ptr = insert_result(res_ptr, result, analy);
-                    for(j = 0; j < result.qty; j++)
-                    {
-                        subrecs[result.subrecs[j]] = 1; 
-                    }
-                }
-            }
-        }
-        
-    }
-
-    /* the only way match could be true is if there are element sets in the problem.
-     * so se still have the possible_es_results with the token match and the primals
-     * so build a query for each element set and build the result then add it to the
-     * linked list 
-     */
-
-    if(match && analy->int_labels != NULL)
-    {
-        for(i = 0; i < analy->int_labels->num_es_sets; i++)
-        {
-            n = snprintf(ipt, 124, "%d", analy->int_labels->int_pts_selected[i]); 
-        
-            match = TRUE;
-            for(j = 0; p_es_rc->primals[j] != NULL; j++)
-            { 
-                strncpy(raw_primal, p_es_rc->primals[j], 20);
-
-                n += 5 + strlen(analy->int_labels->es_names[i])+ strlen(raw_primal);
-                if(n < 64)
-                {
-                    strcpy(name, analy->int_labels->es_names[i]);
-                    strcat(name, "[");
-                    strcat(name, ipt);
-                    strcat(name, ", ");
-                    strcat(name, p_es_rc->primals[j]);
-                    strcat(name, "]");
-                    init_result(&result);
-                    if(!find_result(analy, analy->result_source, TRUE, &result, name))
-                    {
-                        match = FALSE;
-                        break;
-                    }
-                }
-            }
-            if(match == TRUE && subrecs[result.subrecs[0]] == 1)
-            {
-                /* this result has already been added */
-                match = FALSE;
-            }
-            if(match == TRUE)
-            {
-                /* This element set has all the primale to calculate the result so add it to
- *             the linked list after some adjustments to the result structure */
-                strncpy(result.root, token, strlen(token) + 1); 
-                strncpy(result.name, token, strlen(token) + 1); 
-                strcpy(result.title, p_es_rc->long_names[0]);
-                result.result_funcs[0] = p_es_rc->compute_func;
-                analy->original_results[result.superclasses[0]] = result.original_result;
-                result.primals = NEW_N(char**, result.qty, "Result primals array");
-                for(j = 0; j < result.qty; j++)
-                {
-                    result.primals[j] = p_es_rc->primals;
-                }
-
-                res_ptr = insert_result(res_ptr, result, analy);
-                for(j = 0; j < result.qty; j++)
-                {
-                    subrecs[result.subrecs[j]] = 1;
-                }  
-            } 
-        }    
-    }
- 
     for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
     {
         p_rc = &possible_results[i];
+        
         for(j = 0; p_rc->short_names[j] != NULL; j++)
         {
             if(strcmp(token, p_rc->short_names[j]) == 0)
@@ -5279,89 +4992,12 @@ Result * create_result_list( char * token, Analysis *analy)
         }
     }
 
-    /* if res_ptr != NULL then this was a derived result */
-    /*if(res_ptr != NULL)
-    {
-        free(subrecs);
-        return res_ptr;
-    } */
- 
     init_result(&result);
  
     rval = find_result(analy, analy->result_source, TRUE, &result, token);
-    /* start with element sets if they exist */
-    if(analy->int_labels != NULL && rval == 1 )
+    
+    if(rval == 1)
     {
-        /* we are looking for a primal result */
-        for(qty_candidates = 0; possible_results[qty_candidates].superclass != QTY_SCLASS; qty_candidates++);
-       k = 0;
-       p_es_rc = &possible_es_results[0];
-       /* lets get the raw primal */
-       for(i = 0; i < strlen(token); i++)
-       {
-           if(token[i] == '[')
-           {
-               raw = FALSE;
-               continue;
-           }
-            
-           if(raw == FALSE && token[i] != ']')
-           {
-               raw_primal[k] = token[i];
-               k++;
-           } else if(raw == FALSE && token[i] == ']')
-           {
-               raw_primal[k] = '\0';
-               break;
-           }
-           
-            
-       }
-
-       for(j = 0; j < analy->int_labels->num_es_sets; j++)
-       {
-           strcpy(name, analy->int_labels->es_names[j]);
-           strcat(name, "[");
-           sprintf(ipt, "%d", analy->int_labels->int_pts_selected[j]);
-           strcat(name, ipt);
-           strcat(name, ", ");
-           if(raw == TRUE)
-           {
-               strcat(name, token);
-           } else
-           {
-               strcat(name, raw_primal);
-           }
-           strcat(name, "]"); 
-           init_result(&result);
-           if(find_result(analy, analy->result_source, TRUE, &result, name))
-           {
-               if(subrecs[result.subrecs[0]] == 0)
-               {
-                   res_ptr = insert_result(res_ptr, result, analy);
-                   for(k = 0; k < result.qty; k++)
-                   {
-                       subrecs[result.subrecs[k]] = 1;
-                   }
-               }
-           }
-       }
-       init_result(&result);
-       if(find_result(analy, analy->result_source, TRUE, &result, token))
-       {
-           if(subrecs[result.subrecs[0]] == 0)
-           {
-               res_ptr = insert_result(res_ptr, result, analy);
-               for(k = 0; k < result.qty; k++)
-               {
-                   subrecs[result.subrecs[k]] = 1;
-               }
-           }
-       }
-
-    } else if(analy->int_labels == NULL && rval == 1)
-    {
-        /* ok element sets are not in this plot file */
         if(raw == TRUE)
         {
             if(subrecs[result.subrecs[0]] == 0)

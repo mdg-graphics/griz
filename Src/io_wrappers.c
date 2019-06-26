@@ -68,8 +68,6 @@
 
 static int create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
                                State_variable **pp_svar );
-static int create_derived_results( Analysis *analy, int srec_id, int subrec_id,
-                                   Result_candidate *p_rc, Hash_table *p_ht );
 static void gen_material_data( MO_class_data *, Mesh_data * );
 static void check_degen_hexs( MO_class_data *p_hex_class );
 static void check_degen_quads( MO_class_data *p_quad_class );
@@ -79,6 +77,100 @@ char        *get_subrecord( Analysis *analy, int num );
 
 int mili_compare_labels( const void *label1, const void *label2 );
 
+/************************************************************
+ * TAG( determine_naming )
+ * 
+ * Determine if the es_ naming is a stress or strain.
+ *
+ * Return NULL if it is not a full set of the required parameters.
+ *
+ */
+char *
+determine_naming( char *p_name , State_variable *p_sv)
+{
+   char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
+   char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
+   int int_array[6]={0};
+   int i,j;
+   int valid;
+   char *return_value = NULL;
+   
+   if(p_sv->agg_type != VEC_ARRAY && p_sv->agg_type != VECTOR)
+   {
+       return NULL;
+   }
+   if(!strcmp(p_name,"strain") || !strcmp(p_name,"stress"))
+   {
+       return NULL;
+   }
+   /*lets check stresses first*/
+   for(i=0;i<6;i++)
+   {
+      for(j=0;j<p_sv->vec_size;j++)
+      {
+          if(!int_array[i] && 
+             !strcmp(stresses[i],p_sv->components[j]))
+          {
+              int_array[i] = 1;
+              break;
+          }
+      }
+   }
+   
+   valid = 1;
+   
+   for(i=0;i<6;i++)
+   {
+       if(!int_array[i])
+       {
+         valid = 0;
+       }
+   }
+   
+   if(valid)
+   {
+       return_value = (char*)malloc(7);
+       strcpy(return_value,"stress");
+       return return_value;   
+   }
+   
+   /* Well we might as well check for strains if we made it this far. */
+   for(i=0;i<6;i++)
+   {
+       int_array[i]=0;
+   }
+   
+   for(i=0;i<6;i++)
+   {
+      for(j=0;j<p_sv->vec_size;j++)
+      {
+          if(!strcmp(strains[i],p_sv->components[j]))
+          {
+              int_array[i] = 1;
+              break;
+          }
+      }
+   }
+   
+   valid = 1;
+   
+   for(i=0;i<6;i++)
+   {
+       if(!int_array[i])
+       {
+         valid = 0;
+       }
+   }
+   
+   if(valid)
+   {
+       return_value = (char*)malloc(7);
+       strcpy(return_value,"strain");
+       return return_value;   
+   }
+   
+   return NULL;
+}
 
 /************************************************************
  * TAG( mili_db_open )
@@ -662,7 +754,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 {
                     /* no labels were found so create them here */
                     block_qty = 1;
-                    block_range = (int *) malloc(2);
+                    block_range = (int *) malloc(2*sizeof(int));
                     if(block_range == NULL)
                     {
                         popup_fatal( "Unable to allocate block_range" );
@@ -1505,6 +1597,45 @@ check_degen_tris( MO_class_data *p_tri_class )
     }
 }
 
+
+int
+attach_element_set(Analysis *analy,Subrec_obj *subrec_obj,char *name)
+{
+   if(strncmp(name,"es_",3))
+   {
+       return OK;
+   }
+   int i,k=0;
+   char c;
+   int mat_id=0;
+   char SetName[32];
+   SetName[0] = '\0';
+   Htable_entry *p_hte;
+   int status; 
+   
+   for(i= strlen(name)-1;i>=0; i--)
+   {
+       if(isdigit(name[i]))
+       {
+           c = name[i];
+           mat_id =  atoi(&c)*pow(10,k);
+           k++;
+       }
+   }
+   
+   sprintf(SetName,"IntLabel_es_%d", mat_id);
+   
+   status = htable_search( analy->Element_sets, SetName, FIND_ENTRY, &p_hte );
+   
+   if(status != OK)
+   {
+      return 1;
+   }
+   
+   subrec_obj->element_set = (ElementSet*) p_hte->data; 
+   
+   return OK;
+}
 /************************************************************
  * TAG( mili_db_get_st_descriptors )
  *
@@ -1514,7 +1645,10 @@ check_degen_tris( MO_class_data *p_tri_class )
 extern int
 mili_db_get_st_descriptors( Analysis *analy, int dbid )
 {
-    int srec_qty, svar_qty, subrec_qty, mesh_node_qty;
+    int srec_qty, 
+        svar_qty, 
+        subrec_qty, 
+        mesh_node_qty;
     Famid fid;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrecs;
@@ -1700,6 +1834,16 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
 
             for ( k = 0; k < p_subr->qty_svars; k++ )
             {
+                
+                // Unfortunatley we rely on es_ to tell us this is 
+                // an elements set
+                if(!strncmp(svar_names[k],"es_",3))
+                {
+                    rval = attach_element_set(analy,
+                                              &p_subrecs[subrec_index],
+                                              svar_names[k]);
+                }
+                
                 rval = create_st_variable( fid, p_sv_ht, svar_names[k],
                                            &p_svar );
                 if ( rval != 0 )
@@ -1714,6 +1858,58 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
                                       srec_qty, svar_names[k], p_sv_ht, analy );
 
+                rval = htable_search(p_primal_ht,svar_names[k], FIND_ENTRY,&p_hte );
+                if(rval == OK)
+                {
+                    Primal_result *p_pr = (Primal_result *)p_hte->data;
+                    if(p_pr->possible_owning_vec_count == 0)
+                    {
+                        p_pr->possible_owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
+                        p_pr->possible_owning_vector_result[0] = NULL;
+                    }else
+                    {
+                        p_pr->possible_owning_vector_result = RENEW_N(struct _primal_result*,p_pr->possible_owning_vector_result,
+                                                                      p_pr->possible_owning_vec_count, 1,"Extending vector results");
+                        p_pr->possible_owning_vector_result[p_pr->possible_owning_vec_count] = NULL;
+                    }
+                    if ( p_svar->agg_type == VECTOR || p_svar->agg_type == VEC_ARRAY)
+                    {
+                        Primal_result *owning_pr;
+                        rval = htable_search(p_primal_ht,svar_names[k], FIND_ENTRY,&p_hte );
+                        if(rval == OK)
+                        {
+                            owning_pr = (Primal_result *)p_hte->data;
+                            int vec_index;
+                            for(vec_index = 0; vec_index< p_svar->vec_size; vec_index++)
+                            {
+                                create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, 
+                                                  p_primal_ht, srec_qty, p_svar->components[vec_index], 
+                                                  p_sv_ht, analy );
+                        
+                                rval = htable_search(p_primal_ht,p_svar->components[vec_index], FIND_ENTRY,&p_hte );
+                                if(rval == OK)
+                                {
+                                    
+                                    p_pr = (Primal_result *)p_hte->data;
+                                    if(p_pr->possible_owning_vec_count == 0)
+                                    {
+                                        p_pr->possible_owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
+                                        p_pr->possible_owning_vector_result[0] = (struct _primal_result*)owning_pr;
+                                        
+                                    }else 
+                                    {
+                                        p_pr->possible_owning_vector_result = RENEW_N(struct _primal_result*,p_pr->possible_owning_vector_result,
+                                                                             p_pr->possible_owning_vec_count, 1,
+                                                                             "Extending vector results");
+                                        p_pr->possible_owning_vector_result[p_pr->possible_owning_vec_count] = (struct _primal_result*)owning_pr;
+                                    }
+                                    p_pr->possible_owning_vec_count++;
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 if ( nodal )
                 {
                     if ( strcmp( svar_names[k], "nodpos" ) == 0 )
@@ -1744,7 +1940,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                         p_sro[i].node_vel_subrec = j;
                     }
                 }
-
+                /*Not sure the following code is needed anymore*/
                 if ( particle )
                 {
                     if ( strcmp( svar_names[k], "partpos" ) == 0 )
@@ -1969,35 +2165,46 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                       Subrec_obj *p_subr_obj, Hash_table *p_primal_ht,
                       int qty_srec_fmts, char *p_name, Hash_table *p_sv_ht, Analysis * analy )
 {
-    int rval;
-    Htable_entry *p_hte, *p_hte2, *p_hte3, *p_hte4;
-    Hash_table * p_es_components_ht;
-    State_variable *p_sv;
+    int rval,
+        rval2 = 101;
+    Htable_entry *p_hte, *p_hte2, *p_hte3 = NULL, *p_hte4;
+    //Hash_table * p_es_components_ht;
+    State_variable *p_sv = NULL;
     Primal_result *p_pr;
     ES_in_menu *p_es;
     int i, j, size;
     int *p_i;
     int superclass;
+    char *variable_name; 
     char *p_sand_var;
+    char *es_short_name = NULL;
     static int first = 0;
+    
     /*
      * See if primal result has already been entered in table.
      * Use ENTER_MERGE to return entry even when it already exists so
      * we can update the presence tree and check for SCALAR type with
      * "sand" flag test.
      */
-
-    rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
-   if(analy->es_components_table == NULL)
-    //if(first == 0)
-    { 
-        size = p_primal_ht->size;
-        p_es_components_ht = htable_create( size );
-    } else
+    rval = htable_search( p_sv_ht, p_name, FIND_ENTRY, &p_hte2 );
+    
+    if(rval == OK)
     {
-        p_es_components_ht = analy->es_components_table;
+        p_sv = (State_variable *) p_hte2->data;
+    
+        es_short_name = determine_naming(p_name,p_sv);
     }
-   
+    
+    if(es_short_name == NULL)
+    {
+        rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
+    }else
+    {
+        rval = htable_search( p_primal_ht, es_short_name, ENTER_MERGE, &p_hte );
+        rval2 = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte3 );
+    }
+    
+    
     
     /* If new... */
     if ( rval == OK )
@@ -2006,63 +2213,62 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         p_pr = NEW( Primal_result, "New primal result" );
 
         /* Get the State_variable for it. */
-        rval = htable_search( p_sv_ht, p_name, FIND_ENTRY, &p_hte2 );
-        p_sv = (State_variable *) p_hte2->data;
         p_pr->var = p_sv;
-
-        if(!strncmp(p_sv->short_name, "es_", 3))
-        {
-            for(j = 0; j < p_sv->vec_size; j++)
-            {
-               
-                if(p_sv->components == NULL)
-                {
-                    continue;
-                } 
-                p_es = NEW( ES_in_menu, "New es in menu structure");
-                strcpy(p_es->component_name, p_sv->components[j]);
-                strcpy(p_es->parent_menu, "");
-                p_es->in_menu = FALSE;
-//                int num_entries = 0;
-//                num_entries = mc_ti_htable_search_wildcard(p_es_components_ht, 0, FALSE, "*", "NULL", "NULL", NULL);
-                if(p_es_components_ht->qty_entries > 0)
-                { 
-                    rval = htable_search(p_es_components_ht, p_es->component_name, FIND_ENTRY, &p_hte3);
-                    if(rval == OK)
-                    {
-                        continue;
-                    }
-                } 
-                rval = htable_search(p_es_components_ht, p_es->component_name, ENTER_UNIQUE, &p_hte4); 
-                p_hte4->data = (ES_in_menu *) p_es; 
-            }
-        }
- 
+        
         /* Reference names from the State_variable. */
-        p_pr->short_name = p_sv->short_name;
-        p_pr->long_name = p_sv->long_name;
-
+        if(es_short_name == NULL)
+        {
+            p_pr->short_name = (char*)calloc(sizeof(char),strlen(p_sv->short_name)+1);
+            strcpy(p_pr->short_name, p_sv->short_name);
+            
+            p_pr->long_name = (char*)calloc(sizeof(char),strlen(p_sv->long_name)+1);
+            strcpy(p_pr->long_name ,p_sv->long_name);
+        }else
+        {
+            p_pr->short_name = (char*)calloc(sizeof(char),strlen(es_short_name)+1);
+            strcpy(p_pr->short_name, es_short_name);
+            p_pr->long_name = calloc(sizeof(char),7);
+            p_pr->long_name[0] = '\0';
+            if(strcmp(es_short_name ,"stress")==0)
+            {
+                strcpy(p_pr->long_name,"Stress");
+            }else
+            {
+                strcpy(p_pr->long_name,"Strain");
+            }
+            free(es_short_name);
+        }
+        
         p_pr->origin.is_primal = 1;
 
-        superclass = p_subr_obj->p_object_class->superclass;
-        if ( superclass == M_NODE )
-            p_pr->origin.is_node_result = 1;
-        else if ( superclass == M_MAT )
-            p_pr->origin.is_mat_result = 1;
-        else if ( superclass == M_MESH )
-            p_pr->origin.is_mesh_result = 1;
-        else if ( superclass == M_UNIT )
-            p_pr->origin.is_unit_result = 1;
-        else if ( superclass == M_SURFACE )
+        switch(p_subr_obj->p_object_class->superclass)
         {
-            p_pr->origin.is_surface_result = 1;
-            p_pr->origin.is_elem_result = 1;
+            case M_NODE:
+                p_pr->origin.is_node_result = 1;
+                break;
+            case M_MAT:
+                p_pr->origin.is_mat_result = 1;
+                break;
+            case M_MESH:
+                p_pr->origin.is_mesh_result = 1;
+                break;
+            case M_UNIT:
+                p_pr->origin.is_unit_result = 1;
+                break;
+            case M_SURFACE:
+                p_pr->origin.is_surface_result = 1;
+            default:
+                p_pr->origin.is_elem_result = 1;
+                break;
+        
         }
-        else
-            p_pr->origin.is_elem_result = 1;
+        
 
         /* Initialize the state rec/subrec presence map. */
         p_pr->srec_map = NEW_N( List_head, qty_srec_fmts, "PR srec map" );
+        p_pr->original_names_per_subrec = NEW_N( char* , 1, "Original names" );
+        p_pr->original_names_per_subrec[0] = NEW_N(char, strlen(p_name)+1, "First alternate name");
+        strcpy(  p_pr->original_names_per_subrec[0], p_name); 
         p_i = NEW( int, "Subrec primal list" );
         *p_i = subrec_id;
         p_pr->srec_map[srec_id].list = (void *) p_i;
@@ -2070,12 +2276,21 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
 
         /* Store primal result. */
         p_hte->data = (void *) p_pr;
+        if(p_hte3 != NULL && rval2 == OK )
+        {
+            p_hte3->data = (void *) p_pr;
+        }
     }
     else
     {
         /* Primal result already exists, so just update the presence tree. */
         p_pr = (Primal_result *) p_hte->data;
-
+        
+        if(rval2 == OK && p_hte3 != NULL)
+        {
+            p_hte3->data = (void *) p_pr;
+        }
+        
         if ( p_pr->srec_map[srec_id].list == NULL )
         {
             /* First occurrence in this srec format. */
@@ -2104,6 +2319,10 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 /* Assign back in case realloc moved the array. */
                 p_pr->srec_map[srec_id].list = (void *) p_i;
                 p_pr->srec_map[srec_id].qty++;
+                p_pr->original_names_per_subrec = RENEW_N(char*,p_pr->original_names_per_subrec,
+                                                          i,1,"Extending original names");
+                p_pr->original_names_per_subrec[i] = NEW_N(char, strlen(p_name)+1, "Next alternate name");
+                strcpy(  p_pr->original_names_per_subrec[i], p_name);                                        
             }
 
         }
@@ -2120,282 +2339,9 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             p_mesh->double_precision_sand = TRUE;
     }
   
-    if(first == 0)
-    { 
-        analy->es_components_table = p_es_components_ht;
-        first = 1;
-    }
+    
     return OK;
 }
-
-
-/************************************************************
- * TAG( mili_db_set_results )
- *
- * Evaluate which derived result calculations may occur for
- * a Mili database and fill load-result table for derived
- * results.
- */
-extern int
-mili_db_set_results( Analysis *analy )
-{
-    Result_candidate *p_rc;
-    es_Result_candidate *p_es_rc;
-    int i, j, k, m;
-    int num_entries = 0;
-    int qty_candidates, qty_es_candidates;
-    int pr_qty, subr_qty;
-    Hash_table *p_pr_ht;
-    Hash_table *p_dr_ht;
-    Htable_entry *p_hte, *p_hte2;
-    int **counts;
-    int rval;
-    Primal_result *p_pr;
-    Primal_result *p_es_pr;
-    int *p_i;
-    Subrec_obj *p_subrecs;
-    Mesh_data *meshes;
-    int cand_primal_sclass, subrec_idx, found_th=FALSE;
-
-    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                                               "IntLabel", "NULL", "NULL", NULL);
-
-    /* Sanity check. */
-    if ( analy->primal_results == NULL )
-        return OK;
-
-    /* Count element set derived result candidates */
-    for ( qty_es_candidates = 0;
-            possible_es_results[qty_es_candidates].superclass != QTY_SCLASS;
-            qty_es_candidates++ );
-    
-    /* Count derived result candidates. */
-    for ( qty_candidates = 0;
-            possible_results[qty_candidates].superclass != QTY_SCLASS;
-            qty_candidates++ );
-    p_pr_ht = analy->primal_results;
-
-    /* Base derived result table size on primal result table size. */
-    if ( p_pr_ht->qty_entries < 151 )
-        p_dr_ht = htable_create( 151 );
-    else
-        p_dr_ht = htable_create( 1009 );
-
-    /* Create counts tree. */
-    counts = NEW_N( int *, analy->qty_srec_fmts, "Counts tree trunk" );
-    for ( j = 0; j < analy->qty_srec_fmts; j++ )
-        counts[j] = NEW_N( int, analy->srec_tree[j].qty,
-                           "Counts tree branch" );
-
-    for ( i = 0; i < qty_candidates; i++ )
-    {
-        p_rc = &possible_results[i];
-        if(i < qty_es_candidates)
-        {
-           p_es_rc = &possible_es_results[i];
-        }
-
-        /* Ensure mesh dimensionality matches result requirements. */
-        if ( analy->dimension == 2 )
-        {
-            if ( !p_rc->dim.d2 )
-                continue;
-        }
-        else
-        {
-            if ( !p_rc->dim.d3 )
-                continue;
-        }
-
-        /*
-         * Ensure there exists a mesh object class with a superclass
-         * which matches the candidate.  Some results may be calculated
-         * from results from a different class (i.e., hex strain from
-         * nodal positions), so we need to make sure there's an object
-         * class to provide the derived result on.
-         */
-        meshes = analy->mesh_table;
-
-        for ( j = 0; j < analy->mesh_qty; j++ )
-            if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
-                break;
-        if ( j == analy->mesh_qty )
-            continue;
-
-        /*
-         * Loop over primal results required for current possible derived
-         * result calculation; increment per-subrec counter for each
-         * subrecord which contains each required result when the superclass
-         * of the subrecord objects matches the superclass of the candidate
-         * primal.
-         */
-        for ( j = 0; p_rc->primals[j] != NULL; j++ )
-        {
-            rval = htable_search( p_pr_ht, p_rc->primals[j], FIND_ENTRY,
-                                  &p_hte );
-            if ( rval == OK )
-                p_pr = (Primal_result *) p_hte->data;
-            else
-                continue;
-    
-            rval = htable_search( p_pr_ht, p_es_rc->primals[j], FIND_ENTRY, &p_hte2);
-            if(rval == OK )
-            {
-                p_es_pr = (Primal_result *) p_hte2->data;
-            }
-
-            found_th=FALSE;
-
-            /* Look for nodal coordinates in other place for TH databases if
-             * "noddpos" is missing.
-             */
-
-            /*           HEX
-            */
-            if ( !strcmp("hx",p_rc->primals[j]) && p_rc->superclass==M_HEX )
-            {
-                rval = htable_search( p_pr_ht, "nodpos", FIND_ENTRY,
-                                      &p_hte );
-                if ( rval == OK )
-                    found_th=FALSE;
-                else
-                    found_th=TRUE;
-            }
-
-            /*           SHELL
-            */
-            if ( !strcmp("shlx",p_rc->primals[j]) && p_rc->superclass==M_QUAD )
-            {
-                rval = htable_search( p_pr_ht, "nodpos", FIND_ENTRY,
-                                      &p_hte );
-                if ( rval == OK )
-                    found_th=FALSE;
-                else
-                    found_th=TRUE;
-            }
-
-
-            /* Primal precision must match candidate requirement. */
-            if ( strcmp(p_pr->short_name, "nodpos")
-                    && p_rc->single_precision_input
-                    && p_pr->var->num_type != G_FLOAT
-                    && p_pr->var->num_type != G_FLOAT4 )
-                continue;
-
-            cand_primal_sclass = p_rc->primal_superclasses[j];
-
-            /*
-             * Increment counts for subrecords which contain primal result.
-             * and match the candidate primal superclass.
-             */
-            for ( k = 0; k < analy->qty_srec_fmts; k++ )
-            {
-                p_subrecs = analy->srec_tree[k].subrecs;
-                p_i = (int *) p_pr->srec_map[k].list;
-                subr_qty = p_pr->srec_map[k].qty;
-                for ( m = 0; m < subr_qty; m++ )
-                {
-                    subrec_idx = p_i[m];
-
-                    if ( cand_primal_sclass
-                            == p_subrecs[subrec_idx].p_object_class->superclass )
-                        counts[k][subrec_idx]++;
-                }
-            }
-        }
-
-        pr_qty = j;
-
-        if (found_th)
-            pr_qty=0;
-
-        if ( pr_qty > 0 )
-        {
-            /*
-             * Each subrecord count equal to the quantity of primals required
-             * for current possible result indicates a subrecord on which
-             * the result derivation can take place.
-             */
-            for ( j = 0; j < analy->qty_srec_fmts; j++ )
-            {
-                for ( k = 0; k < analy->srec_tree[j].qty; k++ )
-                {
-                    if ( counts[j][k] == pr_qty )
-                        create_derived_results( analy, j, k, p_rc, p_dr_ht );
-                }
-            }
-        }
-        else
-        {
-            /*
-             * No primal result dependencies for this derived result.  We
-             * need to associate with a subrecord in order to generate a
-             * correct menu entry, so search the subrecords for a superclass
-             * match.
-             *
-             * This is a hack, because it depends on having data in the
-             * database to give the derived result something to piggy-back
-             * on, when there really is no dependency.  The current design
-             * needs to be extended to allow for such "dynamic" results as
-             * "pvmag" which is a nodal derived result but doesn't require
-             * nodal data in the db to be calculable.  This will probably
-             * be a necessary addition to support interpreted results
-             * anyway.
-             */
-
-            for ( j = 0; j < analy->qty_srec_fmts; j++ )
-            {
-                p_subrecs = analy->srec_tree[j].subrecs;
-                for ( k = 0; k < analy->srec_tree[j].qty; k++ )
-                {
-                    if ( p_subrecs[k].p_object_class->superclass
-                            == p_rc->superclass )
-                    {
-                        create_derived_results( analy, j, k, p_rc, p_dr_ht );
-
-                        /* Just do one per state record format. */
-                        break;
-                    }
-                }
-            }
-        }
-
-        /* Clear counts tree. */
-        for ( j = 0; j < analy->qty_srec_fmts; j++ )
-            for ( k = 0; k < analy->srec_tree[j].qty; k++ )
-                counts[j][k] = 0;
-
-    }
-
-    for ( j = 0; j < analy->qty_srec_fmts; j++ )
-        free( counts[j] );
-    free( counts );
-
-    if(num_entries > 0)
-    {    
-        for(i = 0; i < qty_es_candidates; i++)
-        {
-            p_es_rc = &possible_es_results[i];
-            for(j = 0; j < analy->qty_srec_fmts; j++)
-            {
-                p_subrecs = analy->srec_tree[j].subrecs;
-                for(k = 0; k < analy->srec_tree[j].qty; k++)
-                {
-                    if(p_subrecs[k].p_object_class->superclass == p_es_rc->superclass)
-                    {
-                        create_derived_results(analy, j, k, (Result_candidate *) p_es_rc, p_dr_ht);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    analy->derived_results = p_dr_ht;
-
-    return OK;
-}
-
 
 /************************************************************
  * TAG( create_derived_results )
@@ -2412,7 +2358,8 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
     Htable_entry *p_hte;
     Derived_result *p_dr;
     int i, j;
-    int qty_srecs, qty_subrecs;
+    int qty_srecs,   //Count of statee records
+        qty_subrecs; //Count of subrecords
     Subrecord_result *p_sr;
     Subrec_obj *p_subrec;
     Bool_type added;
@@ -2525,6 +2472,246 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
 
     return OK;
 }
+
+
+/************************************************************
+ * TAG( mili_db_set_results )
+ *
+ * Evaluate which derived result calculations may occur for
+ * a Mili database and fill load-result table for derived
+ * results.
+ */
+extern int
+mili_db_set_results( Analysis *analy )
+{
+    Result_candidate *p_rc;
+    int i, j, k, m;
+    int num_entries = 0;
+    int qty_candidates;
+    int pr_qty, subr_qty;
+    Hash_table *p_pr_ht;
+    Hash_table *p_dr_ht;
+    Htable_entry *p_hte, *p_hte2;
+    int **counts;
+    int rval;
+    Primal_result *p_pr;
+    int *p_i;
+    Subrec_obj *p_subrecs;
+    Mesh_data *meshes;
+    int cand_primal_sclass, subrec_idx, found_th=FALSE;
+
+    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                                               "IntLabel", "NULL", "NULL", NULL);
+
+    /* Sanity check. */
+    if ( analy->primal_results == NULL )
+        return OK;
+
+    /* Count derived result candidates. */
+    for ( qty_candidates = 0;
+            possible_results[qty_candidates].superclass != QTY_SCLASS;
+            qty_candidates++ );
+    p_pr_ht = analy->primal_results;
+
+    /* Base derived result table size on primal result table size. */
+    if ( p_pr_ht->qty_entries < 151 )
+        p_dr_ht = htable_create( 151 );
+    else
+        p_dr_ht = htable_create( 1009 );
+
+    /* Create counts tree. */
+    counts = NEW_N( int *, analy->qty_srec_fmts, "Counts tree trunk" );
+    for ( j = 0; j < analy->qty_srec_fmts; j++ )
+        counts[j] = NEW_N( int, analy->srec_tree[j].qty,
+                           "Counts tree branch" );
+    
+    for ( i = 0; i < qty_candidates; i++ )
+    {
+        p_rc = &possible_results[i];
+        
+        /* Ensure mesh dimensionality matches result requirements. */
+        if ( analy->dimension == 2 )
+        {
+            if ( !p_rc->dim.d2 )
+                continue;
+        }
+        else
+        {
+            if ( !p_rc->dim.d3 )
+                continue;
+        }
+
+        /*
+         * Ensure there exists a mesh object class with a superclass
+         * which matches the candidate.  Some results may be calculated
+         * from results from a different class (i.e., hex strain from
+         * nodal positions), so we need to make sure there's an object
+         * class to provide the derived result on.
+         */
+        meshes = analy->mesh_table;
+
+        for ( j = 0; j < analy->mesh_qty; j++ )
+            if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
+                break;
+        if ( j == analy->mesh_qty )
+            continue;
+
+        /*
+         * Loop over primal results required for current possible derived
+         * result calculation; increment per-subrec counter for each
+         * subrecord which contains each required result when the superclass
+         * of the subrecord objects matches the superclass of the candidate
+         * primal.
+         */
+        for ( j = 0; p_rc->primals[j] != NULL; j++ )
+        {
+            rval = htable_search( p_pr_ht, p_rc->primals[j], FIND_ENTRY,
+                                  &p_hte );
+            if ( rval == OK )
+                p_pr = (Primal_result *) p_hte->data;
+            else
+                continue;
+
+            found_th=FALSE;
+
+            /* Look for nodal coordinates in other place for TH databases if
+             * "noddpos" is missing.
+             */
+
+            /*           HEX
+            */
+            if ( !strcmp("hx",p_rc->primals[j]) && p_rc->superclass==M_HEX )
+            {
+                rval = htable_search( p_pr_ht, "nodpos", FIND_ENTRY,
+                                      &p_hte );
+                if ( rval == OK )
+                    found_th=FALSE;
+                else
+                    found_th=TRUE;
+            }
+
+            /*           SHELL
+            */
+            if ( !strcmp("shlx",p_rc->primals[j]) && p_rc->superclass==M_QUAD )
+            {
+                rval = htable_search( p_pr_ht, "nodpos", FIND_ENTRY,
+                                      &p_hte );
+                if ( rval == OK )
+                {
+                    found_th=FALSE;
+                }else
+                {
+                    found_th=TRUE;
+                }
+            }
+
+
+            /* Primal precision must match candidate requirement. */
+            if ( strcmp(p_pr->short_name, "nodpos")
+                    && p_rc->single_precision_input
+                    && p_pr->var->num_type != G_FLOAT
+                    && p_pr->var->num_type != G_FLOAT4 )
+            {
+                continue;
+            }
+            
+            cand_primal_sclass = p_rc->primal_superclasses[j];
+
+            /*
+             * Increment counts for subrecords which contain primal result.
+             * and match the candidate primal superclass.
+             */
+            for ( k = 0; k < analy->qty_srec_fmts; k++ )
+            {
+                p_subrecs = analy->srec_tree[k].subrecs;
+                p_i = (int *) p_pr->srec_map[k].list;
+                subr_qty = p_pr->srec_map[k].qty;
+                for ( m = 0; m < subr_qty; m++ )
+                {
+                    subrec_idx = p_i[m];
+
+                    if ( cand_primal_sclass
+                            == p_subrecs[subrec_idx].p_object_class->superclass )
+                    {
+                        counts[k][subrec_idx]++;
+                    }
+                }
+            }
+        }
+
+        pr_qty = j;
+
+        if (found_th)
+            pr_qty=0;
+
+        if ( pr_qty > 0 )
+        {
+            /*
+             * Each subrecord count equal to the quantity of primals required
+             * for current possible result indicates a subrecord on which
+             * the result derivation can take place.
+             */
+            for ( j = 0; j < analy->qty_srec_fmts; j++ )
+            {
+                for ( k = 0; k < analy->srec_tree[j].qty; k++ )
+                {
+                    if ( counts[j][k] == pr_qty )
+                        create_derived_results( analy, j, k, p_rc, p_dr_ht );
+                }
+            }
+        }
+        else
+        {
+            /*
+             * No primal result dependencies for this derived result.  We
+             * need to associate with a subrecord in order to generate a
+             * correct menu entry, so search the subrecords for a superclass
+             * match.
+             *
+             * This is a hack, because it depends on having data in the
+             * database to give the derived result something to piggy-back
+             * on, when there really is no dependency.  The current design
+             * needs to be extended to allow for such "dynamic" results as
+             * "pvmag" which is a nodal derived result but doesn't require
+             * nodal data in the db to be calculable.  This will probably
+             * be a necessary addition to support interpreted results
+             * anyway.
+             */
+
+            for ( j = 0; j < analy->qty_srec_fmts; j++ )
+            {
+                p_subrecs = analy->srec_tree[j].subrecs;
+                for ( k = 0; k < analy->srec_tree[j].qty; k++ )
+                {
+                    if ( p_subrecs[k].p_object_class->superclass
+                            == p_rc->superclass )
+                    {
+                        create_derived_results( analy, j, k, p_rc, p_dr_ht );
+
+                        /* Just do one per state record format. */
+                        break;
+                    }
+                }
+            }
+        }
+
+        /* Clear counts tree. */
+        for ( j = 0; j < analy->qty_srec_fmts; j++ )
+            for ( k = 0; k < analy->srec_tree[j].qty; k++ )
+                counts[j][k] = 0;
+
+    }
+
+    for ( j = 0; j < analy->qty_srec_fmts; j++ )
+        free( counts[j] );
+    free( counts );
+
+    analy->derived_results = p_dr_ht;
+
+    return OK;
+}
+
+
 
 
 /************************************************************
@@ -2699,6 +2886,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
                     analy->infoMsgCnt++;
                 }
             }
+            analy->db_cleanse_state_var(&sv);
         }
 
         if ( p_subrecs[i].sand )

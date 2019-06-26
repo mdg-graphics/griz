@@ -489,6 +489,16 @@ typedef struct _result_mo_list_obj
     Bool_type active;
 } Result_mo_list_obj;
 
+typedef struct _ElementSet
+{
+  int size;                 /* Size of the integration_points in the array */
+  int * integration_points;  /* The actual integration point put out by the code the int at 
+                               size is the simulation actual integration points processed*/
+  int current_index;        /* The selected integration point by the user. Default is zero? */
+  int tempIndex;
+  int middle_index;
+  int material_number; 
+} ElementSet;
 
 /*****************************************************************
  * TAG( Subrec_obj )
@@ -503,7 +513,7 @@ typedef struct _subrec_obj
     int *referenced_nodes;
     int ref_node_qty;
     Subrecord subrec;
-
+    ElementSet *element_set;
     /*
      * Handle for temporary storage of references to results
      * supported by this subrecord  and associated
@@ -945,7 +955,8 @@ typedef struct _IntLabels
    char **result_names;
    Bool_type use_combined;
 
-} IntLabels;
+} Int_Labels;
+
 
 typedef struct _intPtMessages
 {
@@ -1050,7 +1061,7 @@ typedef struct _Analysis
     int num_banned_names;
     char **conflict_messages;
     int num_messages;
-    Hash_table *es_components_table;
+    //Hash_table *es_components_table;
     Result_table_type result_source;
     char **component_menu_specs;
     int component_spec_qty;
@@ -1473,9 +1484,10 @@ typedef struct _Analysis
      * data.
      */
     int                 es_cnt; /* Number of element sets */
-    Integration_points *es_intpoints;
-    IntLabels * int_labels;
-
+    //Integration_points *es_intpoints;
+    //IntLabels * int_labels;
+    Hash_table * Element_sets;
+    char **Element_set_names;
     /*
  *   Added February , 2014:  WBO Switch to turn off auto gray
  *  */
@@ -2308,7 +2320,7 @@ extern void dump_result( Analysis *, char * );
 
 /* results.c */
 extern Result_candidate possible_results[];
-extern es_Result_candidate possible_es_results[];
+//extern es_Result_candidate possible_es_results[];
 extern void update_result( Analysis *, Result * );
 extern Result * create_result_list(char *, Analysis *);
 extern void delete_result_list(Result **, Analysis *);
@@ -2336,10 +2348,10 @@ extern Bool_type mod_required_mesh_mode( Analysis *, Result_modifier_type, int,
 extern Bool_type mod_required_plot_mode( Analysis *, Result_modifier_type, int,
         int );
 extern int get_element_set_id( char * );
-extern int get_element_set_index( Analysis *, int );
-extern int get_intpoint_index ( int, int, int * );
+//extern int get_element_set_index( Analysis *, int );
+//extern int get_intpoint_index ( int, int, int * );
 extern void set_default_intpoints ( int, int, int *, int * );
-extern void get_intpoints ( Analysis *, int, int[3] );
+//extern void get_intpoints ( Analysis *, int, int[3] );
 
 /* show.c */
 extern int parse_show_command( char *, Analysis * );

@@ -835,49 +835,9 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     /* Process this as an element set result if found */
 
-    if ( strcmp( p_result->name, p_result->original_name ) &&
-            strncmp( p_result->original_name, "es_", 3 )==0 )
-    {
-        int es_id=0, intpoints[3];
-        int ref_index=0;
-
-        es_id = get_element_set_id( p_result->original_name );
-        get_intpoints ( analy, es_id, intpoints );
-        switch ( ref_surf )
-        {
-        case MIDDLE:
-            ref_index = 1;
-            if ( intpoints[ref_index]<0 )
-            {
-                popup_dialog( WARNING_POPUP,
-                              "MIDDLE integration point is undefined\nfor this element set." );
-                return;
-            }
-            break;
-        case INNER:
-            ref_index = 0;
-            if ( intpoints[ref_index]<0 )
-            {
-                popup_dialog( WARNING_POPUP,
-                              "INNER integration point is undefined\nfor this element set." );
-                return;
-            }
-            break;
-        case OUTER:
-            ref_index = 2;
-            if ( intpoints[ref_index]<0 )
-            {
-                popup_dialog( WARNING_POPUP,
-                              "OUTER integration point is undefined\nfor this element set." );
-                return;
-            }
-            break;
-        }
-        /* Construct Primal Spec */
-        sprintf( primal_spec, "es_%d[%d,%s]", es_id, intpoints[ref_index], p_result->name );
-        es_result = TRUE;
-    }
-    else
+    
+    
+    
         /*
          * Don't want to read in all the primals from the Result_candidate for
          * this result, so build up a new primals array with just the right one.
@@ -1033,6 +993,7 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 void
 compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
+/*    
     Ref_surf_type ref_surf;
     float *resultElem;
     float (*shellPressure)[6];
@@ -1085,10 +1046,10 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         parse_command("quit", analy);
     }
      
-
+*/
     /* allocate memory for the result_buf arrays to hold the three primals 
  *     necessary to calculate pressure */
-    for(i = 0; i < 3; i++)
+/*    for(i = 0; i < 3; i++)
     {
         result_buf[i] = calloc(obj_qty, sizeof(float));
         if(result_buf[i] == NULL)
@@ -1116,10 +1077,10 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         i++;
         primal_list[0] = primals[i];
     }
-
+*/
     /* all three result buffers should now be populated with the raw data needed to calculate pressure */
     /* compute pressure */
-    if(object_ids)
+/*    if(object_ids)
     {
         for(i = 0; i < obj_qty; i++)
         {
@@ -1136,9 +1097,9 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
                               + result_buf[2][i] ) * ONETHIRD;
         }
     }
-
+*/
     /* Update result to indicate that reference surface matters. */
-    p_es_result->modifiers.use_flags.use_ref_surface = 1;
+/*    p_es_result->modifiers.use_flags.use_ref_surface = 1;
     p_es_result->modifiers.ref_surf = analy->ref_surf;
 
     if ( interpolate )
@@ -1157,7 +1118,7 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
             hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                       object_ids, analy );
         }
- 
+*/
 }
 
 /*******************************
@@ -1265,9 +1226,10 @@ compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
  * Computes the pressure at nodes.
 
 *************************************************************/
-void
+/*void
 compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
+
     Ref_surf_type ref_surf;
     float *resultElem;
     float pressure, interm_result;
@@ -1321,10 +1283,10 @@ compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate)
         parse_command("quit", analy);
     }
      
-
+*/
     /* allocate memory for the result_buf arrays to hold the three primals 
- *     necessary to calculate pressure */
-    for(i = 0; i < 6; i++)
+       necessary to calculate pressure */
+/*    for(i = 0; i < 6; i++)
     {
         result_buf[i] = calloc(obj_qty, sizeof(float));
         if(result_buf[i] == NULL)
@@ -1358,15 +1320,15 @@ compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate)
         pressure = -( result_buf[0][i] +
                       result_buf[1][i] +
                       result_buf[2][i] ) * ONETHIRD;
-
+*/
        /* calculate deviatoric components of stress tensor */
-       for(j = 0; j < 3; j++)
+/*       for(j = 0; j < 3; j++)
        {
            devStress[j] = result_buf[j][i] + pressure;
        }
- 
+*/ 
        /* calculate effective stress from deviatoric components. */
-       interm_result = 0.5 * ( devStress[0] * devStress[0] +
+/*       interm_result = 0.5 * ( devStress[0] * devStress[0] +
                                devStress[1] * devStress[1] +
                                devStress[2] * devStress[2] )
                            +   result_buf[3][i] * result_buf[3][i]
@@ -1375,9 +1337,9 @@ compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate)
       out_idx = (object_ids == NULL) ? i : object_ids[i];
       resultElem[out_idx] = sqrt(3.0 * interm_result);
     }
-
+*/
     /* Update result to indicate that reference surface matters. */
-    p_es_result->modifiers.use_flags.use_ref_surface = 1;
+/*    p_es_result->modifiers.use_flags.use_ref_surface = 1;
     p_es_result->modifiers.ref_surf = analy->ref_surf;
    
     if ( interpolate )
@@ -1398,7 +1360,7 @@ compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate)
         }
  
 }
-
+*/
 /************************************************************
  * TAG( compute_shell_effstress )
  *
@@ -1519,12 +1481,12 @@ compute_shell_effstress( Analysis *analy, float *resultArr,
 void
 compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
-    Ref_surf_type ref_surf;
+/*    Ref_surf_type ref_surf;
     float *resultElem;
     float pressure, interm_result;
     float Invariant[3];              /* Invariants of tensor. */
-    float princStress[3];            /* Principal values. */
-    float alpha, angle, value;
+/*    float princStress[3];            /* Principal values. */
+/*    float alpha, angle, value;
     float devStress[3];
     int i, j, out_idx;
     char ipt[125];
@@ -1576,13 +1538,13 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
         parse_command("quit", analy);
     }
      
-
+*/
     /* allocate memory for the result_buf arrays to hold the three primals 
  *     necessary to calculate pressure */
-    for(i = 0; i < 6; i++)
+/*    for(i = 0; i < 6; i++)
     {
         /* Just use analy->tmp_result[0] as an extra long buffer. */
-        result_buf[i] = analy->tmp_result[i];
+/*        result_buf[i] = analy->tmp_result[i];
     }
    
     i = 0;
@@ -1603,13 +1565,13 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
         i++;
         primal_list[0] = primals[i];
     }
-
+*/
     /* Just use analy->tmp_result[0] as an extra long buffer. */
     /*result_buf = analy->tmp_result[0]; */
 
 
     /* Map result onto a numeric index. */
-    if ( strcmp( p_es_result->name, "pdev1" ) == 0 )
+/*    if ( strcmp( p_es_result->name, "pdev1" ) == 0 )
         res_index = 0;
     else if ( strcmp( p_es_result->name, "pdev2" ) == 0 )
         res_index = 1;
@@ -1623,24 +1585,24 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
         res_index = 5;
     else if ( strcmp( p_es_result->name, "prin3" ) == 0 )
         res_index = 6;
-
+*/
     /* Calculate deviatoric stresses. */
-    for ( i = 0; i < obj_qty; i++ )
+/*    for ( i = 0; i < obj_qty; i++ )
     {
-        /* Calculate pressure as intermediate variable needed for
+*/        /* Calculate pressure as intermediate variable needed for
          * determining deviatoric components.
          */
-        pressure = -( result_buf[0][i] +
+/*        pressure = -( result_buf[0][i] +
                       result_buf[1][i] +
                       result_buf[2][i] ) * ONETHIRD;
-
+*/
         /* Calculate deviatoric components of stress tensor. */
-        for ( j = 0; j < 3; j++ )
+/*        for ( j = 0; j < 3; j++ )
             devStress[j] = result_buf[j][i] + pressure;
-
+*/
         /* Calculate invariants of deviatoric tensor. */
         /* Invariant[0] = 0.0 */
-        Invariant[0] = devStress[0] + devStress[1] + devStress[2];
+/*        Invariant[0] = devStress[0] + devStress[1] + devStress[2];
         Invariant[1] = 0.5 * ( devStress[0] * devStress[0]
                                + devStress[1] * devStress[1]
                                + devStress[2] * devStress[2] )
@@ -1652,11 +1614,11 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
                        + devStress[0] * result_buf[4][i] * result_buf[4][i]
                        + devStress[1] * result_buf[5][i] * result_buf[5][i]
                        + devStress[2] * result_buf[3][i] * result_buf[3][i];
-
+*/
         /* Check to see if we can have non-zero divisor, if not
          * set principal stress to 0.
          */
-        if ( Invariant[1] >= 1e-7 )
+/*        if ( Invariant[1] >= 1e-7 )
         {
             alpha = -0.5 * sqrt( (double) 27.0 / Invariant[1] )
                     * Invariant[2]/Invariant[1];
@@ -1706,9 +1668,9 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
             break;
         }
     }
-
+*/
     /* Update result to indicate that reference surface matters. */
-    p_es_result->modifiers.use_flags.use_ref_surface = 1;
+/*    p_es_result->modifiers.use_flags.use_ref_surface = 1;
     p_es_result->modifiers.ref_surf = analy->ref_surf;
 
     if ( interpolate )
@@ -1726,6 +1688,7 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
             hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                           object_ids, analy );
         }
+*/
 }
 
 /************************************************************

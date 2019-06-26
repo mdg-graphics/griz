@@ -105,7 +105,7 @@ typedef struct _result_candidate
     int *primal_superclasses;
 } Result_candidate;
 
-
+/*
 typedef struct _es_result_candidate
 {
     int superclass;
@@ -114,14 +114,14 @@ typedef struct _es_result_candidate
     Bool_type single_precision_input;
     Bool_type hide_in_menu ;
     void (*compute_func)();
-    /*void (*primal_func)();*/
+    // void (*primal_func)();
     Bool_type (*check_compute_func)();
     char **short_names;
     char **long_names;
     char **primals;
     int *primal_superclasses;
 } es_Result_candidate;
-
+*/
 
 typedef struct _list_head
 {
@@ -172,7 +172,11 @@ typedef struct _primal_result
     List_head *srec_map;
     char *short_name;
     char *long_name;
+    int possible_owning_vec_count;
+    struct _primal_result **possible_owning_vector_result;
+    char **original_names_per_subrec;
     Bool_type in_menu;
+    int variable_count;
 } Primal_result;
 
 
