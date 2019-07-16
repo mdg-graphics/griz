@@ -106,23 +106,6 @@ typedef struct _result_candidate
 } Result_candidate;
 
 
-typedef struct _es_result_candidate
-{
-    int superclass;
-    Dimensions dim;
-    Result_origin_flags origin;
-    Bool_type single_precision_input;
-    Bool_type hide_in_menu ;
-    void (*compute_func)();
-    /*void (*primal_func)();*/
-    Bool_type (*check_compute_func)();
-    char **short_names;
-    char **long_names;
-    char **primals;
-    int *primal_superclasses;
-} es_Result_candidate;
-
-
 typedef struct _list_head
 {
     int qty;

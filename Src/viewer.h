@@ -2308,7 +2308,6 @@ extern void dump_result( Analysis *, char * );
 
 /* results.c */
 extern Result_candidate possible_results[];
-extern es_Result_candidate possible_es_results[];
 extern void update_result( Analysis *, Result * );
 extern Result * create_result_list(char *, Analysis *);
 extern void delete_result_list(Result **, Analysis *);
