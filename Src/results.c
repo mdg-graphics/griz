@@ -35,15 +35,22 @@ static Bool_type
 mod_required( Result *, Result_modifier_type, int, int );
 
 
-static char *node_disp_shorts_xy[] =
+static char *node_disp_shorts_x[] =
 {
-    "dispx", "dispy", NULL
+    "dispx", NULL
 };
-static char *node_disp_longs_xy[] =
+static char *node_disp_longs_x[] =
 {
-    "X Displacement", "Y Displacement", NULL
+    "X Displacement", NULL
 };
-
+static char *node_disp_shorts_y[] =
+{
+    "dispy", NULL
+};
+static char *node_disp_longs_y[] =
+{
+    "Y Displacement", NULL
+};
 static char *node_disp_longs_r[] =
 {
     "XY Radial Displacement", NULL
@@ -115,13 +122,22 @@ static int node_moderot_primal_sclasses[] =
     G_NODE
 };
 
-static char *node_vel_shorts_xy[] =
+static char *node_vel_shorts_x[] =
 {
-    "velx", "vely", NULL
+    "velx", NULL
 };
-static char *node_vel_longs_xy[] =
+
+static char *node_vel_shorts_y[] =
 {
-    "X Velocity", "Y Velocity", NULL
+    "vely", NULL
+};
+static char *node_vel_longs_x[] =
+{
+    "X Velocity", NULL
+};
+static char *node_vel_longs_y[] =
+{
+    "Y Velocity", NULL
 };
 
 static char *node_vel_shorts_z[] =
@@ -177,15 +193,23 @@ static int node_rot_vel_mag_primal_sclasses[] =
     G_NODE
 };
  
-static char *node_acc_shorts_xy[] =
+static char *node_acc_shorts_y[] =
 {
-    "accx", "accy", NULL
+    "accy", NULL
 };
-static char *node_acc_longs_xy[] =
+static char *node_acc_shorts_x[] =
 {
-    "X Acceleration", "Y Acceleration", NULL
+    "accx" , NULL
 };
 
+static char *node_acc_longs_x[] =
+{
+    "X Acceleration", NULL
+};
+static char *node_acc_longs_y[] =
+{
+    "Y Acceleration", NULL
+};
 static char *node_acc_shorts_z[] =
 {
     "accz", NULL
@@ -490,12 +514,12 @@ static char *es_press_longs[] =
 
 static char *es_press_primals[] =
 {
-    "sx", "sy", "sz", NULL
+    "stress", NULL
 };
 
 static int es_press_primal_sclasses[] =
 {
-    G_TRI, G_QUAD, G_HEX
+    G_QUAD
 };
 
 static char *es_effs_shorts[] =
@@ -1120,10 +1144,25 @@ Result_candidate possible_results[] =
         FALSE,
         compute_node_displacement,
         NULL,
-        node_disp_shorts_xy,
-        node_disp_longs_xy,
+        node_disp_shorts_x,
+        node_disp_longs_x,
         node_disp_primals,
-        node_disp_primal_sclasses
+        node_disp_primal_sclasses,
+        NULL
+    },
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        FALSE,
+        FALSE,
+        compute_node_displacement,
+        NULL,
+        node_disp_shorts_y,
+        node_disp_longs_y,
+        node_disp_primals,
+        node_disp_primal_sclasses,
+        NULL
     },
 
     {
@@ -1137,7 +1176,8 @@ Result_candidate possible_results[] =
         node_disp_shorts_z,
         node_disp_longs_z,
         node_disp_primals,
-        node_disp_primal_sclasses
+        node_disp_primal_sclasses,
+        NULL
     },
 
     {
@@ -1151,7 +1191,8 @@ Result_candidate possible_results[] =
         node_disp_shorts_r,
         node_disp_longs_r,
         node_disp_primals,
-        node_disp_primal_sclasses
+        node_disp_primal_sclasses,
+        NULL
     },
     {
         G_NODE,
@@ -1164,7 +1205,8 @@ Result_candidate possible_results[] =
         node_disp_mag_shorts,
         node_disp_mag_longs,
         node_disp_primals,
-        node_disp_primal_sclasses
+        node_disp_primal_sclasses,
+        NULL
     },
 
     {
@@ -1178,7 +1220,8 @@ Result_candidate possible_results[] =
         node_modedisp_mag_shorts,
         node_modedisp_mag_longs,
         node_modedisp_primals,
-        node_modedisp_primal_sclasses
+        node_modedisp_primal_sclasses,
+        NULL
     },
 
     {
@@ -1192,7 +1235,8 @@ Result_candidate possible_results[] =
         node_moderot_mag_shorts,
         node_moderot_mag_longs,
         node_moderot_primals,
-        node_moderot_primal_sclasses
+        node_moderot_primal_sclasses,
+        NULL
     },
     /*
      * Node velocity can occur explicitly in the data or be derived from
@@ -1213,10 +1257,26 @@ Result_candidate possible_results[] =
         FALSE,
         compute_node_velocity,
         NULL,
-        node_vel_shorts_xy,
-        node_vel_longs_xy,
+        node_vel_shorts_x,
+        node_vel_longs_x,
         node_vel_primals1,
-        node_vel_primal_sclasses
+        node_vel_primal_sclasses,
+        NULL
+    },
+    
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_velocity,
+        NULL,
+        node_vel_shorts_y,
+        node_vel_longs_y,
+        node_vel_primals1,
+        node_vel_primal_sclasses,
+        NULL
     },
 
     {
@@ -1227,10 +1287,25 @@ Result_candidate possible_results[] =
         FALSE,
         compute_node_velocity,
         NULL,
-        node_vel_shorts_xy,
-        node_vel_longs_xy,
+        node_vel_shorts_x,
+        node_vel_longs_x,
         node_vel_primals2,
-        node_vel_primal_sclasses
+        node_vel_primal_sclasses,
+        NULL
+    },
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_velocity,
+        NULL,
+        node_vel_shorts_y,
+        node_vel_longs_y,
+        node_vel_primals2,
+        node_vel_primal_sclasses,
+        NULL
     },
 
     {
@@ -1244,7 +1319,8 @@ Result_candidate possible_results[] =
         node_vel_shorts_z,
         node_vel_longs_z,
         node_vel_primals1,
-        node_vel_primal_sclasses
+        node_vel_primal_sclasses,
+        NULL
     },
 
     {
@@ -1258,7 +1334,8 @@ Result_candidate possible_results[] =
         node_vel_shorts_z,
         node_vel_longs_z,
         node_vel_primals2,
-        node_vel_primal_sclasses
+        node_vel_primal_sclasses,
+        NULL
     },
 
     {
@@ -1272,7 +1349,8 @@ Result_candidate possible_results[] =
         node_vel_mag_shorts,
         node_vel_mag_longs,
         node_vel_primals1,
-        node_vel_primal_sclasses
+        node_vel_primal_sclasses,
+        NULL
     },
 
     {
@@ -1286,7 +1364,8 @@ Result_candidate possible_results[] =
         node_vel_mag_shorts,
         node_vel_mag_longs,
         node_vel_primals2,
-        node_vel_primal_sclasses
+        node_vel_primal_sclasses,
+        NULL
     },
 
     {
@@ -1300,7 +1379,8 @@ Result_candidate possible_results[] =
         node_rot_vel_mag_shorts,
         node_rot_vel_mag_longs,
         node_rot_vel_mag_primals1,
-        node_rot_vel_mag_primal_sclasses
+        node_rot_vel_mag_primal_sclasses,
+        NULL
     },
     /*
      * Ditto the comment above about velocities for accelerations.
@@ -1313,10 +1393,25 @@ Result_candidate possible_results[] =
         FALSE,
         compute_node_acceleration,
         NULL,
-        node_acc_shorts_xy,
-        node_acc_longs_xy,
+        node_acc_shorts_x,
+        node_acc_longs_x,
         node_acc_primals1,
-        node_acc_primal_sclasses
+        node_acc_primal_sclasses,
+        NULL
+    },
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_acceleration,
+        NULL,
+        node_acc_shorts_y,
+        node_acc_longs_y,
+        node_acc_primals1,
+        node_acc_primal_sclasses,
+        NULL
     },
 
     {
@@ -1327,10 +1422,26 @@ Result_candidate possible_results[] =
         FALSE,
         compute_node_acceleration,
         NULL,
-        node_acc_shorts_xy,
-        node_acc_longs_xy,
+        node_acc_shorts_x,
+        node_acc_longs_x,
         node_acc_primals2,
-        node_acc_primal_sclasses
+        node_acc_primal_sclasses,
+        NULL
+    },
+    
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_acceleration,
+        NULL,
+        node_acc_shorts_y,
+        node_acc_longs_y,
+        node_acc_primals2,
+        node_acc_primal_sclasses,
+        NULL
     },
 
     {
@@ -1344,7 +1455,8 @@ Result_candidate possible_results[] =
         node_acc_shorts_z,
         node_acc_longs_z,
         node_acc_primals1,
-        node_acc_primal_sclasses
+        node_acc_primal_sclasses,
+        NULL
     },
 
     {
@@ -1358,7 +1470,8 @@ Result_candidate possible_results[] =
         node_acc_shorts_z,
         node_acc_longs_z,
         node_acc_primals2,
-        node_acc_primal_sclasses
+        node_acc_primal_sclasses,
+        NULL
     },
 
     {
@@ -1372,7 +1485,8 @@ Result_candidate possible_results[] =
         node_acc_mag_shorts,
         node_acc_mag_longs,
         node_acc_primals1,
-        node_acc_primal_sclasses
+        node_acc_primal_sclasses,
+        NULL
     },
 
     {
@@ -1386,7 +1500,8 @@ Result_candidate possible_results[] =
         node_acc_mag_shorts,
         node_acc_mag_longs,
         node_acc_primals2,
-        node_acc_primal_sclasses
+        node_acc_primal_sclasses,
+        NULL
     },
 
     {
@@ -1400,7 +1515,8 @@ Result_candidate possible_results[] =
         node_temp_short,
         node_temp_long,
         node_temp_primal,
-        node_temp_primal_sclasses
+        node_temp_primal_sclasses,
+        NULL
     },
 
     {
@@ -1414,7 +1530,8 @@ Result_candidate possible_results[] =
         node_pint_short,
         node_pint_long,
         node_pint_primal,
-        node_pint_primal_sclasses
+        node_pint_primal_sclasses,
+        NULL
     },
 
     {
@@ -1428,7 +1545,8 @@ Result_candidate possible_results[] =
         node_helicity_short,
         node_helicity_long,
         node_helicity_primal,
-        node_helicity_primal_sclasses
+        node_helicity_primal_sclasses,
+        NULL
     },
 
     {
@@ -1442,7 +1560,8 @@ Result_candidate possible_results[] =
         node_enstrophy_short,
         node_enstrophy_long,
         node_enstrophy_primal,
-        node_enstrophy_primal_sclasses
+        node_enstrophy_primal_sclasses,
+        NULL
     },
     {
         G_NODE,
@@ -1455,7 +1574,8 @@ Result_candidate possible_results[] =
         node_pvmag_short,
         node_pvmag_long,
         node_pvmag_primal,
-        node_pvmag_primal_sclasses
+        node_pvmag_primal_sclasses,
+        NULL
     },
 
     {
@@ -1469,7 +1589,8 @@ Result_candidate possible_results[] =
         beam_axfor_short,
         beam_axfor_long,
         beam_axfor_primal,
-        beam_axfor_primal_sclasses
+        beam_axfor_primal_sclasses,
+        NULL
     },
 
     {
@@ -1483,7 +1604,8 @@ Result_candidate possible_results[] =
         beam_sshear_short,
         beam_sshear_long,
         beam_sshear_primal,
-        beam_sshear_primal_sclasses
+        beam_sshear_primal_sclasses,
+        NULL
     },
 
     {
@@ -1497,7 +1619,8 @@ Result_candidate possible_results[] =
         beam_tshear_short,
         beam_tshear_long,
         beam_tshear_primal,
-        beam_tshear_primal_sclasses
+        beam_tshear_primal_sclasses,
+        NULL
     },
 
     {
@@ -1511,7 +1634,8 @@ Result_candidate possible_results[] =
         beam_smom_short,
         beam_smom_long,
         beam_smom_primal,
-        beam_smom_primal_sclasses
+        beam_smom_primal_sclasses,
+        NULL
     },
 
     {
@@ -1525,7 +1649,8 @@ Result_candidate possible_results[] =
         beam_tmom_short,
         beam_tmom_long,
         beam_tmom_primal,
-        beam_tmom_primal_sclasses
+        beam_tmom_primal_sclasses,
+        NULL
     },
 
     {
@@ -1539,7 +1664,8 @@ Result_candidate possible_results[] =
         beam_tor_short,
         beam_tor_long,
         beam_tor_primal,
-        beam_tor_primal_sclasses
+        beam_tor_primal_sclasses,
+        NULL
     },
 
     {
@@ -1553,7 +1679,8 @@ Result_candidate possible_results[] =
         beam_sae_short,
         beam_sae_long,
         beam_sae_primal,
-        beam_sae_primal_sclasses
+        beam_sae_primal_sclasses,
+        NULL
     },
 
     {
@@ -1567,7 +1694,8 @@ Result_candidate possible_results[] =
         beam_tae_short,
         beam_tae_long,
         beam_tae_primal,
-        beam_tae_primal_sclasses
+        beam_tae_primal_sclasses,
+        NULL
     },
 
     {
@@ -1581,7 +1709,8 @@ Result_candidate possible_results[] =
         beam_axfor_short,
         beam_axfor_long,
         beam_axfor_primal,
-        beam_axfor_primal_sclasses
+        beam_axfor_primal_sclasses,
+        NULL
     },
 
     {
@@ -1595,7 +1724,8 @@ Result_candidate possible_results[] =
         beam_sshear_short,
         beam_sshear_long,
         beam_sshear_primal,
-        beam_sshear_primal_sclasses
+        beam_sshear_primal_sclasses,
+        NULL
     },
 
     {
@@ -1609,7 +1739,8 @@ Result_candidate possible_results[] =
         beam_tshear_short,
         beam_tshear_long,
         beam_tshear_primal,
-        beam_tshear_primal_sclasses
+        beam_tshear_primal_sclasses,
+        NULL
     },
 
     {
@@ -1623,7 +1754,8 @@ Result_candidate possible_results[] =
         beam_smom_short,
         beam_smom_long,
         beam_smom_primal,
-        beam_smom_primal_sclasses
+        beam_smom_primal_sclasses,
+        NULL
     },
 
     {
@@ -1637,7 +1769,8 @@ Result_candidate possible_results[] =
         beam_tmom_short,
         beam_tmom_long,
         beam_tmom_primal,
-        beam_tmom_primal_sclasses
+        beam_tmom_primal_sclasses,
+        NULL
     },
 
     {
@@ -1651,7 +1784,8 @@ Result_candidate possible_results[] =
         beam_tor_short,
         beam_tor_long,
         beam_tor_primal,
-        beam_tor_primal_sclasses
+        beam_tor_primal_sclasses,
+        NULL
     },
 
     {
@@ -1665,7 +1799,8 @@ Result_candidate possible_results[] =
         beam_sae_short,
         beam_sae_long,
         beam_sae_primal,
-        beam_sae_primal_sclasses
+        beam_sae_primal_sclasses,
+        NULL
     },
 
     {
@@ -1679,7 +1814,8 @@ Result_candidate possible_results[] =
         beam_tae_short,
         beam_tae_long,
         beam_tae_primal,
-        beam_tae_primal_sclasses
+        beam_tae_primal_sclasses,
+        NULL
     },
 
     /*{
@@ -1707,7 +1843,8 @@ Result_candidate possible_results[] =
         shell_press_shorts,
         shell_press_longs,
         shell_press_primals,
-        shell_press_tri_primal_sclasses
+        shell_press_tri_primal_sclasses,
+        NULL
     },
 
     {
@@ -1721,7 +1858,8 @@ Result_candidate possible_results[] =
         shell_effs_shorts,
         shell_effs_longs,
         shell_effs_primals,
-        shell_effs_tri_primal_sclasses
+        shell_effs_tri_primal_sclasses,
+        NULL
     },
 
     {
@@ -1735,7 +1873,8 @@ Result_candidate possible_results[] =
         shell_prin_shorts,
         shell_prin_longs,
         shell_prin_primals,
-        shell_prin_tri_primal_sclasses
+        shell_prin_tri_primal_sclasses,
+        NULL
     },
 
     {
@@ -1749,7 +1888,8 @@ Result_candidate possible_results[] =
         shell_surf_shorts,
         shell_surf_longs,
         shell_surf_primals,
-        shell_surf_tri_primal_sclasses
+        shell_surf_tri_primal_sclasses,
+        NULL
     },
 
     {
@@ -1763,7 +1903,8 @@ Result_candidate possible_results[] =
         shell_strain_shorts,
         shell_strain_longs,
         shell_strain_primals,
-        shell_strain_tri_primal_sclasses
+        shell_strain_tri_primal_sclasses,
+        NULL
     },
 
     {
@@ -1777,7 +1918,8 @@ Result_candidate possible_results[] =
         shell_stress_shorts,
         shell_stress_longs,
         shell_stress_primals,
-        shell_stress_primal_sclasses
+        shell_stress_primal_sclasses,
+        NULL
     }, 
 
     {
@@ -1791,9 +1933,10 @@ Result_candidate possible_results[] =
         shell_press_shorts,
         shell_press_longs,
         shell_press_primals,
-        shell_press_primal_sclasses
+        shell_press_primal_sclasses,
+        NULL
     },
-    /*{
+    {
         G_QUAD,
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
@@ -1804,9 +1947,10 @@ Result_candidate possible_results[] =
         es_press_shorts,
         es_press_longs,
         es_press_primals,
-        es_press_primal_sclasses
+        es_press_primal_sclasses,
+        NULL
     },
-
+/*
     {
         G_QUAD,
         { 0, 1 },
@@ -1832,7 +1976,8 @@ Result_candidate possible_results[] =
         shell_effs_shorts,
         shell_effs_longs,
         shell_effs_primals,
-        shell_effs_primal_sclasses
+        shell_effs_primal_sclasses,
+        NULL
     },
 
     {
@@ -1846,7 +1991,8 @@ Result_candidate possible_results[] =
         shell_prin_shorts,
         shell_prin_longs,
         shell_prin_primals,
-        shell_prin_primal_sclasses
+        shell_prin_primal_sclasses,
+        NULL
     },
 
     {
@@ -1860,7 +2006,8 @@ Result_candidate possible_results[] =
         shell_surf_shorts,
         shell_surf_longs,
         shell_surf_primals,
-        shell_surf_primal_sclasses
+        shell_surf_primal_sclasses,
+        NULL
     },
 
     {
@@ -1874,7 +2021,8 @@ Result_candidate possible_results[] =
         shell_strain_shorts,
         shell_strain_longs,
         shell_strain_primals,
-        shell_strain_primal_sclasses
+        shell_strain_primal_sclasses,
+        NULL
     },
 
     {
@@ -1888,7 +2036,8 @@ Result_candidate possible_results[] =
         shell_eeff_shorts,
         shell_eeff_longs,
         shell_eeff_primals,
-        shell_eeff_primal_sclasses
+        shell_eeff_primal_sclasses,
+        NULL
     },
 /*
     {
@@ -1916,7 +2065,8 @@ Result_candidate possible_results[] =
         hex_press_shorts,
         hex_press_longs,
         hex_press_primals,
-        hex_press_primal_sclasses
+        hex_press_primal_sclasses,
+        NULL
     },
 
     {
@@ -1930,7 +2080,8 @@ Result_candidate possible_results[] =
         hex_effs_shorts,
         hex_effs_longs,
         hex_effs_primals,
-        hex_effs_primal_sclasses
+        hex_effs_primal_sclasses,
+        NULL
     },
 
     {
@@ -1944,7 +2095,8 @@ Result_candidate possible_results[] =
         hex_prin_shorts,
         hex_prin_longs,
         hex_prin_primals,
-        hex_prin_primal_sclasses
+        hex_prin_primal_sclasses,
+        NULL
     },
 
     {
@@ -1958,7 +2110,8 @@ Result_candidate possible_results[] =
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_primals,
-        hex_strain_primal_sclasses
+        hex_strain_primal_sclasses,
+        NULL
     },
 
     {
@@ -1972,7 +2125,8 @@ Result_candidate possible_results[] =
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_th_primals,
-        hex_strain_primal_sclasses
+        hex_strain_primal_sclasses,
+        NULL
     },
 
     {
@@ -1986,7 +2140,8 @@ Result_candidate possible_results[] =
         hex_eeff_shorts,
         hex_eeff_longs,
         hex_eeff_primals,
-        hex_eeff_primal_sclasses
+        hex_eeff_primal_sclasses,
+        NULL
     },
 
     {
@@ -2000,7 +2155,8 @@ Result_candidate possible_results[] =
         hex_vol_shorts,
         hex_vol_longs,
         hex_vol_primals,
-        hex_vol_primal_sclasses
+        hex_vol_primal_sclasses,
+        NULL
     },
 
     {
@@ -2014,7 +2170,8 @@ Result_candidate possible_results[] =
         hex_damage_shorts,
         hex_damage_longs,
         hex_damage_primals,
-        hex_damage_primal_sclasses
+        hex_damage_primal_sclasses,
+        NULL
     },
 
     {
@@ -2028,7 +2185,8 @@ Result_candidate possible_results[] =
         hex_damage_shorts,
         hex_damage_longs,
         hex_damage_primals1,
-        hex_damage_primal_sclasses
+        hex_damage_primal_sclasses,
+        NULL
     },
 
     /* Free Node results */
@@ -2043,7 +2201,8 @@ Result_candidate possible_results[] =
         fnmass_shorts,
         fnmass_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        fnmass_primal_sclasses,
+        NULL
     },
 
     {
@@ -2057,7 +2216,8 @@ Result_candidate possible_results[] =
         anmass_shorts,
         anmass_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        fnmass_primal_sclasses,
+        NULL
     },
 
     {
@@ -2071,7 +2231,8 @@ Result_candidate possible_results[] =
         fnmom_shorts,
         fnmom_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        fnmass_primal_sclasses,
+        NULL
     },
 
     {
@@ -2085,7 +2246,8 @@ Result_candidate possible_results[] =
         fnvol_shorts,
         fnvol_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        fnmass_primal_sclasses,
+        NULL
     },
 
     {
@@ -2099,7 +2261,8 @@ Result_candidate possible_results[] =
         particle_press_shorts,
         particle_press_longs,
         particle_press_primals,
-        particle_press_primal_sclasses
+        particle_press_primal_sclasses,
+        NULL
     },
 
     {
@@ -2113,7 +2276,8 @@ Result_candidate possible_results[] =
         particle_effs_shorts,
         particle_effs_longs,
         particle_effs_primals,
-        particle_effs_primal_sclasses
+        particle_effs_primal_sclasses,
+        NULL
     },
 
     {
@@ -2127,7 +2291,8 @@ Result_candidate possible_results[] =
         particle_prin_shorts,
         particle_prin_longs,
         particle_prin_primals,
-        particle_prin_primal_sclasses
+        particle_prin_primal_sclasses,
+        NULL
     },
 
     {   /* Array terminator */
@@ -2136,6 +2301,7 @@ Result_candidate possible_results[] =
         { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         TRUE,
         FALSE,
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -3294,10 +3460,10 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         primal_result = (Primal_result*)table_result->data;
     }
     
-    if( primal_result->possible_owning_vector_result[0])
+    if( primal_result->possible_owning_vector_result[index])
     {
-        int *list = (int*)primal_result->possible_owning_vector_result[0]->srec_map->list;
-        for(i=0;i<primal_result->possible_owning_vector_result[0]->srec_map->qty;i++)
+        int *list = (int*)primal_result->possible_owning_vector_result[index]->srec_map->list;
+        for(i=0;i<primal_result->possible_owning_vector_result[index]->srec_map->qty;i++)
         {
             if(list[i] == subrec)
             {
@@ -3305,7 +3471,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             }
         }
         strcpy(primal_spec, 
-               primal_result->possible_owning_vector_result[0]->original_names_per_subrec[i]);
+               primal_result->possible_owning_vector_result[index]->original_names_per_subrec[i]);
         if(p_subrec->element_set)
         {
             if(p_subrec->element_set->tempIndex < 0)
@@ -4181,7 +4347,7 @@ load_primal_result_long( Analysis *analy, float *resultArr,
  *         its arguments are: (analy, result_array)
  *     Command string for displaying result (string)
  */
-char *trans_result[][4] =
+/*char *trans_result[][4] =
 {
     {
         (char *) VAL_NONE,                        "No Result",
@@ -4568,8 +4734,9 @@ char *trans_result[][4] =
         (char *) NULL,                    NULL,
         (char *) NULL,                    NULL
     }   /* Dummy to signal end. */
+/*
 };
-
+*/
 
 /*****************************************************************
  * TAG( resultid_to_index )

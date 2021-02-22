@@ -190,11 +190,6 @@ char *session_file_buff[2000];
 
 /*****************************************************************/
 
-static char *non_persist_cmds[] = { "rx",    "ry",     "rz" , "tx", "ty",   "tz",    "anim", "load", "reload", "copyrt", /* 1-10 */
-                                    "scale", "scalax", "hist", "h", "exec", "alias", "quit", "animc"
-                                  }; /* 11-18 */
-static int  num_non_persist_cmds = 18;
-
 char      *history_log[MAXHIST];
 int        history_log_index=0;
 Bool_type  history_inputCB_cmd;
@@ -2318,10 +2313,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     init_data_buffers( max_sz );
 #endif
 #ifndef NEW_TMP_RESULT_USE
-    analy->tmp_result[0] = NEW_N( float, TEMP_RESULT_ARRAY_QTY * max_sz * 2,
+    analy->tmp_result[0] = NEW_N( float, TEMP_RESULT_ARRAY_QTY * max_sz * analy->max_variable_size,
                                   "Tmp result cache" );
     for ( i = 1; i < TEMP_RESULT_ARRAY_QTY ; i++ )
-        analy->tmp_result[i] = analy->tmp_result[i - 1] + max_sz * 2;
+        analy->tmp_result[i] = analy->tmp_result[i - 1] + max_sz * analy->max_variable_size;
 #endif
     analy->max_result_size = max_sz;
 

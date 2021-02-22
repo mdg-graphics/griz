@@ -162,7 +162,36 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
                       object_ids, analy );
 }
 
-
+void
+compute_pressure( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    float (*stress)[6];
+    int i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    
+}
 /************************************************************
  * TAG( compute_hex_press )
  *
@@ -993,7 +1022,8 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 void
 compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
-/*    
+    fprintf(stderr, "%s\n", "compute_es_press");
+   
     Ref_surf_type ref_surf;
     float *resultElem;
     float (*shellPressure)[6];
@@ -1028,7 +1058,7 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
     {
         return;
     }
-    if(analy->int_labels == NULL || index >= analy->int_labels->num_es_sets)
+/*    if(analy->int_labels == NULL || index >= analy->int_labels->num_es_sets)
     {
         return;
     }

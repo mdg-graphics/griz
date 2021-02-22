@@ -55,6 +55,7 @@
 #define RESULTS_H
 
 #include "misc.h"
+#include "gahl.h"
 
 typedef struct _result_origin_flags
 {
@@ -87,6 +88,63 @@ typedef struct _dimensions
     unsigned int d3 : 1;
 } Dimensions;
 
+typedef struct _list_head
+{
+    int qty;
+    void *list;
+} List_head;
+
+
+/************************************************************
+ * TAG( Primal_result )
+ *
+ * Structure which stores utilization data for state variables.
+ * Notes:
+ *   "srec_map" is an array of List_head structs, one per srec
+ *   format.  If the "qty" field of a List_head struct is non-
+ *   zero, then the "list" field points to an array of integers,
+ *   each entry of which contains an index of a subrecord that
+ *   binds the primal result.
+ *
+ *   Field short_name always points to a string which is allocated
+ *   elsewhere (in a State_variable struct or Htable_entry key)
+ *   and so is never freed.  Field long_name is the same when
+ *   origin.is_primal is true, but should be allocated locally
+ *   if origin.is_alias is true (and then can be freed when the
+ *   Primal_result struct is freed).
+ */
+ 
+typedef struct _primal_result
+{
+    State_variable *var;
+    Result_origin_flags origin;
+    List_head *srec_map;
+    char *short_name;
+    char *long_name;
+    int possible_owning_vec_count;
+    struct _primal_result **possible_owning_vector_result;
+    char **original_names_per_subrec;
+    Bool_type in_menu;
+    int variable_count;
+} Primal_result;
+
+
+typedef struct _single_primal
+{
+    int subrecord_index;
+    Primal_result *primal_result;
+
+}Single_primal;
+
+
+typedef struct _derived_container
+{
+    int *variables_found;
+    int *possible_mo_ids_per;
+    Hash_table *results_container;
+
+}Derived_container;
+
 
 typedef struct _result_candidate
 {
@@ -103,6 +161,7 @@ typedef struct _result_candidate
     char **long_names;
     char **primals;
     int *primal_superclasses;
+    Hash_table *associated_primal;
 } Result_candidate;
 
 /*
@@ -123,11 +182,7 @@ typedef struct _es_result_candidate
 } es_Result_candidate;
 */
 
-typedef struct _list_head
-{
-    int qty;
-    void *list;
-} List_head;
+
 
 /*****************************************************************
  * TAG( RESULT_DEFINES )
@@ -147,37 +202,6 @@ typedef struct _list_head
 #define EXTREME_MAX 1
 #endif
 
-/************************************************************
- * TAG( Primal_result )
- *
- * Structure which stores utilization data for state variables.
- * Notes:
- *   "srec_map" is an array of List_head structs, one per srec
- *   format.  If the "qty" field of a List_head struct is non-
- *   zero, then the "list" field points to an array of integers,
- *   each entry of which contains an index of a subrecord that
- *   binds the primal result.
- *
- *   Field short_name always points to a string which is allocated
- *   elsewhere (in a State_variable struct or Htable_entry key)
- *   and so is never freed.  Field long_name is the same when
- *   origin.is_primal is true, but should be allocated locally
- *   if origin.is_alias is true (and then can be freed when the
- *   Primal_result struct is freed).
- */
-typedef struct _primal_result
-{
-    State_variable *var;
-    Result_origin_flags origin;
-    List_head *srec_map;
-    char *short_name;
-    char *long_name;
-    int possible_owning_vec_count;
-    struct _primal_result **possible_owning_vector_result;
-    char **original_names_per_subrec;
-    Bool_type in_menu;
-    int variable_count;
-} Primal_result;
 
 
 /************************************************************
@@ -204,6 +228,14 @@ typedef struct _subrecord_result
     Bool_type indirect;
 } Subrecord_result;
 
+typedef struct _primal_source
+{
+    short *vars_verified;
+    char  *class_name;
+    int    var_count;
+    int   *subrec_ids;     // These are matched to each variable.  You may get duplicates
+    char  **vars;
+}Primal_source;
 
 /*****************************************************************
  * TAG( Derived_result )
@@ -223,6 +255,8 @@ typedef struct _derived_result
 {
     Result_origin_flags origin;
     List_head *srec_map;
+    Primal_source **primal_sources;
+    int primal_source_count;
     Bool_type in_menu;
     Bool_type has_indirect;
 } Derived_result;

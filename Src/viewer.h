@@ -1042,9 +1042,11 @@ typedef struct _Analysis
     int max_mesh_surf_qty;
     int qty_srec_fmts;
     State_rec_obj *srec_tree;
+    int max_variable_size;
     Hash_table *st_var_table;
     Hash_table *primal_results;
     Hash_table *derived_results;
+    int derived_result_cand_count;
     Bool_type mat_labels_active;
     Hash_table *mat_names;
     Hash_table *mat_names_reversed;

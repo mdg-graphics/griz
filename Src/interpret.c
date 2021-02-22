@@ -2226,57 +2226,28 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				else if ( strcmp( tokens[i], "derived" ) == 0 )
 				{
-					switch ( analy->result_source )
-					{
-					case DERIVED:
-						if ( !setval )
-						{
-							/* At least one table must be on. */
-							popup_dialog( INFO_POPUP,
-										  "Turning on primal result table." );
-							analy->result_source = PRIMAL;
-						}
-						break;
-					case PRIMAL:
-						if ( setval )
-							/* From primal to both. */
-							analy->result_source = ALL;
-						break;
-					case ALL:
-						if ( !setval )
-							/* From both to primal. */
-							analy->result_source = PRIMAL;
-						break;
-					}
-
-					analy->result_mod = refresh_shown_result( analy );
+					
+                    if(setval)
+                    {
+                        analy->result_source = DERIVED;
+                    }else
+                    {
+                        analy->result_source = ALL;
+                    }
+                    
+                    analy->result_mod = refresh_shown_result( analy );
 				}
 				else if ( strcmp( tokens[i], "primal" ) == 0 )
 				{
-					switch ( analy->result_source )
-					{
-					case DERIVED:
-						if ( setval )
-							/* From derived to both. */
-							analy->result_source = ALL;
-						break;
-					case PRIMAL:
-						if ( !setval )
-						{
-							/* At least one table must be on. */
-							popup_dialog( INFO_POPUP,
-										  "Turning on derived result table." );
-							analy->result_source = DERIVED;
-						}
-						break;
-					case ALL:
-						if ( !setval )
-							/* From both to derived. */
-							analy->result_source = DERIVED;
-						break;
-					}
-
-					analy->result_mod = refresh_shown_result( analy );
+					if(setval)
+                    {
+                        analy->result_source = PRIMAL;
+                    }else
+                    {
+                        analy->result_source = ALL;
+                    }
+                    
+                    analy->result_mod = refresh_shown_result( analy );
 				}
 				else if ( strcmp( tokens[i], "hex_overlap" ) == 0 )
 				{

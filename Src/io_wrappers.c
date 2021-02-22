@@ -66,8 +66,6 @@
 #define OK 0
 
 
-static int create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
-                               State_variable **pp_svar );
 static void gen_material_data( MO_class_data *, Mesh_data * );
 static void check_degen_hexs( MO_class_data *p_hex_class );
 static void check_degen_quads( MO_class_data *p_quad_class );
@@ -88,6 +86,9 @@ int mili_compare_labels( const void *label1, const void *label2 );
 char *
 determine_naming( char *p_name , State_variable *p_sv)
 {
+   // Unfortunately we need to hard code what we are looking for
+   // in the database.  If another case appears it needs to be
+   // added here.
    char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
    char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
    int int_array[6]={0};
@@ -118,7 +119,7 @@ determine_naming( char *p_name , State_variable *p_sv)
    }
    
    valid = 1;
-   
+   // Loop over the flags. If any are zero then it is not a match.
    for(i=0;i<6;i++)
    {
        if(!int_array[i])
@@ -1636,6 +1637,83 @@ attach_element_set(Analysis *analy,Subrec_obj *subrec_obj,char *name)
    
    return OK;
 }
+
+
+/************************************************************
+ * TAG( create_st_variable )
+ *
+ * Create State_variable table entries for a db.
+ */
+static int
+create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
+                    State_variable **pp_svar , int *var_size)
+{
+    int rval;
+    Hash_action op;
+    Htable_entry *p_hte;
+    State_variable *p_sv;
+    int i;
+    int count;
+
+    /* Only enter svar if not already present in table. */
+    if( strncmp( p_name, "sand", 4 ) == 0 )
+        op = ENTER_ALWAYS;
+    else
+        op = ENTER_UNIQUE;
+
+    rval = htable_search( p_sv_ht, p_name, op, &p_hte );
+
+    /* If this is a new entry in the state variable table... */
+    if ( rval == OK )
+    {
+        /* Create the State_variable and store it in the hash table entry. */
+        p_sv = NEW( State_variable, "New state var" );
+        rval = mc_get_svar_def( fid, p_name, p_sv );
+        if ( rval != 0 )
+        {
+            mc_print_error( "create_st_variable() call mc_get_svar_def()",
+                            rval );
+            return GRIZ_FAIL;
+        }
+        
+        switch(p_sv->agg_type)
+        {
+            case SCALAR:
+                *var_size = 1;
+                break;
+            case ARRAY:
+                *var_size = p_sv->rank*p_sv->dims[0];
+                break;
+            case VECTOR:
+                *var_size = p_sv->vec_size;
+                break;
+            case VEC_ARRAY:
+                *var_size = p_sv->vec_size*p_sv->dims[0];
+                break;
+            default:
+                *var_size = 1;
+        
+        
+        }
+        p_hte->data = (void *) p_sv;
+
+        if ( pp_svar != NULL )
+            *pp_svar = p_sv;
+
+        /* For vectors and vector arrays, create the components. */
+        if ( p_sv->agg_type == VECTOR || p_sv->agg_type == VEC_ARRAY )
+        {
+            for ( i = 0; i < p_sv->vec_size; i++ )
+                rval = create_st_variable( fid, p_sv_ht, p_sv->components[i],
+                                           NULL , &count);
+            if ( rval != 0 )
+                return rval;
+        }
+    }
+
+    return OK;
+}
+
 /************************************************************
  * TAG( mili_db_get_st_descriptors )
  *
@@ -1665,12 +1743,14 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     int *node_work_array=NULL;
     State_variable *p_svar;
     Mesh_data *p_mesh;
+    int variable_size;
 
     int subrec_index=0;
 
     fid = (Famid) dbid;
 
     analy->num_bad_subrecs=0;
+    analy->max_variable_size =0;
     analy->bad_subrecs=NULL;
 
     /* Get state record format count for this database. */
@@ -1844,8 +1924,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                                               svar_names[k]);
                 }
                 
+                
+                
                 rval = create_st_variable( fid, p_sv_ht, svar_names[k],
-                                           &p_svar );
+                                           &p_svar , &variable_size);
                 if ( rval != 0 )
                 {
                     popup_dialog( WARNING_POPUP,
@@ -1853,7 +1935,14 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                                   "create state variable." );
                     return rval;
                 }
-
+                
+                /* We need to find the largest possible variable in the database to ensure 
+                 * that we allocate sufficient memory in the results array.
+                 */
+                if(analy->max_variable_size < variable_size)
+                {
+                    analy->max_variable_size = variable_size;
+                }
 
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
                                       srec_qty, svar_names[k], p_sv_ht, analy );
@@ -2098,61 +2187,6 @@ mili_db_cleanse_state_var( State_variable *p_st_var )
     return OK;
 }
 
-
-/************************************************************
- * TAG( create_st_variable )
- *
- * Create State_variable table entries for a db.
- */
-static int
-create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
-                    State_variable **pp_svar )
-{
-    int rval;
-    Hash_action op;
-    Htable_entry *p_hte;
-    State_variable *p_sv;
-    int i;
-
-    /* Only enter svar if not already present in table. */
-    if( strncmp( p_name, "sand", 4 ) == 0 )
-        op = ENTER_ALWAYS;
-    else
-        op = ENTER_UNIQUE;
-
-    rval = htable_search( p_sv_ht, p_name, op, &p_hte );
-
-    /* If this is a new entry in the state variable table... */
-    if ( rval == OK )
-    {
-        /* Create the State_variable and store it in the hash table entry. */
-        p_sv = NEW( State_variable, "New state var" );
-        rval = mc_get_svar_def( fid, p_name, p_sv );
-        if ( rval != 0 )
-        {
-            mc_print_error( "create_st_variable() call mc_get_svar_def()",
-                            rval );
-            return GRIZ_FAIL;
-        }
-
-        p_hte->data = (void *) p_sv;
-
-        if ( pp_svar != NULL )
-            *pp_svar = p_sv;
-
-        /* For vectors and vector arrays, create the components. */
-        if ( p_sv->agg_type == VECTOR || p_sv->agg_type == VEC_ARRAY )
-        {
-            for ( i = 0; i < p_sv->vec_size; i++ )
-                rval = create_st_variable( fid, p_sv_ht, p_sv->components[i],
-                                           NULL );
-            if ( rval != 0 )
-                return rval;
-        }
-    }
-
-    return OK;
-}
 
 
 /************************************************************
@@ -2472,7 +2506,79 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
 
     return OK;
 }
+// HERE
+int
+find_matching_primal_results(Result_candidate *p_rc,  Analysis *analy )
+{
+    int i,k,j,
+        rval = OK,
+        primal_count= 0;
+    int *p_i;
+    int subr_qty;
+    Htable_entry *p_hte;
+    Primal_result *p_pr;
+    int matches;
+    int subrec_idx;
+    Subrec_obj *p_subrecs;
+    
+    fprintf(stderr,"%s\n",p_rc->short_names[0]);
+    
+    for(i=0; p_rc->primals[i]!=NULL;i++){}
+    
+    primal_count= i;
+    fprintf(stderr, "%d\n", primal_count);
+    
+    //Lets look for the first primal to see if it exists.
+    // Otherwise anything else is a mute point.
+    rval = htable_search(analy->primal_results,p_rc->primals[0], 
+                             FIND_ENTRY,&p_hte );
+    
+    if(rval == OK)
+    {
+        p_pr = (Primal_result*) p_hte->data;
+        
+        
+        
+        for ( i = 0; i < analy->qty_srec_fmts; i++ )
+        {
+            p_subrecs = analy->srec_tree[i].subrecs;
+            
+            p_i = (int *) p_pr->srec_map[i].list;
+                
+            subr_qty = p_pr->srec_map[i].qty;
+            
+            for ( j = 0; j < subr_qty; j++ )
+            {
+                subrec_idx = p_i[j];
+                if ( p_rc->primal_superclasses[0]
+                     == p_subrecs[subrec_idx].p_object_class->superclass )
+                {
+                    if(subr_qty == 1 && primal_count == 1)
+                    {
+                        //We are done
+                        fprintf(stderr, "Primal %s: has only one solution class name %s, subrec_id %d\n", 
+                                p_rc->primals[0],  p_subrecs[subrec_idx].subrec.class_name,subrec_idx);
+                    }
+                }
+            }
+        }
+    
+    }else
+    {
+        return rval;
+    }
+    
+   
+    Primal_source *primal_source = NEW(Primal_source,"Primal_source in find_matching_primal_result");
+                        
+    if(!primal_source)
+    {
+        return ALLOC_FAILED;
+    }
+    
+    fprintf(stderr,"%s\n","");
 
+}
 
 /************************************************************
  * TAG( mili_db_set_results )
@@ -2486,7 +2592,6 @@ mili_db_set_results( Analysis *analy )
 {
     Result_candidate *p_rc;
     int i, j, k, m;
-    int num_entries = 0;
     int qty_candidates;
     int pr_qty, subr_qty;
     Hash_table *p_pr_ht;
@@ -2500,17 +2605,15 @@ mili_db_set_results( Analysis *analy )
     Mesh_data *meshes;
     int cand_primal_sclass, subrec_idx, found_th=FALSE;
 
-    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                                               "IntLabel", "NULL", "NULL", NULL);
-
     /* Sanity check. */
     if ( analy->primal_results == NULL )
         return OK;
 
     /* Count derived result candidates. */
-    for ( qty_candidates = 0;
-            possible_results[qty_candidates].superclass != QTY_SCLASS;
-            qty_candidates++ );
+    for ( analy->derived_result_cand_count = 0;
+            possible_results[analy->derived_result_cand_count].superclass != QTY_SCLASS;
+            analy->derived_result_cand_count++ );
+    
     p_pr_ht = analy->primal_results;
 
     /* Base derived result table size on primal result table size. */
@@ -2524,8 +2627,22 @@ mili_db_set_results( Analysis *analy )
     for ( j = 0; j < analy->qty_srec_fmts; j++ )
         counts[j] = NEW_N( int, analy->srec_tree[j].qty,
                            "Counts tree branch" );
+    /* We need to correct this. The search needs to be over all the subrecords.
+    *  The check is if a subrecord contains all the primals required then it is a match
+    *  however the codes are putting out variables split over multiple subrecords.
+    *  Therefore the search needs to look at mutltiples subrecords, making sure each 
+    *  has the correct  super class, then match the class name, and then the mo_ids. 
+    *  only if all the desired variables are not contained within the intitial subrecord.
+    *  The current assumption that once we have scanned and it does not have 
+    *  correct variables then we are done looking.  This is not the case any longer.
+    *
+    *  As we bo trhought eh subrecords the first time we will try to associate subrecords 
+    *  with like classes and shared mo_ids. This should hopefully quicken the subsequent 
+    *  searches.
+    *  HERE
+    */
     
-    for ( i = 0; i < qty_candidates; i++ )
+    for ( i = 0; i < analy->derived_result_cand_count; i++ )
     {
         p_rc = &possible_results[i];
         
@@ -2556,6 +2673,8 @@ mili_db_set_results( Analysis *analy )
         if ( j == analy->mesh_qty )
             continue;
 
+        find_matching_primal_results(p_rc,analy);
+        
         /*
          * Loop over primal results required for current possible derived
          * result calculation; increment per-subrec counter for each
@@ -5013,7 +5132,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
     MO_class_data *p_mocd;
     Bool_type nodal;
     int *node_work_array;
-
+    int var_count;
     fid = (Famid) dbid;
 
     /* Get state record format count for this database. */
@@ -5147,7 +5266,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
             svar_names = p_subr->svar_names;
             for ( k = 0; k < p_subr->qty_svars; k++ )
             {
-                create_st_variable( fid, p_sv_ht, svar_names[k], NULL );
+                create_st_variable( fid, p_sv_ht, svar_names[k], NULL,&var_count );
                 create_primal_result( analy->mesh_table + mesh_id, i, j,
                                       p_subrecs + j, p_primal_ht, srec_qty,
                                       svar_names[k], p_sv_ht, analy );
@@ -5212,9 +5331,9 @@ taurus_db_set_results( Analysis *analy )
     Mesh_data *meshes;
 
     /* Count derived result candidates. */
-    for ( qty_candidates = 0;
-            possible_results[qty_candidates].superclass != QTY_SCLASS;
-            qty_candidates++ );
+    for ( analy->derived_result_cand_count = 0;
+            possible_results[analy->derived_result_cand_count].superclass != QTY_SCLASS;
+            analy->derived_result_cand_count++ );
     p_pr_ht = analy->primal_results;
 
     /* Base derived result table size on primal result table size. */
@@ -5229,7 +5348,7 @@ taurus_db_set_results( Analysis *analy )
         counts[j] = NEW_N( int, analy->srec_tree[j].qty,
                            "Counts tree branch" );
 
-    for ( i = 0; i < qty_candidates; i++ )
+    for ( i = 0; i < analy->derived_result_cand_count; i++ )
     {
         p_rc = &possible_results[i];
 

@@ -348,6 +348,7 @@ static Bool_type get_last_renderable_event( Window win, XEvent *p_xe,
         Dimension *p_height );
 #endif
 static void res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void der_res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void menu_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void input_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void process_keyboard_input( XKeyEvent *p_xke );
@@ -418,7 +419,6 @@ static void stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
 static void find_ancestral_root_child( Widget widg, Window *root_child );
 static void create_app_widg( Btn_type btn );
 static void create_result_menus( Widget parent );
-static void create_derived_res_menu( Widget parent );
 static void create_primal_res_menu( Widget parent );
 static void create_ti_res_menu( Widget parent );
 static void add_primal_result_button( Widget parent, Primal_result * );
@@ -2061,6 +2061,140 @@ create_menu_bar( Widget parent, Analysis *analy )
     return( menu_bar );
 }
 
+/*****************************************************************
+ * TAG( create_derived_res_menu )
+ *
+ * Create the derived results menu for the Control window menu bar.
+ */
+static void
+create_derived_res_menu( Widget parent )
+{
+    Widget button;
+    int i, j, k, n;
+    int qty_fmts;
+    Arg args[1];
+    int qty_candidates;
+    Result_candidate *p_rc;
+    Hash_table *p_dr_ht;
+    Htable_entry *p_hte;
+    Derived_result *p_dr = NULL;
+    Hash_table *p_pr_ht;
+    Htable_entry *pp_hte;
+    Primal_result *p_pr = NULL;
+    Subrecord_result *p_sr;
+    char **svar_names;
+    Bool_type short_name_is_primal = FALSE;
+    Bool_type match = FALSE;
+
+    int rval;
+    Analysis *p_analy;
+    p_analy = get_analy_ptr();
+
+    /*
+     * Traverse the possible_results[] array to get the names of derived
+     * results in a reasonable order.  Ignore the ones that don't exist
+     * since this database doesn't support them.
+     */
+
+    p_dr_ht = env.curr_analy->derived_results;
+    p_pr_ht = env.curr_analy->primal_results;
+    qty_fmts = env.curr_analy->qty_srec_fmts;
+
+    n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+    n++;
+    derived_menu_widg = XmCreatePulldownMenu( parent, "derived_menu_pane",
+                        args, n );
+
+    /* Always add an entry to show materials. */
+    n = 0;
+    button = XmCreatePushButtonGadget( derived_menu_widg, "Result off",
+                                       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
+
+    /* Go no further if there aren't actually any derived results. */
+    if ( p_dr_ht == NULL )
+        return;
+
+    /* Now build the result menu(s) */
+    for ( i = 0; i < p_analy->derived_result_cand_count; i++ )
+    {
+        p_rc = &possible_results[i];
+        if(p_rc->compute_func == load_primal_result)
+        {
+            continue;
+        }
+        /* added code to not create a menu for true primal variables in the derived results section */
+        svar_names = p_rc->primals;
+        for(j = 0; svar_names[j] != NULL; j++)
+        {
+            rval = htable_search(p_pr_ht, svar_names[j], FIND_ENTRY, &pp_hte);
+            if(rval == OK)
+            {
+                p_pr = (Primal_result *) pp_hte->data;
+                break;
+            }
+        }
+        for ( j = 0; p_rc->short_names[j] != NULL; j++ )
+        {
+            short_name_is_primal = FALSE;
+            /* Don't add a menu button if the short name is really primal (i.e. "sx") */
+            if(p_pr != NULL && p_pr->var->components != NULL)
+            {
+               for(k = 0; k < p_pr->var->vec_size ; k++)
+               {
+                   if(!strcmp(p_rc->short_names[j], p_pr->var->components[k]))
+                   {
+                       short_name_is_primal = TRUE;
+                       break;
+                   }
+               } 
+            }
+ 
+            if(short_name_is_primal)
+            {
+                continue;
+            } 
+ 
+            rval = htable_search( p_dr_ht, p_rc->short_names[j], FIND_ENTRY,
+                                  &p_hte );
+
+            if ( rval == OK )
+            {
+                p_dr = (Derived_result *) p_hte->data;
+                /* make sure the superclasses match. */
+                match = FALSE;
+                for(k = 0; k < qty_fmts; k++)
+                {
+                    p_sr = (Subrecord_result *) p_dr->srec_map[k].list;
+                    if(p_sr->candidate->superclass == p_rc->superclass)
+                    {
+                        match = TRUE;
+                    } 
+                }
+                if(match == FALSE)
+                {
+                    continue;
+                }
+
+                if ( p_analy->analysis_type==MODAL ) /* May later check for
+						      * p_rc->origin.is_node_result
+						      */
+                    if ( p_rc->short_names[0]!=NULL )
+                        if ( strncmp(  p_rc->short_names[0], "evec_", 5) )
+                            p_rc->hide_in_menu = TRUE;
+
+                if ( !p_dr->in_menu && !p_rc->hide_in_menu)
+                {
+                    add_derived_result_button( p_dr );
+                    p_dr->in_menu = TRUE;
+                }
+            }
+        }
+    }
+}
+
 
 /*****************************************************************
  * TAG( create_result_menus )
@@ -2656,7 +2790,7 @@ add_derived_result_button( Derived_result *p_dr )
     n = 0;
     button = XmCreatePushButtonGadget( submenu, nambuf, args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
+    XtAddCallback( button, XmNactivateCallback, der_res_menu_CB,
                    p_subr_res->candidate->short_names[idx] );
 
 }
@@ -2819,145 +2953,6 @@ get_result_submenu_name( Derived_result *p_dr, char *name )
     }
 
     return;
-}
-
-
-/*****************************************************************
- * TAG( create_derived_res_menu )
- *
- * Create the derived results menu for the Control window menu bar.
- */
-static void
-create_derived_res_menu( Widget parent )
-{
-    Widget button;
-    int i, j, k, n;
-    int qty_fmts;
-    Arg args[1];
-    int qty_candidates;
-    Result_candidate *p_rc;
-    Hash_table *p_dr_ht;
-    Htable_entry *p_hte;
-    Derived_result *p_dr = NULL;
-    Hash_table *p_pr_ht;
-    Htable_entry *pp_hte;
-    Primal_result *p_pr = NULL;
-    Subrecord_result *p_sr;
-    char **svar_names;
-    Bool_type short_name_is_primal = FALSE;
-    Bool_type match = FALSE;
-
-    int rval;
-    Analysis *p_analy;
-    p_analy = get_analy_ptr();
-
-    /*
-     * Traverse the possible_results[] array to get the names of derived
-     * results in a reasonable order.  Ignore the ones that don't exist
-     * since this database doesn't support them.
-     */
-
-    for ( qty_candidates = 0;
-            possible_results[qty_candidates].superclass != QTY_SCLASS;
-            qty_candidates++ );
-
-    p_dr_ht = env.curr_analy->derived_results;
-    p_pr_ht = env.curr_analy->primal_results;
-    qty_fmts = env.curr_analy->qty_srec_fmts;
-
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    derived_menu_widg = XmCreatePulldownMenu( parent, "derived_menu_pane",
-                        args, n );
-
-    /* Always add an entry to show materials. */
-    n = 0;
-    button = XmCreatePushButtonGadget( derived_menu_widg, "Result off",
-                                       args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
-
-    /* Go no further if there aren't actually any derived results. */
-    if ( p_dr_ht == NULL )
-        return;
-
-    /* Now build the result menu(s) */
-    for ( i = 0; i < qty_candidates; i++ )
-    {
-        p_rc = &possible_results[i];
-        if(p_rc->compute_func == load_primal_result)
-        {
-            continue;
-        }
-        /* added code to not create a menu for true primal variables in the derived results section */
-        svar_names = p_rc->primals;
-        for(j = 0; svar_names[j] != NULL; j++)
-        {
-            rval = htable_search(p_pr_ht, svar_names[j], FIND_ENTRY, &pp_hte);
-            if(rval == OK)
-            {
-                p_pr = (Primal_result *) pp_hte->data;
-                break;
-            }
-        }
-        for ( j = 0; p_rc->short_names[j] != NULL; j++ )
-        {
-            short_name_is_primal = FALSE;
-            /* Don't add a menu button if the short name is really primal (i.e. "sx") */
-            if(p_pr != NULL && p_pr->var->components != NULL)
-            {
-               for(k = 0; k < p_pr->var->vec_size ; k++)
-               {
-                   if(!strcmp(p_rc->short_names[j], p_pr->var->components[k]))
-                   {
-                       short_name_is_primal = TRUE;
-                       break;
-                   }
-               } 
-            }
- 
-            if(short_name_is_primal)
-            {
-                continue;
-            } 
- 
-            rval = htable_search( p_dr_ht, p_rc->short_names[j], FIND_ENTRY,
-                                  &p_hte );
-
-            if ( rval == OK )
-            {
-                p_dr = (Derived_result *) p_hte->data;
-                /* make sure the superclasses match. */
-                match = FALSE;
-                for(k = 0; k < qty_fmts; k++)
-                {
-                    p_sr = (Subrecord_result *) p_dr->srec_map[k].list;
-                    if(p_sr->candidate->superclass == p_rc->superclass)
-                    {
-                        match = TRUE;
-                    } 
-                }
-                if(match == FALSE)
-                {
-                    continue;
-                }
-
-                if ( p_analy->analysis_type==MODAL ) /* May later check for
-						      * p_rc->origin.is_node_result
-						      */
-                    if ( p_rc->short_names[0]!=NULL )
-                        if ( strncmp(  p_rc->short_names[0], "evec_", 5) )
-                            p_rc->hide_in_menu = TRUE;
-
-                if ( !p_dr->in_menu && !p_rc->hide_in_menu)
-                {
-                    add_derived_result_button( p_dr );
-                    p_dr->in_menu = TRUE;
-                }
-            }
-        }
-    }
 }
 
 
@@ -6191,6 +6186,35 @@ res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
     }
 }
 
+/*****************************************************************
+ * TAG( der_res_menu_CB )
+ *
+ * Handles derived menu button events for the result menu buttons.
+ */
+static void
+der_res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
+{
+    XmString text= NULL;
+    Widget hist_list;
+    char com_str[200];
+    char *com;
+    Result_table_type result_type;
+    result_type = env.curr_analy->result_source;
+    /* The result title is passed in the client_data. */
+    env.curr_analy->result_source = DERIVED;
+    com = (char *)client_data;
+    sprintf( com_str, "show \"%s\"", com );
+    text = XmStringCreateSimple( com_str );
+    parse_command( com_str, env.curr_analy );
+    if( text != NULL )
+    {
+        hist_list=XmCommandGetChild(command_widg, XmDIALOG_HISTORY_LIST);
+        XmListAddItem( hist_list, text, 0 );
+        XmListSetBottomPos( hist_list, 0 );
+        XmStringFree( text );
+    }
+    env.curr_analy->result_source = result_type;
+}
 
 /*****************************************************************
  * TAG( menu_CB )
