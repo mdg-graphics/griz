@@ -1033,6 +1033,7 @@ typedef struct _Analysis
     float  *cur_ref_state_data;
     double *cur_ref_state_dataDp;
 
+    int state_count;
     int cur_mesh_id;
     Mesh_data *mesh_table;
     int mesh_qty;
@@ -1886,7 +1887,7 @@ typedef struct
 
 extern Environ env;
 
-#define MAXTOKENS 200
+#define MAXTOKENS 2000
 #define TOKENLENGTH 100
 
 /* viewer.c */

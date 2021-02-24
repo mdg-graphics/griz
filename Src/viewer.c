@@ -298,8 +298,7 @@ main( int argc, char *argv[] )
 
         check_for_free_nodes( analy );
 
-        if ( analy->particle_nodes_found )
-            analy->particle_nodes_enabled = TRUE;
+        analy->particle_nodes_enabled = FALSE;
     }
 
 #ifdef TIME_OPEN_ANALYSIS
@@ -913,7 +912,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int status;
 
     int *pn_node_list, num_ml_nodes=0;
-    
+
     /*
      * Don't use popup_fatal() on failure before db is actually open.
      */
@@ -1036,17 +1035,16 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
          */
         return FALSE;
     }
-    
+
     
     status = load_element_sets(analy);
     if ( stat != OK )
         return FALSE;
-        
+    
     stat = analy->db_get_st_descriptors( analy, analy->db_ident );
     if ( stat != OK )
         return FALSE;
 
-    
     stat = analy->db_set_results( analy );
     if ( stat != OK )
         return FALSE;
@@ -1065,6 +1063,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     manage_timer( 0, 1 );
     putc( (int) '\n', stdout );
 #endif
+
+    /* set state count in analysis struct */
+    analy->state_count = num_states;
 
     if ( num_states > 0 )
     {
@@ -1947,7 +1948,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
     
     
-    
+
     if ( face_qty > max_face_qty )
         max_face_qty = face_qty;
 
@@ -2596,8 +2597,8 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     model_history_log_clear( analy );
 
     check_for_free_nodes( analy );
-    if ( analy->particle_nodes_found )
-        analy->particle_nodes_enabled = TRUE;
+    
+    analy->particle_nodes_enabled = FALSE;
 
 #ifdef SERIAL_BATCH
 #else

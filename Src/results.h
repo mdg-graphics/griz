@@ -183,7 +183,6 @@ typedef struct _es_result_candidate
 */
 
 
-
 /*****************************************************************
  * TAG( RESULT_DEFINES )
  *
@@ -201,7 +200,6 @@ typedef struct _es_result_candidate
 #define EXTREME_MIN 0
 #define EXTREME_MAX 1
 #endif
-
 
 
 /************************************************************
@@ -228,15 +226,6 @@ typedef struct _subrecord_result
     Bool_type indirect;
 } Subrecord_result;
 
-typedef struct _primal_source
-{
-    short *vars_verified;
-    char  *class_name;
-    int    var_count;
-    int   *subrec_ids;     // These are matched to each variable.  You may get duplicates
-    char  **vars;
-}Primal_source;
-
 /*****************************************************************
  * TAG( Derived_result )
  *
@@ -255,7 +244,6 @@ typedef struct _derived_result
 {
     Result_origin_flags origin;
     List_head *srec_map;
-    Primal_source **primal_sources;
     int primal_source_count;
     Bool_type in_menu;
     Bool_type has_indirect;

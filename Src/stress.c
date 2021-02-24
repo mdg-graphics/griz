@@ -192,6 +192,7 @@ compute_pressure( Analysis *analy, float *resultArr, Bool_type interpolate )
     
     
 }
+
 /************************************************************
  * TAG( compute_hex_press )
  *
@@ -864,9 +865,7 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     /* Process this as an element set result if found */
 
-    
-    
-    
+
         /*
          * Don't want to read in all the primals from the Result_candidate for
          * this result, so build up a new primals array with just the right one.
@@ -1022,8 +1021,6 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 void
 compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
-    fprintf(stderr, "%s\n", "compute_es_press");
-   
     Ref_surf_type ref_surf;
     float *resultElem;
     float (*shellPressure)[6];

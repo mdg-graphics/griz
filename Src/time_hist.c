@@ -2517,6 +2517,11 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                  * process the range.
                  */
                 range_stop = atoi( tokens[i] ) ;
+                /*
+                 * We have already processed range_start, so start this range
+                 * at label_index+1
+                 */
+                range_start = label_index+1;
                 add_mo_nodes( &so_list, p_class, range_start,
                               range_stop );
                 o_ident = NON_IDENT;
@@ -2541,7 +2546,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                     if(p_so->ident == M_INVALID_LABEL)
                     {
                         free(p_so);
-                        continue;
+                        break;
                     }
                  
                 }
@@ -2555,7 +2560,6 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
             if ( p_class != NULL && o_ident != NON_IDENT )
             {
                 parsing_range = TRUE;
-                range_start = label_index +1;
             }
             break;
 
@@ -2571,8 +2575,22 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                      * of the range here.
                      */
                     range_stop = atoi( nstr );
-                    add_mo_nodes( &so_list, p_class, o_ident ,
-                                  range_stop );
+                    /* 
+                     * Use label_index+1 because we have already processed
+                     * the range_start in a previous token and we do not want
+                     * process it a second time.
+                     */
+                    if ( o_ident != NON_IDENT )
+                        add_mo_nodes( &so_list, p_class, label_index+1,
+                                      range_stop );
+                    else
+                        /*
+                         * This condition is here to handle case when just
+                         * -range_stop is entered so that Griz doesn't crash
+                         */
+                        add_mo_nodes( &so_list, p_class, o_ident,
+                                      range_stop );
+
                     o_ident = NON_IDENT;
                 }
                 else if ( p_class != NULL )
@@ -6473,9 +6491,117 @@ draw_plots( Analysis *analy )
                 {
                     end_curve = FALSE;
                     if ( analy->mm_result_set[0] && ord_data[j]<analy->result_mm[0] )
+                    {
+                        /*
+                         * If rmin is set and the current pos is below rmin.
+                         * Check if previous point was above rmin. If true
+                         * plot line down to rmin
+                         */
+                        if ( j > start_state )
+                        {
+                            // If previous point was above rmin, need to plot line down to rmin
+                            if ( ord_data[j-1] > analy->result_mm[0] )
+                            {
+                                //Find x coordinate where line intersects with y=rmin 
+                                float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                                float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                                //tan(angle) = opposite / adjacent
+                                float angle = atan( opposite / adjacent );
+
+                                float new_height = ord_data[j-1] - analy->result_mm[0];
+                                float x_distance = new_height * tan(angle);
+
+                                pos[0] =  win_x_min + win_x_span * ((ab_data[j-1]+x_distance) - ax_x_min)
+                                         / ax_x_span;
+                                pos[1] =  win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min)
+                                             / ax_y_span;
+
+                                glVertex3fv( pos );
+                            }
+                        }
                         end_curve = TRUE;
+                    }
+                    else if ( analy->mm_result_set[0] && j > start_state && ord_data[j-1] < analy->result_mm[0] )
+                    {
+                        /*
+                         * If rmin is set and the previous point was below rmin,
+                         * then plot from rmin to current point
+                         *
+                         */
+                        //Find x coordinate where line intersects with y=rmin 
+                        float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                        float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                        //tan(angle) = opposite / adjacent
+                        float angle = atan( opposite / adjacent );
+
+                        float new_height = ord_data[j] - analy->result_mm[0];
+                        float x_distance = new_height * tan(angle);
+
+                        pos[0] =  win_x_min + win_x_span * ((ab_data[j]-x_distance) - ax_x_min)
+                                 / ax_x_span;
+                        pos[1] =  win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min)
+                                     / ax_y_span;
+
+                        glVertex3fv( pos );
+
+                    }
                     if ( analy->mm_result_set[1] && ord_data[j]>analy->result_mm[1] )
+                    {
+                        /*
+                         * If rmax is set and the current pos is above rmax.
+                         * Check if previous point was below rmax. If true
+                         * plot line up to rmax
+                         */
+                        if ( j > start_state )
+                        {
+                            if ( ord_data[j-1] < analy->result_mm[1] )
+                            {
+                                //Find x coordinate where line intersects with y=rmax
+                                float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                                float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                                //tan(angle) = opposite / adjacent
+                                float angle = atan( opposite / adjacent );
+                                
+                                float new_height = ord_data[j] - analy->result_mm[1];
+                                float x_distance = new_height * tan(angle);
+
+                                pos[0] =  win_x_min + win_x_span * ((ab_data[j]-x_distance) - ax_x_min)
+                                         / ax_x_span;
+                                pos[1] =  win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min)
+                                             / ax_y_span;
+
+                                glVertex3fv( pos );
+                                
+                            }
+                        }
                         end_curve = TRUE;
+                    }
+                    else if ( analy->mm_result_set[1] && j > start_state && ord_data[j-1] > analy->result_mm[1] )
+                    {
+                        /*
+                         * If rmax is set and the previous point was above rmax,
+                         * then plot from rmax down to current point
+                         */
+                        //Find x coordinate where line intersects with y=rmax
+                        float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                        float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                        //tan(angle) = opposite / adjacent
+                        float angle = atan( opposite / adjacent );
+
+                        float new_height = ord_data[j-1] - analy->result_mm[1];
+                        float x_distance = new_height * tan(angle);
+
+                        pos[0] =  win_x_min + win_x_span * ((ab_data[j-1]+x_distance) - ax_x_min)
+                                 / ax_x_span;
+                        pos[1] =  win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min)
+                                     / ax_y_span;
+
+                        glVertex3fv( pos );
+                    }
                     if ( analy->mm_time_set[0] && ab_data[j]<=analy->time_mm[0] )
                         end_curve = TRUE;
                     if ( analy->mm_time_set[1] && ab_data[j]>=analy->time_mm[1] )

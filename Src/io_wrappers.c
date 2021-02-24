@@ -2568,16 +2568,6 @@ find_matching_primal_results(Result_candidate *p_rc,  Analysis *analy )
         return rval;
     }
     
-   
-    Primal_source *primal_source = NEW(Primal_source,"Primal_source in find_matching_primal_result");
-                        
-    if(!primal_source)
-    {
-        return ALLOC_FAILED;
-    }
-    
-    fprintf(stderr,"%s\n","");
-
 }
 
 /************************************************************
