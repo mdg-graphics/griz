@@ -253,6 +253,8 @@ extern Bool_type history_inputCB_cmd;
 char newtokens[MAXTOKENS][TOKENLENGTH];
 int  new_token_cnt;
 
+int previous_show_command = 0;
+
 #define BUFSIZE 2000
 #define LASTCMD 200
 
@@ -307,6 +309,14 @@ typedef struct _Surface_property_obj
  *
  */
 int jpeg_quality = 75;
+#endif
+
+#ifdef PNG_SUPPORT
+/*****************************************************************
+ * TAG( PNG global variable initialization )
+ *
+ */
+int png_compression_level = -1; // Z_DEFAULT_COMPRESSION from zlib
 #endif
 
 char *griz_home=NULL;
@@ -1558,6 +1568,16 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "show" ) == 0 )
 		{
+            if ( analy->state_count == 0 )
+            {
+                // There are no states, so can't run show command
+                if ( previous_show_command == 0)
+                {
+                    popup_dialog(INFO_POPUP, "Ignoring requests to show as there are no states");
+                    previous_show_command = 1;
+                }
+                return;
+            }
 
 			analy->th_plotting   = FALSE;
 			if (  strncmp( tokens[1], "mat", 3 ) == 0 )
@@ -1675,8 +1695,24 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				else
 				{
-					sprintf( pdfreader_cmd, "acroread %s/griz_manual.pdf &", griz_home );
-					status = system( pdfreader_cmd );
+                    status = system( "which evince" );
+                    if ( status == 0 )
+                    {
+                        sprintf( pdfreader_cmd, "evince %s/griz_manual.pdf &", griz_home);
+                        status = system( pdfreader_cmd );
+                    }
+                    else
+                    {
+                        sprintf( pdfreader_cmd, "acroread %s/griz_manual.pdf &", griz_home );
+                        status = system( pdfreader_cmd );
+                        if ( status != 0 )
+                        {
+                            // Could not open Griz release notes with either
+                            // xpdf, evince, or acroread
+                            popup_dialog( INFO_POPUP,
+                                          "Unable to open Griz manual" );
+                        }
+                    }
 				}
 	#endif
 			}
@@ -1691,7 +1727,7 @@ parse_single_command( char *buf, Analysis *analy )
 				status = system( pdfreader_cmd );
 	#else
 				status = system( "which xpdf" );
-				\
+				 
 				if ( status == 0 )
 				{
 					sprintf( pdfreader_cmd, "xpdf %s/griz_relnotes.pdf &", griz_home );
@@ -1699,8 +1735,24 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				else
 				{
-					sprintf( pdfreader_cmd, "acroread %s/griz_relnotes.pdf &", griz_home );
-					status = system( pdfreader_cmd );
+                    status = system( "which evince" );
+                    if ( status == 0 )
+                    {
+                        sprintf( pdfreader_cmd, "evince %s/griz_relnotes.pdf &", griz_home);
+                        status = system( pdfreader_cmd );
+                    }
+                    else
+                    {
+                        sprintf( pdfreader_cmd, "acroread %s/griz_relnotes.pdf &", griz_home );
+                        status = system( pdfreader_cmd );
+                        if ( status != 0 )
+                        {
+                            // Could not open Griz release notes with either
+                            // xpdf, evince, or acroread
+                            popup_dialog( INFO_POPUP,
+                                          "Unable to open Griz release notes" );
+                        }
+                    }
 				}
 	#endif
 			}
@@ -5226,6 +5278,19 @@ parse_single_command( char *buf, Analysis *analy )
 			int start = -1;
 			MO_class_data * p_class;
 			int elem_class[14];
+
+            /* If there are no states ignore request to plot */
+            if ( analy->state_count == 0 )
+            {
+                // There are no states, so can't run plot command
+                if ( previous_show_command == 0)
+                {
+                    popup_dialog(INFO_POPUP, "Ignoring requests to show as there are no states");
+                    previous_show_command = 1;
+                }
+                return;
+            }
+
 			for(i = 0; i < 14; i++)
 			{
 				elem_class[i] = 0;
@@ -5548,7 +5613,9 @@ parse_single_command( char *buf, Analysis *analy )
 					//if we didnt find a result pointer
 					if(res_ptr == NULL){
 						//and our second argument does not match the current result
-						if(strcmp(original_tokens[1], analy->cur_result->name)){
+						if(!analy->cur_result && 
+                           !analy->cur_result->name &&
+                           strcmp(original_tokens[1], analy->cur_result->name)){
 							error_flag = TRUE;
 						}
 					}
@@ -5570,6 +5637,19 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "oplot" ) == 0 )
 		{
+            
+            /* If there are no states ignore request to plot */
+            if ( analy->state_count == 0 )
+            {
+                // There are no states, so can't run oplot command
+                if ( previous_show_command == 0)
+                {
+                    popup_dialog(INFO_POPUP, "Ignoring requests to show as there are no states");
+                    previous_show_command = 1;
+                }
+                return;
+            }
+
 			create_oper_plot_objects( token_cnt, tokens, analy,
 									  &analy->current_plots );
 			redraw = BINDING_PLOT_VISUAL;
@@ -7701,22 +7781,38 @@ parse_single_command( char *buf, Analysis *analy )
 		{
 			pushpop_window( PUSHPOP_ABOVE );
 			if ( token_cnt > 1 )
-				write_PNG_file( tokens[1], FALSE );
+				write_PNG_file( tokens[1], FALSE, png_compression_level );
 			else
 				popup_dialog( USAGE_POPUP, "outpng <filename>" );
 		}
 		else if( strcmp( tokens[0], "outpnga" ) == 0 )
 		{
-			popup_dialog( WARNING_POPUP, " Alpha channel output not supported " );
+			pushpop_window( PUSHPOP_ABOVE );
 			if ( token_cnt > 1 )
-				/*
-				 *  Change the FALSE to TRUE when problem with Alpha Channel in PNG
-				 * files is fixed
-				 */
-				write_PNG_file( tokens[1], FALSE );
+                // TRUE is set for alpha channel
+				write_PNG_file( tokens[1], TRUE, png_compression_level );
 			else
 				popup_dialog( USAGE_POPUP, "outpnga <filename>" );
 		}
+        else if ( strcmp ( tokens[0], "pngcomp" ) == 0 )
+        {
+            if ( token_cnt > 1 )
+            {
+                int compression_level = strtod( tokens[1], (char**)NULL );
+                if ( compression_level < 0 || compression_level > 9 || compression_level != floor(compression_level) )
+                {
+                    // If requested compressiont level not in valid range, don't change
+                    wrt_text("\n\n%s\n", "Invalid PNG compression level selected. Valid compression levels are 0-9");
+                }
+                else
+                {
+                    png_compression_level = compression_level;
+                    wrt_text("\n\n%s %d\n", "PNG compression level set to", png_compression_level);
+                }
+            }
+            else
+                popup_dialog( USAGE_POPUP, "pngcomp <compression level>\nAvailable compression levels: 0-9" );
+        }
 	#endif
 	#ifdef JPEG_SUPPORT
 		else if ( strcmp( tokens[0], "outjpeg" ) == 0 ||
@@ -10352,7 +10448,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 	Htable_entry *tempEnt;
 	char new_tokens[MAXTOKENS][TOKENLENGTH];
 	int new_token_cnt = 0;
-	//do we at least have a command and 1 argument
+    //do we at least have a command and 1 argument
 	if(*token_cnt > 1){
 		char token[TOKENLENGTH];
 		sprintf(token, "%s",tokens[0]);

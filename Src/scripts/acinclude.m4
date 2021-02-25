@@ -204,28 +204,7 @@ AC_DEFUN([CONFIGURE_GPROF],
         fi
   ])
 
-AC_DEFUN([CONFIGURE_BITMAPS],
-  [       
-        #
-        # Set options for Bitmaps
-        #
 
-        BITMAPS_HOME=".."
-
-        AC_ARG_WITH([bitmaps],
-               AC_HELP_STRING(
-	            [--with-bitmaps=[PATH]],
-                    [Use given base PATH for BITMAPS files]),
-	            BITMAPS_HOME="${withval}" &&
-	            AC_MSG_RESULT("Using BITMAPS Path : $withval")
-	           )
-
-        BITMAPS_INCLUDE_PATHS="-I$BITMAPS_HOME"
-
-        # Bitmaps Options
-        AC_SUBST(BITMAPS_HOME)
-        AC_SUBST(BITMAPS_INCLUDE_PATHS)
-  ])
 
 AC_DEFUN([CONFIGURE_HERSHEY],
   [       
@@ -363,6 +342,7 @@ AC_DEFUN([CONFIGURE_X11],
 	GLfound=""
    GLUfound=""
    GLwfound=""
+   glutfound=""
 	
    libsfound=""
 
@@ -376,11 +356,12 @@ AC_DEFUN([CONFIGURE_X11],
 	AC_SEARCH_LIBS([glXChooseVisual],[GL]) 
 	AC_SEARCH_LIBS([gluNewQuadric],[GLU]) 
 	AC_SEARCH_LIBS([glwDrawingAreaClassRec],[GLw]) 
+    AC_SEARCH_LIBS([glutInit],[glut])
 	#AC_MSG_ERROR([$LIBS])
 	#AC_MSG_ERROR([$X_CFLAGS $no_x $x_includes $x_libraries $X_LIBS $LIBS $X_PRE_LIBS])
 
         allfound="false"
-	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a"
+	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a libglut.a"
 
 	for path in $paths; do
 		pathset="false"
@@ -417,6 +398,9 @@ AC_DEFUN([CONFIGURE_X11],
 					fi	
 	     				if test "$GLwfound" = "" -a "$file" = "libGLw.a" ;then
 					   GLwfound="$path/lib64/$file "	
+					fi
+                        if test "$glutfound" = "" -a "$file" = "libglut.a" ;then
+					   glutfound="$path/lib64/$file "	
 					fi
 				],
 				[
@@ -1272,7 +1256,7 @@ AC_DEFUN([CONFIGURE_DIRS],
 	LIB_DIRS=""
 	EXT_DIRS=""
 	SRC_DIRS=""
-	MISC_DIRS="Bitmaps HersheyLib/data HersheyLib/fonts HersheyLib/hfonts"
+	MISC_DIRS="HersheyLib/data HersheyLib/fonts HersheyLib/hfonts"
 	MAKEFILES=""
         #
         # Setup JPEG
