@@ -459,7 +459,7 @@ mat_copy( Transf_mat *a, Transf_mat *b )
  * Copy matrix into a 1D array in row-major order.
  */
 void
-mat_to_array( Transf_mat *mat, float array[16] )
+mat_to_array( Transf_mat const * mat, float array[16] )
 {
     int i, j;
 
@@ -468,6 +468,20 @@ mat_to_array( Transf_mat *mat, float array[16] )
             array[i*4 + j] = mat->mat[i][j];
 }
 
+/*****************************************************************
+ * TAG( array_to_mat )
+ *
+ * Copy 1D array in row-major order into a matrix.
+ */
+void
+array_to_mat( float const array[16], Transf_mat * mat)
+{
+    int ii;
+    int jj;
+    for ( ii = 0; ii < 4; ii++ )
+        for ( jj = 0; jj < 4; jj++ )
+            mat->mat[ii][jj] = array[ii*4 + jj];
+}
 
 /*****************************************************************
  * TAG( mat_translate )
@@ -976,7 +990,7 @@ mat_mul( Transf_mat *res, Transf_mat *a, Transf_mat *b )
  *               [j  k  l  1]
  */
 void
-point_transform( float *res, float *vec, Transf_mat *mat)
+point_transform( float *res, float *vec, Transf_mat const * mat)
 {
     res[0] = (double) mat->mat[0][0] * vec[0]
              + (double) mat->mat[1][0] * vec[1]
