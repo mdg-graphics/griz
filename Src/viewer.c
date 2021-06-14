@@ -209,7 +209,7 @@ static int label_length = 32;
 char *griz_version = PACKAGE_VERSION;
 
 /* Required short name for a particle G_UNIT class. */
-char *particle_cname = "part";
+//char *particle_cname = "part";
 
 static void scan_args( int argc, char *argv[], Analysis *analy );
 static Bool_type open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_only );
@@ -999,10 +999,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->minmax_loc[1] = 'l';
     analy->th_filter_width = 1;
     analy->th_filter_type = BOX_FILTER;
-    if ( num_states > 0 )
-    {
-        analy->show_particle_class = FALSE;
-    }
+
     create_class_list( &analy->bbox_source_qty, &analy->bbox_source,
                        MESH_P( analy ), 6, G_TRUSS, G_BEAM, G_TRI, G_QUAD,
                        G_HEX, G_PARTICLE );
@@ -1625,7 +1622,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
              */
             switch ( p_mocd->superclass )
             {
-            case G_UNIT:
             case G_NODE:
             case G_TRUSS:
             case G_BEAM:
@@ -3397,7 +3393,6 @@ void update_session( int operation, void *fp, int cnt )
     SESSION_VAR( operation, fp, cnt, var_id++, img_root,              G_STRING, 1, MODEL_VAR );
     SESSION_VAR( operation, fp, cnt, var_id++, loc_ref,               G_INT, 1, MODEL_VAR );
     SESSION_VAR( operation, fp, cnt, var_id++, show_num,              G_INT, 1, MODEL_VAR );
-    SESSION_VAR( operation, fp, cnt, var_id++, show_particle_class,   G_INT, 1, MODEL_VAR );
     SESSION_VAR( operation, fp, cnt, var_id++, logscale,              G_INT, 1, MODEL_VAR );
     SESSION_VAR( operation, fp, cnt, var_id++, damage_hide,           G_INT, 1, MODEL_VAR );
     SESSION_VAR( operation, fp, cnt, var_id++, reset_damage_hide,     G_INT, 1, MODEL_VAR );

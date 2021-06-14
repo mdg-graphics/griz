@@ -5553,16 +5553,16 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         select_surf_planar( analy, MESH_P( analy ), p_mo_class, line_pt,
                             line_dir, &near_num );
         break;
-    case G_UNIT:
-        if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
-        {
-            select_particle( analy, MESH_P( analy ), p_mo_class, line_pt,
-                             line_dir, &near_num );
-        } else
-        {
-            return 0;
-        }
-        break;
+    //case G_UNIT:
+    //    if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
+    //    {
+    //        select_particle( analy, MESH_P( analy ), p_mo_class, line_pt,
+    //                         line_dir, &near_num );
+    //    } else
+    //    {
+    //        return 0;
+    //    }
+    //    break;
     default:
         popup_dialog( INFO_POPUP, "Unknown object type for pick." );
         return 0;
@@ -5583,7 +5583,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
                                   &p_near );
             near_num = p_near;
 
-            if ( p_near<=0 )
+            if ( p_near < 0 )
                 return p_near;
 
             near_num = get_class_label( p_mo_class, p_near );
@@ -6770,16 +6770,16 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     /* If free nodes are enabled - then allow user to
      * select them.
      */
-    if ( ml_node && (analy->free_nodes_enabled ||  analy->particle_nodes_enabled) )
+    if ( ml_node && analy->free_nodes_enabled)
     {
         free_nodes = get_free_nodes( analy );
         if (free_nodes!=NULL)
         {
-            for ( i = 0;
-                    i < node_qty;
-                    i++ )
-                if (free_nodes[i] > 0 || analy->particle_nodes_enabled )
+            for ( i = 0; i < node_qty; i++ )
+            {
+                if (free_nodes[i] > 0)
                     onsurf[i] = 1.0;
+            }
             free(free_nodes);
         }
     }
@@ -7083,9 +7083,9 @@ select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
             ml_node = connects_particle[i][0];
         else
             ml_node = connects_ml[i][0];
-        if ( ml_node == near_node-1 )
+        if ( ml_node == near_node )
         {
-            *p_near = i+1;
+            *p_near = i;
             return;
         }
     }

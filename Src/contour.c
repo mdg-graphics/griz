@@ -261,7 +261,7 @@ gen_contours( Analysis *analy )
     void (**con_funcs)();
     void (*con_funcs_3d[])( Analysis *, MO_class_data *, float * ) =
     {
-        NULL,       /* G_UNIT */
+        //NULL,       /* G_UNIT */
         NULL,       /* G_NODE */
         NULL,       /* G_TRUSS */
         NULL,       /* G_BEAM */
@@ -278,7 +278,7 @@ gen_contours( Analysis *analy )
     };
     void (*con_funcs_2d[])( Analysis *, MO_class_data *, float * ) =
     {
-        NULL,       /* G_UNIT */
+        //NULL,       /* G_UNIT */
         NULL,       /* G_NODE */
         NULL,       /* G_TRUSS */
         NULL,       /* G_BEAM */

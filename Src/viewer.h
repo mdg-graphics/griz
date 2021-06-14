@@ -1106,6 +1106,7 @@ typedef struct _Analysis
     MO_class_data *hilite_class;
     int hilite_label;
     int hilite_num;
+    Specified_obj *hilite_obj;
     int hilite_ml_node; /* The node reference for a Meshless object */
     Center_view_sel_type center_view;
     int center_node;
@@ -1271,8 +1272,6 @@ typedef struct _Analysis
     float** default_emission;
     float* default_shininess;
 
-
-    Bool_type show_particle_class;
 
     /*
      * Added April 20, 2004: IRC - Used for setting log scale
@@ -1679,8 +1678,6 @@ typedef struct _Session
     char img_root[512];
     Bool_type loc_ref;
     Bool_type show_num;
-
-    Bool_type show_particle_class;
 
     /*
      * Added April 20, 2004: IRC - Used for setting log scale

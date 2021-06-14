@@ -1686,10 +1686,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 nodal = FALSE;
 
             /* For particle databases, particle position needed. */
-            if ( strcmp( p_subr->class_name, particle_cname ) == 0 )
-                particle = TRUE;
-            else
-                particle = FALSE;
+            //if ( strcmp( p_subr->class_name, particle_cname ) == 0 )
+            //    particle = TRUE;
+            //else
+            //    particle = FALSE;
 
             /*
              * Loop over svars and create state variable and primal result
@@ -1745,17 +1745,17 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                     }
                 }
 
-                if ( particle )
-                {
-                    if ( strcmp( svar_names[k], "partpos" ) == 0 )
-                    {
-                        p_sro[i].particle_pos_subrec = subrec_index;
+                //if ( particle )
+                //{
+                //    if ( strcmp( svar_names[k], "partpos" ) == 0 )
+                //    {
+                //        p_sro[i].particle_pos_subrec = subrec_index;
 
-                        /* Note if data is double precision. */
-                        if ( p_svar->num_type == M_FLOAT8 )
-                            p_mesh->double_precision_partpos = TRUE;
-                    }
-                }
+                //        /* Note if data is double precision. */
+                //        if ( p_svar->num_type == M_FLOAT8 )
+                //            p_mesh->double_precision_partpos = TRUE;
+                //    }
+                //}
             }
             subrec_index++;
         }

@@ -1963,7 +1963,7 @@ static void draw_edges_3d( Analysis * );
 
 static void draw_nodes_2d_3d( MO_class_data *, Analysis * );
 
-static void draw_hilite( Bool_type, MO_class_data *, int, Analysis * );
+static void draw_hilite( Bool_type, Specified_obj*, Analysis * );
 static void draw_class_numbers( Analysis * );
 static void draw_bbox( float [2][3] );
 static void draw_extern_polys( Analysis * );
@@ -2185,10 +2185,11 @@ init_mesh_window( Analysis *analy )
 
     /* Define material properties for each material. */
     /* If particle class present, add an extra material. */
-    rval = htable_search( analy->mesh_table[0].class_table, particle_cname,
-                          FIND_ENTRY, &p_hte );
-    mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
-              : analy->max_mesh_mat_qty;
+    //rval = htable_search( analy->mesh_table[0].class_table, particle_cname,
+    //                      FIND_ENTRY, &p_hte );
+    //mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
+    //          : analy->max_mesh_mat_qty;
+    mtl_qty = analy->max_mesh_mat_qty;
 
     if(env.ti_enable){
         int* defaultsList;
@@ -2395,10 +2396,11 @@ reset_mesh_window( Analysis *analy )
     set_mesh_view();
 
     /* Set default color properties for any new materials. */
-    rval = htable_search( analy->mesh_table[0].class_table, particle_cname,
-                          FIND_ENTRY, &p_hte );
-    mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
-              : analy->max_mesh_mat_qty;
+    //rval = htable_search( analy->mesh_table[0].class_table, particle_cname,
+    //                      FIND_ENTRY, &p_hte );
+    //mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
+    //          : analy->max_mesh_mat_qty;
+    mtl_qty = analy->max_mesh_mat_qty;
     extend_color_prop_arrays( &v_win->mesh_materials, mtl_qty,
                               material_colors, MATERIAL_COLOR_CNT );
 
@@ -3045,13 +3047,13 @@ center_view( Analysis *analy )
         break;
 
     case HILITE:
-        p_mo_class = analy->hilite_class;
+        p_mo_class = analy->hilite_obj->mo_class;
         if ( p_mo_class == NULL )
             return;
         VEC_SET( pt, 0.0, 0.0, 0.0 );
         if ( dscale )
             VEC_SET( opt, 0.0, 0.0, 0.0 );
-        hi_num = analy->hilite_num;
+        hi_num = analy->hilite_obj->ident;
 
         /* Get the centering point. */
         switch ( p_mo_class->superclass )
@@ -4104,12 +4106,8 @@ draw_grid( Analysis *analy )
     /*
      * Draw free nodes.
      */
-    if ( analy->free_nodes_enabled || analy->particle_nodes_enabled )
+    if ( analy->free_nodes_enabled )
         draw_free_nodes( analy ); 
-      /*if(analy->free_nodes_enabled)
-      {
-          draw_free_nodes(analy);
-      } */
 
     /*
      * Draw the elements.
@@ -4210,20 +4208,12 @@ draw_grid( Analysis *analy )
     /*
      * Draw particle data.
      */
-
     qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
-    //if(qty_classes > 0)
-    //{
-        /*analy->show_particle_class = FALSE; */
-    //    analy->show_particle_class = TRUE;
-        
-    //} 
 
     /*  Set glMaterial to draw from the correct color property data base */
-    if ( analy->show_particle_class )
+    if ( analy->particle_nodes_enabled )
     {
-        strcpy(particle_name, "DBC1");
         for(i=0; i < qty_classes; i++)
         {
             draw_particles_3d( mo_classes[i], analy);
@@ -4308,14 +4298,14 @@ draw_grid( Analysis *analy )
     /*
      * Highlight a node or element.
      */
-    if ( analy->hilite_class != NULL )
-        draw_hilite( TRUE, analy->hilite_class, analy->hilite_num, analy );
+    if ( analy->hilite_obj != NULL )
+        draw_hilite( TRUE, analy->hilite_obj, analy );
 
     /*
      * Highlight selected nodes and elements.
      */
     for ( p_so = analy->selected_objects; p_so != NULL; NEXT( p_so ) )
-        draw_hilite( FALSE, p_so->mo_class, p_so->ident, analy );
+        draw_hilite( FALSE, p_so, analy );
 
     /*
      * Draw local coordinate frame for selected shell or hex elements.
@@ -4432,20 +4422,21 @@ draw_grid_2d( Analysis *analy )
     /*
      * Draw particle data.
      */
-    if ( analy->show_particle_class )
-    {
-        rval = htable_search( p_mesh->class_table, particle_cname, FIND_ENTRY,
-                              &p_hte );
-        if ( rval == OK )
-        {
-            p_mo_class = (MO_class_data *) p_hte->data;
+    /// CHECK THIS - RHATHAW
+    //if ( analy->particle_nodes_enabled )
+    //{
+    //    rval = htable_search( p_mesh->class_table, particle_cname, FIND_ENTRY,
+    //                          &p_hte );
+    //    if ( rval == OK )
+    //    {
+    //        p_mo_class = (MO_class_data *) p_hte->data;
 
-            rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
-                                  &p_hte );
-            if ( rval == OK )
-                draw_particles_2d( p_mo_class, analy );
-        }
-    }
+    //        rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
+    //                              &p_hte );
+    //        if ( rval == OK )
+    //            draw_particles_2d( p_mo_class, analy );
+    //    }
+    //}
 
     /*
      * Draw mesh edges.
@@ -4510,14 +4501,14 @@ draw_grid_2d( Analysis *analy )
     /*
      * Highlight a node or element.
      */
-    if ( analy->hilite_class != NULL )
-        draw_hilite( TRUE, analy->hilite_class, analy->hilite_num, analy );
+    if ( analy->hilite_obj != NULL )
+        draw_hilite( TRUE, analy->hilite_obj, analy );
 
     /*
      * Highlight selected nodes and elements.
      */
     for ( p_so = analy->selected_objects; p_so != NULL; NEXT( p_so ) )
-        draw_hilite( FALSE, p_so->mo_class, p_so->ident, analy );
+        draw_hilite( FALSE, p_so, analy );
 
     /*
      * Draw wireframe bounding box.
@@ -8071,7 +8062,6 @@ particle_error( GLenum err_code )
 static void
 draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 {
-    GVec3D *coords3;
     float *el_state_mm, *part_res;
     float col[4];
     int i;
@@ -8079,7 +8069,8 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     GLUquadricObj *sphere;
     GLuint display_list;
     int index, node, matl;
-    float x, y, z, rmin, rmax;
+    float rmin, rmax;
+    float vert[3];
     Bool_type show_result = FALSE;
 
     MO_class_data * p_node_class = NULL;
@@ -8093,9 +8084,6 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     index = 0;
 
     colorflag = analy->cur_result != NULL;
-
-    /*coords3 = analy->state_p->particles.particles3d;*/
-    coords3 = analy->state_p->nodes.particles3d;
 
     if(analy->cur_result != NULL)
     {
@@ -8122,7 +8110,6 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
     gluQuadricTexture(sphere, (GLboolean) GLU_TRUE );
     glNewList( display_list, GL_COMPILE );
-    /*gluSphere( sphere, particle_radius, 16, 8 ); */
     gluSphere( sphere, particle_radius, 32, 16 );
     glEndList();
 
@@ -8145,10 +8132,6 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
             change_current_color_property(&v_win->mesh_materials, matl);
         }
 
-        /*color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
-                      analy->zero_result, index, analy->logscale,
-                      analy->material_greyscale ); */
-
         color_lookup( col, part_res[i], rmin, rmax,
                       analy->zero_result, matl, analy->logscale,
                       analy->material_greyscale );
@@ -8157,12 +8140,8 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
         glPushMatrix();
         node = p_particle_class->objects.elems->nodes[i];
-        x = p_node_class->objects.nodes3d[node][0]; 
-        y = p_node_class->objects.nodes3d[node][1]; 
-        z = p_node_class->objects.nodes3d[node][2];
-  
-        /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
-        glTranslatef( x, y, z );
+        get_node_vert_2d_3d(node, p_node_class, analy, vert);
+        glTranslatef( vert[0], vert[1], vert[2] );
 
         glCallList( display_list );
 
@@ -8545,12 +8524,13 @@ draw_edges_2d( Analysis *analy )
  * the highlight.
  */
 static void
-draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
-             Analysis *analy )
+draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
 {
+    MO_class_data * p_mo_class = p_so->mo_class;
+    int hilite_num = p_so->ident;
     float verts[8][3], leng[3], vec[3];
     float node_base_radius, rfac, radius;
-    char label[64];
+    char label[128];
     int vert_cnt;
     int i, j;
     Bool_type verts_ok, show_label;
@@ -8559,7 +8539,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     int fracsz;
     char *cname;
     int dim, obj_qty;
-    Bool_type particle_hilite = FALSE;
+    //Bool_type particle_hilite = FALSE;
     float *data_array;
     Surface_data *p_surface;
     int facet_qty, facet;
@@ -8578,11 +8558,8 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     data_array = p_mo_class->data_buffer;
 
     hilite_label = get_class_label( p_mo_class, hilite_num );
-    /*if ( p_mo_class->labels_found )
-        
-    else
-        hilite_label = hilite_num;
-*/
+
+    /* This appears to handle Paradyn particles which are degenerated hex elements. */
     if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) &&
             analy->particle_nodes_enabled &&
             p_mo_class->labels_found )
@@ -8596,13 +8573,13 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
     /**/
     /* Change superclass tested to G_PARTICLE when it exists. */
-    if ( p_mo_class->short_name )
-    {
-        if ( p_mo_class->superclass == G_UNIT && strcmp( p_mo_class->short_name, particle_cname ) == 0 )
-            particle_hilite = TRUE;
-        else
-            particle_hilite = FALSE;
-    }
+    //if ( p_mo_class->short_name )
+    //{
+    //    if ( p_mo_class->superclass == G_UNIT && strcmp( p_mo_class->short_name, particle_cname ) == 0 )
+    //        particle_hilite = TRUE;
+    //    else
+    //        particle_hilite = FALSE;
+    //}
 
     /* Validity check. */
     if( p_mo_class->superclass !=  G_SURFACE)
@@ -8635,24 +8612,24 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     /* Outline the hilighted mesh object. */
     switch ( p_mo_class->superclass )
     {
-    case G_UNIT:
-        if ( !particle_hilite )
-            /* Don't hilite G_UNIT objects that aren't particles. */
-            return;
+    //case G_UNIT:
+    //    if ( !particle_hilite )
+    //        /* Don't hilite G_UNIT objects that aren't particles. */
+    //        return;
 
-        /* Highlight a particle (just label it). */
-        if ( analy->cur_result != NULL )
-        {
-            val = analy->perform_unit_conversion
-                  ? data_array[hilite_num]
-                  * analy->conversion_scale + analy->conversion_offset
-                  : data_array[hilite_num];
-            sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                     val );
-        }
-        else
-            sprintf( label, " %s %d", cname, hilite_label );
-        break;
+    //    /* Highlight a particle (just label it). */
+    //    if ( analy->cur_result != NULL )
+    //    {
+    //        val = analy->perform_unit_conversion
+    //              ? data_array[hilite_num]
+    //              * analy->conversion_scale + analy->conversion_offset
+    //              : data_array[hilite_num];
+    //        sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
+    //                 val );
+    //    }
+    //    else
+    //        sprintf( label, " %s %d", cname, hilite_label );
+    //    break;
 
     case G_NODE:
         /* Highlight a node. */
@@ -8923,29 +8900,31 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
         break;
 
     case G_PARTICLE:
-
         /* Highlight a particle */
-        if ( analy->cur_result != NULL )
+        if ( analy->particle_nodes_enabled )
         {
-            val = analy->perform_unit_conversion
-                  ? data_array[hilite_num]
-                  * analy->conversion_scale + analy->conversion_offset
-                  : data_array[hilite_num];
-            sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                     val );
+            pn_hilite = TRUE;
+
+            if ( analy->cur_result != NULL )
+            {
+                val = analy->perform_unit_conversion
+                      ? data_array[hilite_num]
+                      * analy->conversion_scale + analy->conversion_offset
+                      : data_array[hilite_num];
+                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
+                         val );
+            }
+            else
+                sprintf( label, " %s %d", cname, hilite_label );
+
+            vert_cnt = 1;
+            get_particle_verts( hilite_num, p_mo_class, analy, verts );
+
+            for ( i = 0; i < dim; i++ )
+                leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
+            node_base_radius = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
+            radius = node_base_radius*analy->free_nodes_scale_factor*1.2;
         }
-        else
-            sprintf( label, " %s %d", cname, hilite_label );
-
-        pn_hilite = TRUE;
-        vert_cnt = 1;
-        get_particle_verts( hilite_num, p_mo_class, analy, verts );
-
-        for ( i = 0; i < dim; i++ )
-        leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
-        node_base_radius = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
-        radius = node_base_radius*analy->free_nodes_scale_factor*1.2;
-
         break;
 
     case G_HEX:
@@ -9152,7 +9131,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     }
 
     /* Draw spheres at the nodes of the element. */
-    if ( analy->dimension == 3 && !particle_hilite )
+    if ( analy->dimension == 3 /*&& !particle_hilite */ )
     {
         if ( v_win->lighting )
             glEnable( GL_LIGHTING );
@@ -9193,33 +9172,92 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
             glDisable( GL_LIGHTING );
     }
 
+    /* Handle multiple particles associated with a single node */
+    if ( analy->particle_nodes_enabled && p_mo_class->superclass == G_PARTICLE )
+    {
+        /* Look for any other G_PARTICLE selected objects associated with the same node.
+         * If there are multiple particles associated with the same node, then we combine the text
+         * and write out a single string for all selected particles associated with the node. This
+         * removes the issue of one label being written over top of another.
+         */
+        Specified_obj *p_selected;
+        Bool_type last_particle_on_node, found_current;
+        last_particle_on_node = TRUE;
+        found_current = FALSE;
+        for ( p_selected = analy->selected_objects; p_selected != NULL; NEXT(p_selected) )
+        {
+            if ( p_selected->mo_class->superclass == G_PARTICLE && p_selected != p_so )
+            {
+                if ( p_selected->label == p_so->label)
+                {
+                    char lbl_part[64];
+                    if ( found_current )
+                        last_particle_on_node = FALSE;
+                    /* Concatenate name/result to label */
+                    cname = p_selected->mo_class->long_name;
+                    data_array = p_selected->mo_class->data_buffer;
+                    hilite_num = p_selected->ident;
+                    hilite_label = get_class_label( p_selected->mo_class, hilite_num );
+                    if ( analy->cur_result != NULL )
+                    {
+                        val = analy->perform_unit_conversion
+                              ? data_array[hilite_num]
+                              * analy->conversion_scale + analy->conversion_offset
+                              : data_array[hilite_num];
+                        sprintf( lbl_part, ", %s %d (%.*e)", cname, hilite_label, fracsz, val );
+                    }
+                    else
+                    {
+                        sprintf( lbl_part, ", %s %d", cname, hilite_label );
+                    }
+                    sprintf(label, "%s%s", label, lbl_part);
+                }
+            }
+            if ( p_selected->mo_class->superclass == G_PARTICLE && p_selected == p_so )
+            {
+                found_current = TRUE;
+            }
+        }
+
+        if ( !last_particle_on_node )
+        {
+            // Don't write label to screen.
+            show_label = FALSE;
+        }
+    }
+
     /* Get position for the label. */
-    if ( !particle_hilite )
-    {
+    for ( j = 0; j < 3; j++ )
+        vec[j] = 0.0;
+    for ( i = 0; i < vert_cnt; i++ )
         for ( j = 0; j < 3; j++ )
-            vec[j] = 0.0;
-        for ( i = 0; i < vert_cnt; i++ )
-            for ( j = 0; j < 3; j++ )
-                vec[j] += verts[i][j] / vert_cnt;
-    }
-    else
-    {
-        if ( analy->dimension == 3 )
-        {
-            GVec3D *parts3d;
-            parts3d = analy->state_p->particles.particles3d;
-            for ( i = 0; i < 3; i++ )
-                vec[i] = parts3d[hilite_num][i];
-        }
-        else
-        {
-            GVec2D *parts2d;
-            parts2d = analy->state_p->particles.particles2d;
-            for ( i = 0; i < 2; i++ )
-                vec[i] = parts2d[hilite_num][i];
-            vec[2] = 0.0;
-        }
-    }
+            vec[j] += verts[i][j] / vert_cnt;
+    //if ( !particle_hilite )
+    //{
+    //    for ( j = 0; j < 3; j++ )
+    //        vec[j] = 0.0;
+    //    for ( i = 0; i < vert_cnt; i++ )
+    //        for ( j = 0; j < 3; j++ )
+    //            vec[j] += verts[i][j] / vert_cnt;
+    //}
+    //else
+    //{
+    //    if ( analy->dimension == 3 )
+    //    {
+    //        GVec3D *parts3d;
+    //        parts3d = analy->state_p->particles.particles3d;
+    //        for ( i = 0; i < 3; i++ )
+    //            vec[i] = parts3d[hilite_num][i];
+    //    }
+    //    else
+    //    {
+    //        GVec2D *parts2d;
+    //        parts2d = analy->state_p->particles.particles2d;
+    //        for ( i = 0; i < 2; i++ )
+    //            vec[i] = parts2d[hilite_num][i];
+    //        vec[2] = 0.0;
+    //    }
+    //}
 
     /* Draw the element label, it goes on top of everything. */
     if ( show_label )
@@ -9280,10 +9318,10 @@ draw_class_numbers( Analysis *analy )
 
         switch( p_mo_class->superclass )
         {
-        case G_UNIT:
-            popup_dialog( INFO_POPUP,
-                          "G_UNIT:unsupported superclass.");
-            break;
+        //case G_UNIT:
+        //    popup_dialog( INFO_POPUP,
+        //                  "G_UNIT:unsupported superclass.");
+        //    break;
         case G_MAT:
             popup_dialog( INFO_POPUP,
                           "G_MAT:unsupported superclass.");
@@ -12444,9 +12482,9 @@ draw_foreground( Analysis *analy )
                      || result_has_superclass( analy->cur_result, G_MAT,
                                                analy )
                      || result_has_superclass( analy->cur_result, G_MESH,
-                                               analy )
-                     || result_has_superclass( analy->cur_result, G_UNIT,
                                                analy );
+                     /*|| result_has_superclass( analy->cur_result, G_UNIT,
+                                               analy );*/
         get_min_max( analy, raw_minmax, &low, &high );
 
         if ( analy->perform_unit_conversion )

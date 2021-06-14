@@ -827,7 +827,7 @@ static MO_class_data *btn3_mo_class = NULL;
 /* NOTE - G_UNIT should be replaced with G_PARTICLE when/if available!!! */
 static int pick_sclasses[] =
 {
-    G_NODE, G_UNIT, G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE,
+    G_NODE, /*G_UNIT,*/ G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE,
     G_HEX, G_SURFACE, G_PARTICLE
 };
 
@@ -5657,10 +5657,10 @@ create_pick_submenu( Widget parent, int *btn_type,
                 /**/
                 /* Change this when/if G_PARTICLE superclass is available. */
                 /* For G_UNIT, only allow if it's the particle class. */
-                if ( pick_sclasses[i] == G_UNIT
-                        && strcmp( p_mo_classes[j]->short_name, particle_cname )
-                        != 0 )
-                    continue;
+                //if ( pick_sclasses[i] == G_UNIT
+                //        && strcmp( p_mo_classes[j]->short_name, particle_cname )
+                //        != 0 )
+                //    continue;
 
                 button = XmCreatePushButtonGadget( pick_submenu,
                                                    p_mo_classes[j]->long_name,
@@ -5890,13 +5890,13 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
     */
     static int b2_pref_order[] =
     {
-        G_QUAD, G_BEAM, G_UNIT, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID,
+        G_QUAD, G_BEAM, /*G_UNIT,*/ G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID,
         G_HEX, G_NODE, G_SURFACE, G_PARTICLE
     };
     static int b3_pref_order[] =
     {
         G_HEX, G_PYRAMID, G_WEDGE, G_TRUSS, G_TRI, G_TET, G_BEAM, G_QUAD,
-        G_NODE, G_UNIT, G_SURFACE, G_PARTICLE
+        G_NODE, /*G_UNIT,*/ G_SURFACE, G_PARTICLE
     };
 
     p_mesh = MESH_P( env.curr_analy );
@@ -5926,12 +5926,12 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
 
         if ( p_mesh->classes_by_sclass[pref_order[i]].qty != 0 )
         {
-            if ( p_mo_class != G_UNIT
-                    || strcmp( p_mo_class->short_name, particle_cname ) == 0 )
-            {
+            //if ( p_mo_class != G_UNIT
+            //        || strcmp( p_mo_class->short_name, particle_cname ) == 0 )
+            //{
                 pref_sclass = pref_order[i];
                 break;
-            }
+            //}
         }
     }
 

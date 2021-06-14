@@ -1029,29 +1029,24 @@ parse_single_command( char *buf, Analysis *analy )
 			{
 				sscanf( tokens[2], "%d", &ival );
 				temp_ival = get_class_label_index( p_mo_class, ival );
-				/*
-				if ( p_mo_class->labels_found )
 
-				else
-					temp_ival = ival;
-				*/
-				if ( (ival) == analy->hilite_label
-						&& p_mo_class == analy->hilite_class )
+
+				if ( analy->hilite_obj != NULL
+                    && ival == analy->hilite_obj->label
+                    && p_mo_class == analy->hilite_obj->mo_class )
 				{
 					/* Hilited existing hilit object -> de-hilite. */
-					analy->hilite_class = NULL;
-					analy->hilite_num = 0;
+                    free(analy->hilite_obj);
+                    analy->hilite_obj = NULL;
 				}
 				else
 				{
-					analy->hilite_class = p_mo_class;
-					analy->hilite_num   = temp_ival;
-					if ( analy->hilite_num<0 )
-					{
-						analy->hilite_num=1;
-						analy->hilite_label=1;
-					}
-					analy->hilite_label = ival;
+                    Specified_obj* hilite_obj;
+                    hilite_obj = NEW( Specified_obj, "New object selection" );
+                    hilite_obj->ident = temp_ival;
+                    hilite_obj->label = ival;
+                    hilite_obj->mo_class = p_mo_class;
+                    analy->hilite_obj = hilite_obj;
 				}
 				redraw = BINDING_MESH_VISUAL;
 			}
@@ -1060,7 +1055,8 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "clrhil" ) == 0 )
 		{
-			analy->hilite_class = NULL;
+            free(analy->hilite_obj);
+			analy->hilite_obj = NULL;
 			redraw = BINDING_MESH_VISUAL;
 		}
 		else if (strcmp(tokens[0], "set_ipt") == 0 || strcmp(tokens[0], "unset_ipt") == 0 )
@@ -1134,13 +1130,6 @@ parse_single_command( char *buf, Analysis *analy )
 										break;
 
 								temp_ival = get_class_label_index( p_mo_class, obj );
-
-								/*
-								if ( p_mo_class->labels_found )
-									temp_ival = get_class_label_index( p_mo_class, obj );
-								else
-									temp_ival = obj;
-								*/
 
 								if ( analy->selectonmat )
 								{
@@ -2259,8 +2248,6 @@ parse_single_command( char *buf, Analysis *analy )
 								analy->ref_frame = GLOBAL;
 						}
 				}
-				else if ( strcmp( tokens[i], "particles" ) == 0 )
-					analy->show_particle_class = setval;
 				else if ( strcmp( tokens[i], "glyphs" ) == 0 )
 					analy->show_plot_glyphs = setval;
 				else if ( strcmp( tokens[i], "plotcol" ) == 0 )
