@@ -447,7 +447,7 @@ write_obj_file( char *fname, Analysis *analy )
     GVec2D *nodes2d, *onodes2d;
     Bool_type superclasses[QTY_SCLASS] =
     {
-        /*FALSE,*/ FALSE, FALSE, FALSE,     /* G_UNIT, G_NODE, G_TRUSS, G_BEAM */
+        FALSE, FALSE, FALSE,            /* G_NODE, G_TRUSS, G_BEAM */
         TRUE, TRUE, TRUE,               /* G_TRI, G_QUAD, G_TET */
         FALSE, FALSE,                   /* G_PYRAMID, G_WEDGE */
         TRUE,                           /* G_HEX */
@@ -1569,7 +1569,7 @@ write_hid_file( char *fname, Analysis *analy )
     Bool_type quad_shared, tri_shared;
     int superclasses[QTY_SCLASS] =
     {
-        /*0,*/ 0,           /* G_UNIT, G_NODE */
+        0,              /* G_NODE */
         1, 1, 1, 1, 1,  /* G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET */
         0, 0,           /* G_PYRAMID, G_WEDGE */
         1,              /* G_HEX */

@@ -84,7 +84,6 @@ gen_isosurfs( Analysis *analy )
     MO_class_data **p_mo_classes;
     void (*iso_funcs[])( float, Subrec_obj *, MO_class_data *, Analysis * ) =
     {
-        //NULL,       /* G_UNIT */
         NULL,       /* G_NODE */
         NULL,       /* G_TRUSS */
         NULL,       /* G_BEAM */

@@ -3612,9 +3612,6 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     {
         switch ( p_result->superclasses[index] )
         {
-        //case G_UNIT:
-        //    unit_get_minmax( result_buf, analy );
-        //    break;
         case G_MAT:
             mat_get_minmax( result_buf, analy );
             break;
@@ -4018,9 +4015,6 @@ load_primal_result_double( Analysis *analy, float *resultArr,
     {
         switch ( p_result->superclasses[index] )
         {
-        //case G_UNIT:
-        //    unit_get_minmax( resultElem, analy );
-        //    break;
         case G_MAT:
             mat_get_minmax( resultElem, analy );
             break;
@@ -4158,9 +4152,6 @@ load_primal_result_int( Analysis *analy, float *resultArr,
     {
         switch ( p_result->superclasses[index] )
         {
-        //case G_UNIT:
-        //    unit_get_minmax( resultElem, analy );
-        //    break;
         case G_MAT:
             mat_get_minmax( resultElem, analy );
             break;
@@ -4297,9 +4288,6 @@ load_primal_result_long( Analysis *analy, float *resultArr,
     {
         switch ( p_result->superclasses[index] )
         {
-        //case G_UNIT:
-        //    unit_get_minmax( resultElem, analy );
-        //    break;
         case G_MAT:
             mat_get_minmax( resultElem, analy );
             break;

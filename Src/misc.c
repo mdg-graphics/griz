@@ -937,10 +937,6 @@ delete_mo_class_data( void *p_data )
         free( p_mocd->objects.nodes );
         break;
 
-    //case G_UNIT:
-    //    /* do nothing */
-    //    break;
-
     case G_MAT:
         p_mtld = p_mocd->objects.materials;
         for ( i = 0; i < p_mocd->qty; i++ )

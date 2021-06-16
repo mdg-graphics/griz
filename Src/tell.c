@@ -338,7 +338,7 @@ tell_results( Analysis *analy )
     char * more_current = NULL;
     char *sclass_names[QTY_SCLASS] =
     {
-        /*"G_UNIT",*/ "G_NODE", "G_TRUSS", "G_BEAM", "G_TRI", "G_QUAD", "G_TET",
+        "G_NODE", "G_TRUSS", "G_BEAM", "G_TRI", "G_QUAD", "G_TET",
         "G_PRISM", "G_WEDGE", "G_HEX", "G_SURFACE", "G_MAT", "G_MESH", "G_PARTICLE"
     };
     char *p_short, *p_long;

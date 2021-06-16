@@ -91,7 +91,7 @@ void dump_result( Analysis *analy, char * );
 static int derive_order[] =
 {
     G_NODE, G_TRUSS, G_BEAM, G_TET, G_HEX, G_TRI, G_QUAD, G_SURFACE,
-    G_PARTICLE, G_MAT, G_MESH//, G_UNIT
+    G_PARTICLE, G_MAT, G_MESH
 };
 
 

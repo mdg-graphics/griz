@@ -208,9 +208,6 @@ static int label_length = 32;
 /* The current version of the code. */
 char *griz_version = PACKAGE_VERSION;
 
-/* Required short name for a particle G_UNIT class. */
-//char *particle_cname = "part";
-
 static void scan_args( int argc, char *argv[], Analysis *analy );
 static Bool_type open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_only );
 static void usage( void );

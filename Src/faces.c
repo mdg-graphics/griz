@@ -5553,16 +5553,6 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         select_surf_planar( analy, MESH_P( analy ), p_mo_class, line_pt,
                             line_dir, &near_num );
         break;
-    //case G_UNIT:
-    //    if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
-    //    {
-    //        select_particle( analy, MESH_P( analy ), p_mo_class, line_pt,
-    //                         line_dir, &near_num );
-    //    } else
-    //    {
-    //        return 0;
-    //    }
-    //    break;
     default:
         popup_dialog( INFO_POPUP, "Unknown object type for pick." );
         return 0;

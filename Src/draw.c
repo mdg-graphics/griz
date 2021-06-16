@@ -8539,7 +8539,6 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
     int fracsz;
     char *cname;
     int dim, obj_qty;
-    //Bool_type particle_hilite = FALSE;
     float *data_array;
     Surface_data *p_surface;
     int facet_qty, facet;
@@ -8570,16 +8569,6 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
                               &p_near );
         analy->hilite_ml_node = p_near;
     }
-
-    /**/
-    /* Change superclass tested to G_PARTICLE when it exists. */
-    //if ( p_mo_class->short_name )
-    //{
-    //    if ( p_mo_class->superclass == G_UNIT && strcmp( p_mo_class->short_name, particle_cname ) == 0 )
-    //        particle_hilite = TRUE;
-    //    else
-    //        particle_hilite = FALSE;
-    //}
 
     /* Validity check. */
     if( p_mo_class->superclass !=  G_SURFACE)
@@ -8612,25 +8601,6 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
     /* Outline the hilighted mesh object. */
     switch ( p_mo_class->superclass )
     {
-    //case G_UNIT:
-    //    if ( !particle_hilite )
-    //        /* Don't hilite G_UNIT objects that aren't particles. */
-    //        return;
-
-    //    /* Highlight a particle (just label it). */
-    //    if ( analy->cur_result != NULL )
-    //    {
-    //        val = analy->perform_unit_conversion
-    //              ? data_array[hilite_num]
-    //              * analy->conversion_scale + analy->conversion_offset
-    //              : data_array[hilite_num];
-    //        sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-    //                 val );
-    //    }
-    //    else
-    //        sprintf( label, " %s %d", cname, hilite_label );
-    //    break;
-
     case G_NODE:
         /* Highlight a node. */
 
@@ -9232,32 +9202,6 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
     for ( i = 0; i < vert_cnt; i++ )
         for ( j = 0; j < 3; j++ )
             vec[j] += verts[i][j] / vert_cnt;
-    //if ( !particle_hilite )
-    //{
-    //    for ( j = 0; j < 3; j++ )
-    //        vec[j] = 0.0;
-    //    for ( i = 0; i < vert_cnt; i++ )
-    //        for ( j = 0; j < 3; j++ )
-    //            vec[j] += verts[i][j] / vert_cnt;
-    //}
-    //else
-    //{
-    //    if ( analy->dimension == 3 )
-    //    {
-    //        GVec3D *parts3d;
-    //        parts3d = analy->state_p->particles.particles3d;
-    //        for ( i = 0; i < 3; i++ )
-    //            vec[i] = parts3d[hilite_num][i];
-    //    }
-    //    else
-    //    {
-    //        GVec2D *parts2d;
-    //        parts2d = analy->state_p->particles.particles2d;
-    //        for ( i = 0; i < 2; i++ )
-    //            vec[i] = parts2d[hilite_num][i];
-    //        vec[2] = 0.0;
-    //    }
-    //}
 
     /* Draw the element label, it goes on top of everything. */
     if ( show_label )
@@ -9318,10 +9262,6 @@ draw_class_numbers( Analysis *analy )
 
         switch( p_mo_class->superclass )
         {
-        //case G_UNIT:
-        //    popup_dialog( INFO_POPUP,
-        //                  "G_UNIT:unsupported superclass.");
-        //    break;
         case G_MAT:
             popup_dialog( INFO_POPUP,
                           "G_MAT:unsupported superclass.");
@@ -12483,8 +12423,6 @@ draw_foreground( Analysis *analy )
                                                analy )
                      || result_has_superclass( analy->cur_result, G_MESH,
                                                analy );
-                     /*|| result_has_superclass( analy->cur_result, G_UNIT,
-                                               analy );*/
         get_min_max( analy, raw_minmax, &low, &high );
 
         if ( analy->perform_unit_conversion )
