@@ -2185,10 +2185,6 @@ init_mesh_window( Analysis *analy )
 
     /* Define material properties for each material. */
     /* If particle class present, add an extra material. */
-    //rval = htable_search( analy->mesh_table[0].class_table, particle_cname,
-    //                      FIND_ENTRY, &p_hte );
-    //mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
-    //          : analy->max_mesh_mat_qty;
     mtl_qty = analy->max_mesh_mat_qty;
 
     if(env.ti_enable){
@@ -2396,10 +2392,6 @@ reset_mesh_window( Analysis *analy )
     set_mesh_view();
 
     /* Set default color properties for any new materials. */
-    //rval = htable_search( analy->mesh_table[0].class_table, particle_cname,
-    //                      FIND_ENTRY, &p_hte );
-    //mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
-    //          : analy->max_mesh_mat_qty;
     mtl_qty = analy->max_mesh_mat_qty;
     extend_color_prop_arrays( &v_win->mesh_materials, mtl_qty,
                               material_colors, MATERIAL_COLOR_CNT );
@@ -4211,7 +4203,6 @@ draw_grid( Analysis *analy )
     qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
 
-    /*  Set glMaterial to draw from the correct color property data base */
     if ( analy->particle_nodes_enabled )
     {
         for(i=0; i < qty_classes; i++)
@@ -4422,21 +4413,16 @@ draw_grid_2d( Analysis *analy )
     /*
      * Draw particle data.
      */
-    /// CHECK THIS - RHATHAW
-    //if ( analy->particle_nodes_enabled )
-    //{
-    //    rval = htable_search( p_mesh->class_table, particle_cname, FIND_ENTRY,
-    //                          &p_hte );
-    //    if ( rval == OK )
-    //    {
-    //        p_mo_class = (MO_class_data *) p_hte->data;
+    qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
 
-    //        rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
-    //                              &p_hte );
-    //        if ( rval == OK )
-    //            draw_particles_2d( p_mo_class, analy );
-    //    }
-    //}
+    if ( analy->particle_nodes_enabled )
+    {
+        for(i=0; i < qty_classes; i++)
+        {
+            draw_particles_2d( mo_classes[i], analy);
+        } 
+    }
 
     /*
      * Draw mesh edges.
@@ -8558,7 +8544,7 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
 
     hilite_label = get_class_label( p_mo_class, hilite_num );
 
-    /* This appears to handle Paradyn particles which are degenerated hex elements. */
+    /* Handles Paradyn particles which are degenerated hex elements. */
     if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) &&
             analy->particle_nodes_enabled &&
             p_mo_class->labels_found )
@@ -9101,7 +9087,7 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
     }
 
     /* Draw spheres at the nodes of the element. */
-    if ( analy->dimension == 3 /*&& !particle_hilite */ )
+    if ( analy->dimension == 3)
     {
         if ( v_win->lighting )
             glEnable( GL_LIGHTING );
@@ -9142,7 +9128,7 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
             glDisable( GL_LIGHTING );
     }
 
-    /* Handle multiple particles associated with a single node */
+    /* Handle label for multiple particles associated with a single node */
     if ( analy->particle_nodes_enabled && p_mo_class->superclass == G_PARTICLE )
     {
         /* Look for any other G_PARTICLE selected objects associated with the same node.
