@@ -2942,7 +2942,7 @@ update_vec_points( Analysis *analy )
     Subrec_obj *p_subrec;
     Vec_func vec_funcs[QTY_SCLASS] =
     {
-        NULL, NULL, NULL,       /* G_NODE, G_TRUSS, G_BEAM */
+        NULL, NULL, NULL, NULL, /* G_UNIT, G_NODE, G_TRUSS, G_BEAM */
 
         calc_tri_vec_result,    /* G_TRI */
         calc_quad_vec_result,   /* G_QUAD */
