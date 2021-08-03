@@ -826,7 +826,7 @@ static MO_class_data *btn3_mo_class = NULL;
 /**/
 static int pick_sclasses[] =
 {
-    G_NODE, G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE,
+    G_NODE, G_UNIT, G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE,
     G_HEX, G_SURFACE, G_PARTICLE
 };
 
@@ -5878,13 +5878,13 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
 
     static int b2_pref_order[] =
     {
-        G_QUAD, G_BEAM, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID,
+        G_QUAD, G_BEAM, G_UNIT, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID,
         G_HEX, G_NODE, G_SURFACE, G_PARTICLE
     };
     static int b3_pref_order[] =
     {
         G_HEX, G_PYRAMID, G_WEDGE, G_TRUSS, G_TRI, G_TET, G_BEAM, G_QUAD,
-        G_NODE, G_SURFACE, G_PARTICLE
+        G_NODE, G_UNIT, G_SURFACE, G_PARTICLE
     };
 
     p_mesh = MESH_P( env.curr_analy );
@@ -5914,8 +5914,11 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
 
         if ( p_mesh->classes_by_sclass[pref_order[i]].qty != 0 )
         {
-            pref_sclass = pref_order[i];
-            break;
+            if ( p_mo_class != G_UNIT )
+            {
+                pref_sclass = pref_order[i];
+                break;
+            }
         }
     }
 

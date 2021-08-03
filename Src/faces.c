@@ -6760,14 +6760,14 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     /* If free nodes are enabled - then allow user to
      * select them.
      */
-    if ( ml_node && analy->free_nodes_enabled)
+    if ( ml_node && (analy->free_nodes_enabled || analy->particle_nodes_enabled))
     {
         free_nodes = get_free_nodes( analy );
         if (free_nodes!=NULL)
         {
             for ( i = 0; i < node_qty; i++ )
             {
-                if (free_nodes[i] > 0)
+                if (free_nodes[i] > 0 || analy->particle_nodes_enabled)
                     onsurf[i] = 1.0;
             }
             free(free_nodes);

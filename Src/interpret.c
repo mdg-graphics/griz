@@ -1032,8 +1032,8 @@ parse_single_command( char *buf, Analysis *analy )
 
 
 				if ( analy->hilite_obj != NULL
-                    && ival == analy->hilite_obj->label
-                    && p_mo_class == analy->hilite_obj->mo_class )
+                        && ival == analy->hilite_obj->label
+                        && p_mo_class == analy->hilite_obj->mo_class )
 				{
 					/* Hilited existing hilit object -> de-hilite. */
                     free(analy->hilite_obj);
