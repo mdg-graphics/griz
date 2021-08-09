@@ -5653,6 +5653,11 @@ create_pick_submenu( Widget parent, int *btn_type,
 
             for ( j = 0; j < p_lh->qty; j++ )
             {
+                if ( pick_sclasses[i] == G_UNIT )
+                {
+                    continue;
+                }
+
                 button = XmCreatePushButtonGadget( pick_submenu,
                                                    p_mo_classes[j]->long_name,
                                                    args, n );
