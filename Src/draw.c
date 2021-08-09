@@ -2184,7 +2184,6 @@ init_mesh_window( Analysis *analy )
     glLoadIdentity();
 
     /* Define material properties for each material. */
-    /* If particle class present, add an extra material. */
     mtl_qty = analy->max_mesh_mat_qty;
 
     if(env.ti_enable){
@@ -4098,7 +4097,7 @@ draw_grid( Analysis *analy )
     /*
      * Draw free nodes.
      */
-    if ( analy->free_nodes_enabled )
+    if ( analy->free_nodes_enabled || analy->particle_nodes_enabled )
         draw_free_nodes( analy ); 
 
     /*
@@ -8587,6 +8586,10 @@ draw_hilite( Bool_type hilite, Specified_obj* p_so, Analysis *analy )
     /* Outline the hilighted mesh object. */
     switch ( p_mo_class->superclass )
     {
+    case G_UNIT:
+        /* Don't hilite G_UNIT objects */
+        return;
+
     case G_NODE:
         /* Highlight a node. */
 
@@ -9248,6 +9251,10 @@ draw_class_numbers( Analysis *analy )
 
         switch( p_mo_class->superclass )
         {
+        case G_UNIT:
+            popup_dialog( INFO_POPUP,
+                          "G_UNIT:unsupported superclass.");
+            break;
         case G_MAT:
             popup_dialog( INFO_POPUP,
                           "G_MAT:unsupported superclass.");
@@ -12408,6 +12415,8 @@ draw_foreground( Analysis *analy )
                      || result_has_superclass( analy->cur_result, G_MAT,
                                                analy )
                      || result_has_superclass( analy->cur_result, G_MESH,
+                                               analy )
+                     || result_has_superclass( analy->cur_result, G_UNIT,
                                                analy );
         get_min_max( analy, raw_minmax, &low, &high );
 
@@ -15794,25 +15803,26 @@ check_for_free_nodes( Analysis *analy )
 static void
 draw_free_nodes( Analysis *analy )
 {
-    MO_class_data   *p_element_class=NULL,
-                     *p_node_class=NULL,
-                      *p_mo_class=NULL,
-                       *p_ml_class=NULL,
-                        **p_ml_classes=NULL,
-                         **mo_classes;
+    MO_class_data *p_element_class = NULL,
+                  *p_node_class = NULL,
+                  *p_mo_class = NULL,
+                  *p_ml_class = NULL,
+                  **p_ml_classes = NULL,
+                  **mo_classes = NULL;
 
-    Mesh_data     *p_mesh;
+    Mesh_data *p_mesh;
 
-    List_head     *p_lh;
+    List_head *p_lh;
 
     Visibility_data *p_vd;
     unsigned char *part_visib;
 
     char *cname;
 
-    int   *free_nodes_list=NULL, *free_nodes_elem_list=NULL;
-    int   *part_nodes_list=NULL;
-    int   *part_nodes_result=NULL;
+    int   *free_nodes_list = NULL,
+          *free_nodes_elem_list = NULL;
+    int   *part_nodes_list = NULL;
+    int   *part_nodes_result = NULL;
 
     int   nd;
 
@@ -15824,11 +15834,13 @@ draw_free_nodes( Analysis *analy )
     float **sand_arrays;
     int   *sph_type;
     float *free_nodes_mass=NULL, *free_nodes_vol=NULL;
-    float  mass_scale_factor, mass_scale_factor_max = 0, mass_scale_factor_min = MAXFLOAT;
+    float  mass_scale_factor,
+           mass_scale_factor_max = 0,
+           mass_scale_factor_min = MAXFLOAT;
 
     float rmin, rmax;
-    float poly_pts[4][3],
-    poly_norms[6][3] = {{-1., 0., 0},  {0., 1., 0.}, {1., 0., 0.},
+    float poly_pts[4][3];
+    float poly_norms[6][3] = {{-1., 0., 0},  {0., 1., 0.}, {1., 0., 0.},
         {0., -1., 0.}, {0., 0., 1.}, {0., 0., -1}
     };
 
@@ -15849,16 +15861,18 @@ draw_free_nodes( Analysis *analy )
     int  dbc_nodes_found  = FALSE;
     int  mass_scaling     = FALSE;
     int  vol_scaling      = FALSE;
-    int  free_node_data_index=0;
-    Bool_type skip_node=False;
+    int  free_node_data_index = 0;
+    Bool_type skip_node = False;
 
     int  status;
 
     float *nodal_data;
 
-    Bool particle_class       = FALSE, particle_class_found = FALSE,
-         showgs=FALSE,
-         particle_node_found  = FALSE, free_node_found=FALSE;
+    Bool particle_class = FALSE,
+         particle_class_found = FALSE,
+         showgs = FALSE,
+         particle_node_found = FALSE,
+         free_node_found = FALSE;
     int  particle_count;
     int  *particle_nodes;
     int  particle_hide=0;
@@ -15916,9 +15930,7 @@ draw_free_nodes( Analysis *analy )
         analy->free_nodes_vals = NEW_N( float,     num_nodes, "free_nodes_vals" );
     }
 
-    for (i=0;
-            i<num_nodes;
-            i++)
+    for (i = 0; i < num_nodes; i++)
     {
         free_nodes_list[i]      = 0;
         free_nodes_elem_list[i] = 0;
@@ -15930,20 +15942,18 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* If mass scaling option is enabled, then look for the nodal masses */
-
     if (analy->free_nodes_mass_scaling)
     {
-        status = mili_db_get_param_array(analy->db_ident,     "Nodal Mass",   (void *) &free_nodes_mass);
+        status = mili_db_get_param_array(analy->db_ident, "Nodal Mass", (void *) &free_nodes_mass);
         if (status==0)
         {
             mass_scaling = TRUE;
             vol_scaling  = FALSE;
-            status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
+            status = mili_db_get_param_array(analy->db_ident, "Nodal Volume", (void *) &free_nodes_vol);
         }
     }
 
     /* Read the nodal volumes if volume scaling is enabled */
-
     if (analy->free_nodes_vol_scaling)
     {
         status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
@@ -15956,7 +15966,7 @@ draw_free_nodes( Analysis *analy )
 
     /* Set up for polygon drawing. */
 
-    if ( analy->free_nodes_sphere_res_factor<=2 && ! fastSpheres )
+    if ( analy->free_nodes_sphere_res_factor <= 2 && !fastSpheres )
     {
         begin_draw_poly( analy );
     }
@@ -15981,9 +15991,7 @@ draw_free_nodes( Analysis *analy )
             conn_qty    = ( i == G_BEAM ) ? node_qty - 1 : node_qty;
 
             /* Loop over each class. */
-            for ( j = 0;
-                    j < p_lh->qty;
-                    j++ )
+            for ( j = 0; j < p_lh->qty; j++ )
             {
                 p_mo_class = mo_classes[j];
                 if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
@@ -16007,39 +16015,47 @@ draw_free_nodes( Analysis *analy )
                     }
                 }
                 else
+                {
                     particle_class = FALSE;
+                }
 
                 connects   = p_mo_class->objects.elems->nodes;
                 mat        = p_mo_class->objects.elems->mat;
 
                 if ( analy->state_p->sand_present && sand_arrays[p_mo_class->elem_class_index]!=NULL )
+                {
                     activity = sand_arrays[p_mo_class->elem_class_index];
+                }
                 else
+                {
                     activity = NULL;
+                }
 
                 if ( particle_class && is_dbc_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
                 {
                     dbc_nodes_found = TRUE;
                     show_result = result_has_class( analy->cur_result, p_mo_class, analy );
                 }
-                else show_result = TRUE;
+                else
+                {
+                    show_result = TRUE;
+                }
 
                 /* Loop over each element */
-                for ( k = 0;
-                        k < p_mo_class->qty;
-                        k++ )
+                for ( k = 0; k < p_mo_class->qty; k++ )
                 {
                     if( activity )
                     {
                         activity_flag = activity[k];
-                    } else
+                    }
+                    else
                     {
                         activity_flag = 1.0;
                     }
                     
                     mat_num = mat[k];
 
-                     if ( !particle_class)
+                    if ( !particle_class)
                     {
                         if ( analy->show_deleted_elements )
                             activity_flag = 1.0;
@@ -16051,7 +16067,8 @@ draw_free_nodes( Analysis *analy )
                                 activity_flag = 1.0;
                             }
                         }
-                    } else
+                    }
+                    else
                     {
                         if ( analy->show_deleted_elements )
                             activity_flag = 1.0;
@@ -16062,7 +16079,8 @@ draw_free_nodes( Analysis *analy )
                             {
                                 activity_flag = 1.0;
                                 ode_cnt++;
-                            } else
+                            }
+                            else
                             {
                                 activity_flag = 0.0;
                             }
@@ -16071,22 +16089,31 @@ draw_free_nodes( Analysis *analy )
 
                     if ( sph_type && particle_class )
                     {
-                        if ( analy->show_sph_ghost==FALSE && sph_type[k]==1 )
+                        if ( analy->show_sph_ghost == FALSE && sph_type[k] == 1 )
                             activity_flag = 0.0;
                     }
 
-                    free_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array ) && activity_flag == 0.0 && analy->free_nodes_enabled;
+                    free_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array )
+                                        && activity_flag == 0.0
+                                        && analy->free_nodes_enabled;
+
                     if ( particle_class )
-                        particle_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array ) && activity_flag > 0.0 && analy->particle_nodes_enabled &&
-                                              part_visib[k];
-                    else particle_node_found = FALSE;
+                    {
+                        particle_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array )
+                                                && activity_flag > 0.0 
+                                                && analy->particle_nodes_enabled
+                                                && part_visib[k];
+                    }
+                    else
+                    {
+                        particle_node_found = FALSE;
+                    }
 
                     if ( !particle_class )
+                    {
                         if (free_node_found)
                         {
-                            for ( l = 0;
-                                    l < conn_qty;
-                                    l++ )
+                            for ( l = 0; l < conn_qty; l++ )
                             {
                                 nd = connects[k * node_qty + l];
                                 if (free_nodes_list[nd]<0 )
@@ -16109,7 +16136,7 @@ draw_free_nodes( Analysis *analy )
                                 {
                                     mass_scale_factor = free_nodes_vol[nd];
                                     if (mass_scale_factor < 0.0)
-                                        mass_scale_factor*=(-1.0);
+                                        mass_scale_factor *= (-1.0);
 
                                     if (mass_scale_factor_max < mass_scale_factor)
                                         mass_scale_factor_max = mass_scale_factor;
@@ -16120,21 +16147,18 @@ draw_free_nodes( Analysis *analy )
                         }
                         else
                         {
-                            for ( l = 0;
-                                    l < conn_qty;
-                                    l++ )
+                            for ( l = 0; l < conn_qty; l++ )
                             {
                                 nd = connects[k * node_qty + l];
                                 free_nodes_list[nd] = -1;
                             }
                         }
+                    }
 
                     if (particle_node_found)
                     {
                         part_nodes_found = TRUE;
-                        for ( l = 0;
-                                l < conn_qty;
-                                l++ )
+                        for ( l = 0; l < conn_qty; l++ )
                         {
                             nd = connects[k * node_qty + l];
                             part_nodes_list[nd]      = mat_num;
@@ -16158,9 +16182,9 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* If we are viewing a nodal result then map the nodal
-      * result onto the particles.
-      *
-      */
+     * result onto the particles.
+     *
+     */
     if ( analy->pn_nodal_result )
     {
         particle_count = analy->pn_ref_node_count[0];
@@ -16181,6 +16205,7 @@ draw_free_nodes( Analysis *analy )
         leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
 
     node_base_radius  = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
+
     if ( node_base_radius==0 )
         node_base_radius=1.;
 
@@ -16192,7 +16217,7 @@ draw_free_nodes( Analysis *analy )
 
     glEnable( GL_COLOR_MATERIAL );
 
-    if ( fastSpheres)
+    if ( fastSpheres )
     {
         display_list = glGenLists( 1 );
         sphere       = gluNewQuadric();
@@ -16212,7 +16237,6 @@ draw_free_nodes( Analysis *analy )
                gluerr=gluBuild2DMipmaps(GL_TEXTURE_2D, 4, 100, 100,
                        GL_RGBA, GL_UNSIGNED_BYTE,
                           (GLvoid *)(img->data)); */
-
         /*******************************/
 
         glNewList( display_list, GL_COMPILE );
@@ -16220,11 +16244,9 @@ draw_free_nodes( Analysis *analy )
         glEndList();
     }
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    /* Loop over each node and draw particles/free nodes */
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
-
         skip_node = TRUE;
         if (free_nodes_found && free_nodes_list[node_index] >= 0)
             skip_node = FALSE;
@@ -16299,13 +16321,13 @@ draw_free_nodes( Analysis *analy )
                 if(MESH(analy).by_class_select[i].disable_class_elem[elem_id] == TRUE)
                 {
                     col[3] = v_win->mesh_materials.diffuse[mat_num][3];
-
                     VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
-                    for (j=0;
-                            j<4;
-                            j++)
-                        col[j] = col[j]- col[j]*.5;
-                } else
+                    for (j = 0; j < 4; j++)
+                    {
+                        col[j] = col[j] - col[j] * .5;
+                    }
+                }
+                else
                 {
                     color_lookup( col, val,
                                   rmin, rmax, analy->zero_result, mat_num,
@@ -16324,12 +16346,11 @@ draw_free_nodes( Analysis *analy )
         {
             /* No result, color by material */
             col[3] = v_win->mesh_materials.diffuse[mat_num][3];
-
             VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
-            for (i=0;
-                    i<4;
-                    i++)
-                col[i] = col[i]- col[i]*.5;
+            for( i = 0; i < 4; i++ )
+            {
+                col[i] = col[i] - col[i] * .5;
+            }
         }
 
         analy->free_nodes_vals[node_index] = val;
@@ -17135,7 +17156,6 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
     switch ( obj_type )
     {
     case M_HEX:
-
         /* Hide by result range */
         if ( data_array != NULL )
             if ( p_mesh->hide_brick_by_result && elem_result )
@@ -17159,7 +17179,6 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
         break;
 
     case M_QUAD:
-
         /* Hide by result range */
         if ( data_array != NULL )
             if ( p_mesh->hide_brick_by_result && elem_result )
