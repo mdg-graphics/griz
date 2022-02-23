@@ -2163,8 +2163,7 @@ mili_db_set_results( Analysis *analy )
     Mesh_data *meshes;
     int cand_primal_sclass, subrec_idx, found_th=FALSE;
 
-    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                                               "IntLabel", "NULL", "NULL", NULL);
+    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "IntLabel", "NULL", "NULL", NULL);
 
     /* Sanity check. */
     if ( analy->primal_results == NULL )
