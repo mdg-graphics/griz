@@ -2041,8 +2041,7 @@ create_result_menus( Widget parent )
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, derived_menu_widg );
     n++;
-    cascade = XmCreateCascadeButton( parent, derived_menu_name,
-                                     args, n );
+    cascade = XmCreateCascadeButton( parent, derived_menu_name, args, n );
     XtManageChild( cascade );
 
     n = 0;
@@ -2063,6 +2062,15 @@ create_result_menus( Widget parent )
         XtManageChild( cascade );
     }
 #endif
+}
+
+
+static void 
+add_show_button( Widget parent, char * label, char * show_name )
+{
+    Widget button = XmCreatePushButtonGadget( parent, label, NULL, 0 );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, res_menu_CB, show_name );
 }
 
 // check if the primal result has all of the components in the svar, in any order
@@ -2152,14 +2160,8 @@ es_try_add_subset_result_buttons( Widget parent, Primal_result * p_pr, char * sv
                 griz_str_dup( (*p_specs) + *spec_qty, comp_svar->short_name );
                 (*spec_qty)++;
 
-                /* Create button. */
                 sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                n = 0;
-                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                n++;
-                button = XmCreatePushButtonGadget( result_menu, cbuf, args, n );
-                XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB, (*p_specs)[(*spec_qty)] );
+                add_show_button( result_menu, cbuf, (*p_specs)[(*spec_qty)] );
             }
             free(permutation);
         }
@@ -2257,10 +2259,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     if ( p_pr->var->agg_type == SCALAR )
     {
         sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-        XtManageChild( button );
-        XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_pr->short_name );
+        add_show_button( submenu, cbuf, p_pr->short_name );
     } 
     else
     {
@@ -2281,15 +2280,10 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
             {
                 if ( in_a_subset[j] )
                     continue;
-
                 htable_search( analy->st_var_table, comps[j], FIND_ENTRY, &p_hte );
                 comp_svar = (State_variable *) p_hte->data;
 
-                sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                n = 0;
-                button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-                XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB, comp_svar->short_name );
+                add_show_button( submenu, comp_svar->long_name, comp_svar->short_name );
             }
             free(in_a_subset);
         }
@@ -2317,16 +2311,11 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 /* Build/save complete result specification string. */
                 (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
                 sprintf( cbuf, "%s[%s]", p_pr->short_name, comp_svar->short_name );
-                griz_str_dup( (*p_specs) + (*spec_qty), cbuf );
+                griz_str_dup( (*p_specs) + (*spec_qty), cbuf );\
+                (*spec_qty)++;
 
-                /* Create button. */
                 sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                n = 0;
-                button = XmCreatePushButtonGadget( result_menu, cbuf, args, n );
-                XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB, (*p_specs)[(*spec_qty)] );
-
-                spec_qty++;
+                add_show_button( result_menu, cbuf, (*p_specs)[(*spec_qty)] );
             }
         }
         else if ( p_pr->var->agg_type == ARRAY )
@@ -2352,14 +2341,10 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                     (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
                     sprintf( cbuf, "%s[%d]", p_pr->short_name, i + 1 );
                     griz_str_dup( (*p_specs) + (*spec_qty), cbuf );
+                    (*spec_qty)++;
 
-                    /* Create button. */
-                    n = 0;
-                    button = XmCreatePushButtonGadget( result_menu, cell_nums[i], args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB, (*p_specs)[(*spec_qty)] );
-
-                    spec_qty++;
+                    sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                    add_show_button( result_menu, cbuf, (*p_specs)[(*spec_qty)] );
                 }
             }
             else /* rank is 2 */
@@ -2385,14 +2370,9 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
                         sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
                         griz_str_dup( (*p_specs) + (*spec_qty), cbuf );
-
-                        /* Create button. */
-                        n = 0;
-                        button = XmCreatePushButtonGadget( result_submenu, cell_nums[j], args, n );
-                        XtManageChild( button );
-                        XtAddCallback( button, XmNactivateCallback, res_menu_CB, (*p_specs)[(*spec_qty)] );
-
-                        spec_qty++;
+                        (*spec_qty)++;
+                        sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                        add_show_button( result_submenu, cbuf, (*p_specs)[(*spec_qty)] );
                     }
                 }
             }
