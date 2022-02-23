@@ -2173,23 +2173,28 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         spec_qty = analy->component_spec_qty;
 
         // TODO (wrt): modularize the creation of submenus that are just lists of buttons, work up from there
-
+        int stress_strain = 0;
         if ( is_es ) // ES blocks are VECTOR_ARRAY with special naming, handled uniquely
         {
-            strcpy( cbuf, "Stress (stress)" );
-            n = 0;
-            XtSetArg( args[n], XmNsubMenuId, result_menu );
-            n++;
-            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-            XtManageChild( cascade );
-
-            // stress comps but don't overflow on malformed
+            
+            // stress/strain comps but don't overflow on malformed
             vec_size = p_pr->var->vec_size > 6 ? 6 : p_pr->var->vec_size;
             for ( j = 0; j < vec_size; j++ )
             {
                 /* Find State_variable to provide component long name. */
                 htable_search( analy->st_var_table, comps[j], FIND_ENTRY, &p_hte );
                 comp_svar = (State_variable *) p_hte->data;
+                if ( stress_strain == 0 )
+                {
+                    if( comp_svar->short_name[0] == 's' )
+                    {
+                        stress_strain = 1;
+                    }
+                    else if ( comp_svar->short_name[0] == 'e' )
+                    {
+                        stress_strain = 2;
+                    }
+                }
 
                 // we need the command for hitting this button to show the specd component for all ip in this es_?
                 // build 'show es_1[1,sx] es_1[2,sx] ... '
@@ -2208,7 +2213,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_specs[spec_qty] );
             }
 
-            // add top-level buttons for everything remainings
+            // add top-level buttons for everything remaining
             for (; j < p_pr->var->vec_size; j++ )
             {
                 htable_search( analy->st_var_table, comps[j], FIND_ENTRY, &p_hte );
@@ -2222,9 +2227,30 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 XtAddCallback( button, XmNactivateCallback, res_menu_CB, comp_svar->short_name );
             }
 
+            if( stress_strain == 1 )
+            {
+                strcpy( cbuf, "Stress (stress)" );
+            }
+            else if ( stress_strain == 2 )
+            {
+                strcpy( cbuf, "Strain (strain)" );
+            }
+            n = 0;
+            XtSetArg( args[n], XmNsubMenuId, result_menu );
+            n++;
+            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
+            XtManageChild( cascade );
+
         }
         else if ( p_pr->var->agg_type == VECTOR )
         {
+            sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
+            n = 0;
+            XtSetArg( args[n], XmNsubMenuId, result_menu );
+            n++;
+            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
+            XtManageChild( cascade );
+
             for ( i = 0; i < p_pr->var->vec_size; i++ )
             {
                 /* Find State_variable to provide component long name. */
@@ -2248,17 +2274,17 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
                 spec_qty++;
             }
-        /// Can't we just flip the order on these?
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, result_menu );
-        n++;
-        cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-        XtManageChild( cascade );
 
         }
         else if ( p_pr->var->agg_type == ARRAY )
         {
+            sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
+            n = 0;
+            XtSetArg( args[n], XmNsubMenuId, result_menu );
+            n++;
+            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
+            XtManageChild( cascade );
+
             if ( p_pr->var->rank == 1 )
             {
                 for ( i = 0; i < p_pr->var->dims[0]; i++ )
@@ -2311,22 +2337,14 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                     }
                 }
             }
-                    /// Can't we just flip the order on these?
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, result_menu );
-        n++;
-        cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-        XtManageChild( cascade );
-
-            /* Update analy ("p_specs" could have been re-located). */
-            analy->component_menu_specs = p_specs;
-            analy->component_spec_qty = spec_qty;
         }
         else
         {
             popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s", p_pr->long_name, "not included in pulldown menu." );
         }
+        /* Update analy ("p_specs" could have been re-located). */
+        analy->component_menu_specs = p_specs;
+        analy->component_spec_qty = spec_qty;
     }
 }
 
