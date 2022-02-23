@@ -2033,15 +2033,11 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 strcpy(p_es->component_name, p_sv->components[j]);
                 strcpy(p_es->parent_menu, "");
                 p_es->in_menu = FALSE;
-//                int num_entries = 0;
-//                num_entries = mc_ti_htable_search_wildcard(p_es_components_ht, 0, FALSE, "*", "NULL", "NULL", NULL);
                 if(p_es_components_ht->qty_entries > 0)
                 { 
                     rval = htable_search(p_es_components_ht, p_es->component_name, FIND_ENTRY, &p_hte3);
                     if(rval == OK)
-                    {
                         continue;
-                    }
                 } 
                 rval = htable_search(p_es_components_ht, p_es->component_name, ENTER_UNIQUE, &p_hte4); 
                 p_hte4->data = (ES_in_menu *) p_es; 
@@ -2150,7 +2146,7 @@ extern int
 mili_db_set_results( Analysis *analy )
 {
     Result_candidate *p_rc;
-    es_Result_candidate *p_es_rc;
+    Result_candidate *p_es_rc;
     int i, j, k, m;
     int num_entries = 0;
     int qty_candidates, qty_es_candidates;

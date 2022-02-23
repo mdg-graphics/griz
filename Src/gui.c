@@ -1366,8 +1366,7 @@ gui_start( int argc, char **argv , Analysis *analy )
         create_app_widg( BTN_MTL_MGR );
 
     /* Read in Global preferences */
-    status = read_griz_session_file( session, ".griz_session",
-                                     env.griz_id, TRUE );
+    status = read_griz_session_file( session, ".griz_session", env.griz_id, TRUE );
 
     if ( status==OK )
     {
@@ -2089,7 +2088,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     State_variable *comp_svar;
     Hash_table * p_es_components_ht;
     Htable_entry * p_hte2;
-    ES_in_menu * p_es;
+    // ES_in_menu * p_es;
     static char *cell_nums[] =
     {
         "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]",
@@ -2107,27 +2106,15 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
 
     /* Arrays and Vector Arrays that are too big don't go in menu. */
-    if ( ( p_pr->var->agg_type == ARRAY
-            && ( p_pr->var->rank > 2
-                 || p_pr->var->dims[0] > qty_cell_nums
-                 || ( p_pr->var->rank == 2
-                      && p_pr->var->dims[1] > qty_cell_nums
-                    )
-               )
+    if ( ( p_pr->var->agg_type == ARRAY && 
+           ( p_pr->var->rank > 2 || p_pr->var->dims[0] > qty_cell_nums || ( p_pr->var->rank == 2 && p_pr->var->dims[1] > qty_cell_nums ) ) 
+         ) ||
+         ( p_pr->var->agg_type == VEC_ARRAY && 
+           ( p_pr->var->rank > 1 || p_pr->var->dims[0] > qty_cell_nums )
          )
-
-            ||
-
-            ( p_pr->var->agg_type == VEC_ARRAY
-              && ( p_pr->var->rank > 1
-                   || p_pr->var->dims[0] > qty_cell_nums
-                 )
-            )
        )
     {
-        popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\n%s",
-                      p_pr->long_name,
-                      "entries for inclusion in pulldown menu." );
+        popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\nentries for inclusion in pulldown menu.", p_pr->long_name );
         return;
     }
 
@@ -2135,8 +2122,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     get_primal_submenu_name( analy, p_pr, cbuf );
 
     /* See if submenu exists. */
-    make_submenu = !find_labelled_child( primal_menu_widg, cbuf,
-                                         &submenu_cascade, &position );
+    make_submenu = !find_labelled_child( primal_menu_widg, cbuf, &submenu_cascade, &position );
 
     if ( make_submenu )
     {
@@ -2151,22 +2137,30 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         n++;
         XtSetArg( args[n], XmNpacking, XmPACK_COLUMN );
         n++;
-        submenu = XmCreatePulldownMenu( primal_menu_widg, "submenu_pane", args,
-                                        n );
+        submenu = XmCreatePulldownMenu( primal_menu_widg, "submenu_pane", args, n );
 
         n = 0;
         XtSetArg( args[n], XmNsubMenuId, submenu );
         n++;
-        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, cbuf, args,
-                          n );
+        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, cbuf, args, n );
         XtManageChild( submenu_cascade );
     }
     else
         /* Submenu exists; get the pane from the cascade button. */
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
+    int is_es = !strncmp( p_pr->short_name, "es_", 3 );
+
     /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type != SCALAR && strncmp(p_pr->short_name, "es_", 3))
+    if ( p_pr->var->agg_type == SCALAR )
+    {
+        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
+        n = 0;
+        button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
+        XtManageChild( button );
+        XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_pr->short_name );
+    } 
+    else
     {
         /* Non-scalar types require another submenu level. */
         n = 0;
@@ -2178,37 +2172,90 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         p_specs = analy->component_menu_specs;
         spec_qty = analy->component_spec_qty;
 
-        if ( p_pr->var->agg_type == VECTOR )
+        // TODO (wrt): modularize the creation of submenus that are just lists of buttons, work up from there
+
+        if ( is_es ) // ES blocks are VECTOR_ARRAY with special naming, handled uniquely
+        {
+            strcpy( cbuf, "Stress (stress)" );
+            n = 0;
+            XtSetArg( args[n], XmNsubMenuId, result_menu );
+            n++;
+            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
+            XtManageChild( cascade );
+
+            // stress comps but don't overflow on malformed
+            vec_size = p_pr->var->vec_size > 6 ? 6 : p_pr->var->vec_size;
+            for ( j = 0; j < vec_size; j++ )
+            {
+                /* Find State_variable to provide component long name. */
+                htable_search( analy->st_var_table, comps[j], FIND_ENTRY, &p_hte );
+                comp_svar = (State_variable *) p_hte->data;
+
+                // we need the command for hitting this button to show the specd component for all ip in this es_?
+                // build 'show es_1[1,sx] es_1[2,sx] ... '
+                p_specs = RENEW_N( char *, p_specs, spec_qty, 1, "Extend menu specs" );
+                /* Build/save complete result specification string. */
+                griz_str_dup( p_specs + spec_qty, comp_svar->short_name );
+                spec_qty++;
+
+                /* Create button. */
+                sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                n = 0;
+                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+                n++;
+                button = XmCreatePushButtonGadget( result_menu, cbuf, args, n );
+                XtManageChild( button );
+                XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_specs[spec_qty] );
+            }
+
+            // add top-level buttons for everything remainings
+            for (; j < p_pr->var->vec_size; j++ )
+            {
+                htable_search( analy->st_var_table, comps[j], FIND_ENTRY, &p_hte );
+                comp_svar = (State_variable *) p_hte->data;
+
+                // add equiv plastic strain
+                sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                n = 0;
+                button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
+                XtManageChild( button );
+                XtAddCallback( button, XmNactivateCallback, res_menu_CB, comp_svar->short_name );
+            }
+
+        }
+        else if ( p_pr->var->agg_type == VECTOR )
         {
             for ( i = 0; i < p_pr->var->vec_size; i++ )
             {
                 /* Find State_variable to provide component long name. */
-                htable_search( analy->st_var_table, comps[i], FIND_ENTRY,
-                               &p_hte );
+                htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
                 comp_svar = (State_variable *) p_hte->data;
 
                 /* Build/save complete result specification string. */
                 if( p_specs == NULL )
                     p_specs = NEW( char *, "New menu specs" );
                 else
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                sprintf( cbuf, "%s[%s]", p_pr->short_name,
-                         comp_svar->short_name );
+                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1, "Extend menu specs" );
+                sprintf( cbuf, "%s[%s]", p_pr->short_name, comp_svar->short_name );
                 griz_str_dup( p_specs + spec_qty, cbuf );
 
                 /* Create button. */
-                sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                         comp_svar->short_name );
+                sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
                 n = 0;
-                button = XmCreatePushButtonGadget( result_menu, cbuf, args,
-                                                   n );
+                button = XmCreatePushButtonGadget( result_menu, cbuf, args, n );
                 XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                               p_specs[spec_qty] );
+                XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_specs[spec_qty] );
 
                 spec_qty++;
             }
+        /// Can't we just flip the order on these?
+        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
+        n = 0;
+        XtSetArg( args[n], XmNsubMenuId, result_menu );
+        n++;
+        cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
+        XtManageChild( cascade );
+
         }
         else if ( p_pr->var->agg_type == ARRAY )
         {
@@ -2217,18 +2264,15 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 for ( i = 0; i < p_pr->var->dims[0]; i++ )
                 {
                     /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
+                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1, "Extend menu specs" );
                     sprintf( cbuf, "%s[%d]", p_pr->short_name, i + 1 );
                     griz_str_dup( p_specs + spec_qty, cbuf );
 
                     /* Create button. */
                     n = 0;
-                    button = XmCreatePushButtonGadget( result_menu,
-                                                       cell_nums[i], args, n );
+                    button = XmCreatePushButtonGadget( result_menu, cell_nums[i], args, n );
                     XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
+                    XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_specs[spec_qty] );
 
                     spec_qty++;
                 }
@@ -2241,131 +2285,33 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                     n = 0;
                     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
                     n++;
-                    result_submenu = XmCreatePulldownMenu( result_menu,
-                                                           "subsubmenu_pane",
-                                                           args, n );
+                    result_submenu = XmCreatePulldownMenu( result_menu, "subsubmenu_pane", args, n );
 
                     n = 0;
                     XtSetArg( args[n], XmNsubMenuId, result_submenu );
                     n++;
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         cell_nums[i],
-                                         args, n );
+                    subsubmenu_cascade = XmCreateCascadeButton( result_menu, cell_nums[i], args, n );
                     XtManageChild( subsubmenu_cascade );
 
                     for ( j = 0; j < p_pr->var->dims[0]; j++ )
                     {
                         /* Build/save complete result specification string. */
-                        p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                           "Extend menu specs" );
+                        p_specs = RENEW_N( char *, p_specs, spec_qty, 1, "Extend menu specs" );
 
-                        sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1,
-                                 j + 1 );
+                        sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
                         griz_str_dup( p_specs + spec_qty, cbuf );
 
                         /* Create button. */
                         n = 0;
-                        button = XmCreatePushButtonGadget( result_submenu,
-                                                           cell_nums[j],
-                                                           args, n );
+                        button = XmCreatePushButtonGadget( result_submenu, cell_nums[j], args, n );
                         XtManageChild( button );
-                        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                       p_specs[spec_qty] );
+                        XtAddCallback( button, XmNactivateCallback, res_menu_CB, p_specs[spec_qty] );
 
                         spec_qty++;
                     }
                 }
             }
-        }
-        else
-        {
-            for ( i = 0; i < p_pr->var->dims[0]; i++ )
-            {
-                /* Create button. */
-                n = 0;
-                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                n++;
-                result_submenu = XmCreatePulldownMenu( result_menu,
-                                                       "subsubmenu_pane",
-                                                       args, n );
-
-                n = 0;
-                XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                n++;
-                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                n++;
-
-                /*
-                 * This is WIP for the new Element Set menus.
-                 */
-
-               /* if ( analy->es_cnt>0 && strstr(p_pr->short_name, "es_" ) )
-                {
-                   int es_id=0, es_index=0, es_label=-1;
-                    char *es_ptr=NULL, es_title[64], surface_title[16]="";
-                    int integration_pt=0;
-                    es_ptr   = strstr( p_pr->short_name, "es_" );
-                    es_id    = get_element_set_id( es_ptr );
-                    es_index = get_element_set_index( analy, es_id );
-
-                    if ( es_id>=0 && i<= analy->es_intpoints[es_index].labels_cnt )
-                    {
-                        es_label = analy->es_intpoints[es_index].labels[i];
-                        if ( analy->es_intpoints[es_index].in_mid_out_set[0]==es_label )
-                            strcpy( surface_title, "(Default In)" );
-                        else if ( analy->es_intpoints[es_index].in_mid_out_set[1]==es_label )
-                            strcpy( surface_title, "(Default Mid)" );
-                        else if ( analy->es_intpoints[es_index].in_mid_out_set[2]==es_label )
-                            strcpy( surface_title, "(Default Out)" );
-                        sprintf( es_title, "Int Pt %d (Label %d) %s", i+1, analy->es_intpoints[es_index].labels[i],
-                                 surface_title );
-                    }
-                    else sprintf(es_title, "[%d]", i);
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         es_title,
-                                         args, n );
-                } 
-                else  */
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         cell_nums[i],
-                                         args, n );
-                XtManageChild( subsubmenu_cascade ); 
-
-                vec_size = p_pr->var->vec_size;
-
-                for ( j = 0; j < vec_size; j++ )
-                {
-                    /* Find State_variable to provide component long name. */
-                    htable_search( analy->st_var_table, comps[j], FIND_ENTRY,
-                                   &p_hte );
-                    comp_svar = (State_variable *) p_hte->data;
-
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-
-                    sprintf( cbuf, "%s[%d,%s]", p_pr->short_name, i + 1,
-                             comp_svar->short_name );
-
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                             comp_svar->short_name );
-                    n = 0;
-                    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                    n++;
-                    button = XmCreatePushButtonGadget( result_submenu, cbuf,
-                                                       args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
-                }
-            }
-        }
-
+                    /// Can't we just flip the order on these?
         sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
         n = 0;
         XtSetArg( args[n], XmNsubMenuId, result_menu );
@@ -2373,53 +2319,16 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
         XtManageChild( cascade );
 
-        /* Update analy ("p_specs" could have been re-located). */
-        analy->component_menu_specs = p_specs;
-        analy->component_spec_qty = spec_qty;
-    }
-    else if ( p_pr->var->agg_type == SCALAR )
-    {
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-        XtManageChild( button );
-        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                       p_pr->short_name );
-    } 
-    else if( !strncmp(p_pr->short_name, "es_", 3))
-    {   
-        strcpy(parent_menu, cbuf); 
-        for(i = 0; i < p_pr->var->vec_size; i++)
+            /* Update analy ("p_specs" could have been re-located). */
+            analy->component_menu_specs = p_specs;
+            analy->component_spec_qty = spec_qty;
+        }
+        else
         {
-            rval = htable_search(p_es_components_ht, p_pr->var->components[i], FIND_ENTRY, &p_hte2);
-            if(rval != OK)
-            {
-                continue;
-            }
-            p_es = (ES_in_menu *) p_hte2->data;
-            
-            if(p_es->in_menu == TRUE && !strcmp(p_es->parent_menu, parent_menu))
-            {
-                continue;
-            } 
-
-            p_es->in_menu = TRUE;
-            strcpy(p_es->parent_menu, parent_menu);
-            /*rval = htable_add_entry_data(p_es_components_ht, p_es->component_name, ENTER_MERGE, (ES_in_menu *) p_es); */
-
-            sprintf( cbuf, "%s (%s)", p_pr->var->component_titles[i], p_pr->var->components[i] );
-            n = 0;
-            button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-            XtManageChild( button );
-            XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                           p_pr->var->components[i] );
-       } 
+            popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s", p_pr->long_name, "not included in pulldown menu." );
+        }
     }
-    else
-        popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s",
-                      p_pr->long_name, "not included in pulldown menu." );
 }
-
 
 /*****************************************************************
  * TAG( add_ti_result_button )
@@ -2785,8 +2694,7 @@ get_primal_submenu_name( Analysis *analy, Primal_result *p_pr, char *name )
         /* Only saw one class, so submenu name is class name. */
 
         /* Need to look up the long name. */
-        htable_search( MESH_P( analy )->class_table, class_names[0], FIND_ENTRY,
-                       &p_hte );
+        htable_search( MESH_P( analy )->class_table, class_names[0], FIND_ENTRY, &p_hte );
         p_mo_class = (MO_class_data *) p_hte->data;
         sprintf( name, "%s (%s)", p_mo_class->long_name, class_names[0] );
     }
@@ -2929,9 +2837,7 @@ add_derived_result_button( Derived_result *p_dr )
                 continue;
 
             /* Loop over subrecs */
-            for ( j = 0;
-                    j < subrec_qty;
-                    j++ )
+            for ( j = 0; j < subrec_qty; j++ )
             {
                 /* Get binding */
                 rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
@@ -2939,73 +2845,67 @@ add_derived_result_button( Derived_result *p_dr )
                     continue;
 
                 /* Look for element set svars to add to sub-menu */
-
-                if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name)
-                        && !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
+                if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name) && !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
                 {
                     continue;
-                    es_id = get_element_set_id( subrec.svar_names[0] );
-                    sprintf( nambuf, "Element Set %d (%s)", es_id,
-                             subrec.svar_names[0] );
+                    // es_id = get_element_set_id( subrec.svar_names[0] );
+                    // sprintf( nambuf, "Element Set %d (%s)", es_id, subrec.svar_names[0] );
 
-                    /* See if submenu exists. */
-                    make_submenu = !find_labelled_child( submenu, nambuf,
-                                                         &submenu_cascade, &position );
+                    // /* See if submenu exists. */
+                    // make_submenu = !find_labelled_child( submenu, nambuf, &submenu_cascade, &position );
 
-                    /* Use bound state vars as keys into Primal_result hash table.
-                     */
-                    rval = htable_search( p_pr_ht, subrec.svar_names[0], FIND_ENTRY, &p_hte );
-                    if ( rval != OK )
-                        continue;
+                    // /* Use bound state vars as keys into Primal_result hash table.
+                    //  */
+                    // rval = htable_search( p_pr_ht, subrec.svar_names[0], FIND_ENTRY, &p_hte );
+                    // if ( rval != OK )
+                    //     continue;
 
-                    p_pr = (Primal_result *) p_hte->data;
+                    // p_pr = (Primal_result *) p_hte->data;
 
-                    if ( make_submenu )
-                    {
-                        n = 0;
-                        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                        n++;
-                        subsubmenu = XmCreatePulldownMenu( submenu, "es_submenu_pane",
-                                                           args, n );
+                    // if ( make_submenu )
+                    // {
+                    //     n = 0;
+                    //     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+                    //     n++;
+                    //     subsubmenu = XmCreatePulldownMenu( submenu, "es_submenu_pane", args, n );
 
-                        n = 0;
-                        XtSetArg( args[n], XmNsubMenuId, subsubmenu );
-                        n++;
-                        sub_cascade = XmCreateCascadeButton( submenu, nambuf, args, n );
-                        XtManageChild( sub_cascade );
-                    }
-                    else
-                        /* Submenu exists; get the pane from the cascade button. */
-                        XtVaGetValues( submenu_cascade, XmNsubMenuId, &subsubmenu, NULL );
+                    //     n = 0;
+                    //     XtSetArg( args[n], XmNsubMenuId, subsubmenu );
+                    //     n++;
+                    //     sub_cascade = XmCreateCascadeButton( submenu, nambuf, args, n );
+                    //     XtManageChild( sub_cascade );
+                    // }
+                    // else
+                    //     /* Submenu exists; get the pane from the cascade button. */
+                    //     XtVaGetValues( submenu_cascade, XmNsubMenuId, &subsubmenu, NULL );
 
-                    if ( p_pr->var->num_type == M_STRING )
-                        continue;
+                    // if ( p_pr->var->num_type == M_STRING )
+                    //     continue;
 
-                    rval = mc_get_svar_def( dbid, subrec.svar_names[0], &sv );
-                    if ( rval == 0 )
-                    {
-                        for ( k=0;
-                                k<sv.vec_size;
-                                k++ )
-                            if ( !strcmp( sv.components[k], p_subr_res->candidate->short_names[idx] ) )
-                            {
-                                /* Add derived element set result button. */
-                                for ( i = 0; i < analy->qty_srec_fmts; i++ )
-                                    if ( p_dr->srec_map[i].qty > 0 )
-                                        break;
-                                p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
+                    // rval = mc_get_svar_def( dbid, subrec.svar_names[0], &sv );
+                    // if ( rval == 0 )
+                    // {
+                    //     for ( k=0;
+                    //             k<sv.vec_size;
+                    //             k++ )
+                    //         if ( !strcmp( sv.components[k], p_subr_res->candidate->short_names[idx] ) )
+                    //         {
+                    //             /* Add derived element set result button. */
+                    //             for ( i = 0; i < analy->qty_srec_fmts; i++ )
+                    //                 if ( p_dr->srec_map[i].qty > 0 )
+                    //                     break;
+                    //             p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
 
-                                sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
-                                         p_subr_res->candidate->short_names[idx] );
-                                n = 0;
-                                button = XmCreatePushButtonGadget( subsubmenu, nambuf, args, n );
-                                XtManageChild( button );
-                                sprintf( cb_name_temp, "%s[%s]", subrec.svar_names[0], p_subr_res->candidate->short_names[idx] );
-                                cb_name = NEW_N( char, strlen(cb_name_temp), "Static cb name" );
-                                strcpy( cb_name, cb_name_temp );
-                                XtAddCallback( button, XmNactivateCallback, res_menu_CB, cb_name );
-                            }
-                    }
+                    //             sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
+                    //             n = 0;
+                    //             button = XmCreatePushButtonGadget( subsubmenu, nambuf, args, n );
+                    //             XtManageChild( button );
+                    //             sprintf( cb_name_temp, "%s[%s]", subrec.svar_names[0], p_subr_res->candidate->short_names[idx] );
+                    //             cb_name = NEW_N( char, strlen(cb_name_temp), "Static cb name" );
+                    //             strcpy( cb_name, cb_name_temp );
+                    //             XtAddCallback( button, XmNactivateCallback, res_menu_CB, cb_name );
+                    //         }
+                    // }
                 } /* es variable test */
 
                 /* Don't care about return value for this. */
