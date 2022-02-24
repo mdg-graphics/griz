@@ -2073,6 +2073,24 @@ add_show_button( Widget parent, char * label, char * show_name )
     XtAddCallback( button, XmNactivateCallback, res_menu_CB, show_name );
 }
 
+static Widget
+add_pulldown_submenu( Widget parent, char * label )
+{
+    Arg args[1];
+    int n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+    n++;
+    Widget pulldown = XmCreatePulldownMenu( parent, "pulldown", args, n );
+
+    n = 0;
+    XtSetArg( args[n], XmNsubMenuId, pulldown );
+    n++;
+    Widget cascade = XmCreateCascadeButton( parent, label, args, n );
+    XtManageChild( cascade );
+
+    return pulldown;
+}
+
 // check if the primal result has all of the components in the svar, in any order
 // basically check if the primal result svar comps are a superset of the passed svard comps
 // if so return the permutation mapping the svar comps to their corresponding indxs in the 
@@ -2135,17 +2153,9 @@ es_try_add_subset_result_buttons( Widget parent, Primal_result * p_pr, char * sv
                     in_subset[permutation[jj]] = TRUE;
                 }
             }
-            n = 0;
-            XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-            n++;
-            result_menu = XmCreatePulldownMenu( parent, "submenu_pane", args, n );
 
             sprintf( cbuf, "%s (%s)", svar->long_name, svar->short_name );
-            n = 0;
-            XtSetArg( args[n], XmNsubMenuId, result_menu );
-            n++;
-            cascade = XmCreateCascadeButton( parent, cbuf, args, n );
-            XtManageChild( cascade );
+            result_menu = add_pulldown_submenu( parent, cbuf );
 
             int jj = 0;
             State_variable * comp_svar = NULL;
@@ -2161,7 +2171,7 @@ es_try_add_subset_result_buttons( Widget parent, Primal_result * p_pr, char * sv
                 (*spec_qty)++;
 
                 sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                add_show_button( result_menu, cbuf, (*p_specs)[(*spec_qty)] );
+                add_show_button( result_menu, cbuf, comp_svar->short_name );
             }
             free(permutation);
         }
@@ -2181,7 +2191,8 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     Widget button, cascade, result_submenu, subsubmenu_cascade;
     int position, vec_size;
     int i, j, n, rval;
-    char cbuf[M_MAX_NAME_LEN];
+    char label_buffer[M_MAX_NAME_LEN];
+    char show_buffer[M_MAX_NAME_LEN];
     char parent_menu[32];
     Bool_type make_submenu;
     Arg args[10];
@@ -2191,9 +2202,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     Analysis *analy;
     State_variable * comp_svar;
     State_variable * svar;
-    Hash_table * p_es_components_ht;
     Htable_entry * p_hte2;
-    // ES_in_menu * p_es;
     static char *cell_nums[] =
     {
         "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]",
@@ -2204,8 +2213,6 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     Htable_entry *p_hte;
 
     analy = env.curr_analy;
-
-    p_es_components_ht = analy->es_components_table;
 
     qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
 
@@ -2223,10 +2230,10 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     }
 
     /* Determine correct submenu name ("Shared" or class name). */
-    get_primal_submenu_name( analy, p_pr, cbuf );
+    get_primal_submenu_name( analy, p_pr, label_buffer );
 
     /* See if submenu exists. */
-    make_submenu = !find_labelled_child( primal_menu_widg, cbuf, &submenu_cascade, &position );
+    make_submenu = !find_labelled_child( primal_menu_widg, label_buffer, &submenu_cascade, &position );
 
     if ( make_submenu )
     {
@@ -2246,7 +2253,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         n = 0;
         XtSetArg( args[n], XmNsubMenuId, submenu );
         n++;
-        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, cbuf, args, n );
+        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, label_buffer, args, n );
         XtManageChild( submenu_cascade );
     }
     else
@@ -2258,49 +2265,42 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     /* Now add the new primal result button. */
     if ( p_pr->var->agg_type == SCALAR )
     {
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        add_show_button( submenu, cbuf, p_pr->short_name );
+        sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+        add_show_button( submenu, label_buffer, p_pr->short_name );
     } 
     else
     {
         comps = p_pr->var->components;
         p_specs = &analy->component_menu_specs;
         spec_qty = &analy->component_spec_qty;
+        int vec_size = p_pr->var->vec_size;
 
         if ( is_es ) // ES blocks are VECTOR_ARRAY with special naming, handled uniquely
         {
-            int * in_a_subset = NEW_N(int, p_pr->var->vec_size, "");
-            memset(in_a_subset,0,sizeof(int) * p_pr->var->vec_size);
+            int * in_a_subset = NEW_N(int, vec_size, "");
+            memset(in_a_subset,0,sizeof(int) * vec_size);
 
             es_try_add_subset_result_buttons( submenu, p_pr, "stress", in_a_subset );
             es_try_add_subset_result_buttons( submenu, p_pr, "strain", in_a_subset );
 
             // add top-level buttons for everything not handled by stress/strain detection above
-            for ( j = 0; j < p_pr->var->vec_size; j++ )
+            for ( j = 0; j < vec_size; j++ )
             {
                 if ( in_a_subset[j] )
                     continue;
                 htable_search( analy->st_var_table, comps[j], FIND_ENTRY, &p_hte );
                 comp_svar = (State_variable *) p_hte->data;
 
-                add_show_button( submenu, comp_svar->long_name, comp_svar->short_name );
+                sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                add_show_button( submenu, label_buffer, comp_svar->short_name );
             }
             free(in_a_subset);
         }
         else if ( p_pr->var->agg_type == VECTOR )
         {
             /* Non-scalar types require another submenu level. */
-            n = 0;
-            XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-            n++;
-            result_menu = XmCreatePulldownMenu( submenu, "submenu_pane", args, n );
-
-            sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-            n = 0;
-            XtSetArg( args[n], XmNsubMenuId, result_menu );
-            n++;
-            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-            XtManageChild( cascade );
+            sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+            result_menu = add_pulldown_submenu( submenu, label_buffer );
 
             for ( i = 0; i < p_pr->var->vec_size; i++ )
             {
@@ -2308,43 +2308,35 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
                 comp_svar = (State_variable *) p_hte->data;
 
+                sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
+                sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                add_show_button( result_menu, label_buffer, show_buffer );
+
                 /* Build/save complete result specification string. */
                 (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-                sprintf( cbuf, "%s[%s]", p_pr->short_name, comp_svar->short_name );
-                griz_str_dup( (*p_specs) + (*spec_qty), cbuf );\
+                griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
                 (*spec_qty)++;
 
-                sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                add_show_button( result_menu, cbuf, (*p_specs)[(*spec_qty)] );
             }
         }
         else if ( p_pr->var->agg_type == ARRAY )
         {
             /* Non-scalar types require another submenu level. */
-            n = 0;
-            XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-            n++;
-            result_menu = XmCreatePulldownMenu( submenu, "submenu_pane", args, n );
-
-            sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-            n = 0;
-            XtSetArg( args[n], XmNsubMenuId, result_menu );
-            n++;
-            cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-            XtManageChild( cascade );
+            sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+            result_menu = add_pulldown_submenu( submenu, label_buffer );
 
             if ( p_pr->var->rank == 1 )
             {
                 for ( i = 0; i < p_pr->var->dims[0]; i++ )
                 {
+                    sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
+                    sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                    add_show_button( result_menu, label_buffer, show_buffer );
+                    
                     /* Build/save complete result specification string. */
                     (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-                    sprintf( cbuf, "%s[%d]", p_pr->short_name, i + 1 );
-                    griz_str_dup( (*p_specs) + (*spec_qty), cbuf );
+                    griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
                     (*spec_qty)++;
-
-                    sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                    add_show_button( result_menu, cbuf, (*p_specs)[(*spec_qty)] );
                 }
             }
             else /* rank is 2 */
@@ -2352,27 +2344,17 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 for ( i = 0; i < p_pr->var->dims[1]; i++ )
                 {
                     /* Create button. */
-                    n = 0;
-                    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                    n++;
-                    result_submenu = XmCreatePulldownMenu( result_menu, "subsubmenu_pane", args, n );
-
-                    n = 0;
-                    XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                    n++;
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu, cell_nums[i], args, n );
-                    XtManageChild( subsubmenu_cascade );
-
+                    result_submenu = add_pulldown_submenu( result_menu, cell_nums[i] );
                     for ( j = 0; j < p_pr->var->dims[0]; j++ )
                     {
+                        sprintf( show_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
+                        sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                        add_show_button( result_menu, label_buffer, show_buffer );
+                        
                         /* Build/save complete result specification string. */
                         (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-
-                        sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
-                        griz_str_dup( (*p_specs) + (*spec_qty), cbuf );
+                        griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
                         (*spec_qty)++;
-                        sprintf( cbuf, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                        add_show_button( result_submenu, cbuf, (*p_specs)[(*spec_qty)] );
                     }
                 }
             }
@@ -3262,8 +3244,8 @@ create_derived_res_menu( Widget parent )
                 }
 
                 if ( p_analy->analysis_type==MODAL ) /* May later check for
-						      * p_rc->origin.is_node_result
-						      */
+                                                      * p_rc->origin.is_node_result
+                                                      */
                     if ( p_rc->short_names[0]!=NULL )
                         if ( strncmp(  p_rc->short_names[0], "evec_", 5) )
                             p_rc->hide_in_menu = TRUE;
@@ -3302,13 +3284,11 @@ create_primal_res_menu( Widget parent )
     n = 0;
     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
     n++;
-    primal_menu_widg = XmCreatePulldownMenu( parent, "primal_menu_pane",
-                       args, n );
+    primal_menu_widg = XmCreatePulldownMenu( parent, "primal_menu_pane", args, n );
 
     /* Always add an entry to show materials. */
     n = 0;
-    button = XmCreatePushButtonGadget( primal_menu_widg, "Result off",
-                                       args, n );
+    button = XmCreatePushButtonGadget( primal_menu_widg, "Result off", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
 
@@ -3328,15 +3308,13 @@ create_primal_res_menu( Widget parent )
     srec_qty = 0;
 
     /* Don't care about return value for this. */
-    env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL,
-                              (void *) &srec_qty );
+    env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL, (void *) &srec_qty );
 
     /* Loop over srecs */
     for ( i = 0; i < srec_qty; i++ )
     {
         /* Get subrecord count for this state record. */
-        rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i,
-                                         NULL, (void *) &subrec_qty );
+        rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty );
         if ( rval != OK )
             continue;
 
@@ -3348,14 +3326,12 @@ create_primal_res_menu( Widget parent )
             if ( rval != OK )
                 continue;
 
-            /* Use bound state vars as keys into Primal_result hash table.
-             */
+            /* Use bound state vars as keys into Primal_result hash table. */
             svar_names = subrec.svar_names;
 
             for ( k = 0; k < subrec.qty_svars; k++ )
             {
-                rval = htable_search( p_pr_ht, svar_names[k], FIND_ENTRY,
-                                      &p_hte );
+                rval = htable_search( p_pr_ht, svar_names[k], FIND_ENTRY, &p_hte );
                 if ( rval == OK )
                 {
                     p_pr = (Primal_result *) p_hte->data;
@@ -4207,12 +4183,12 @@ create_mtl_manager( Widget main_widg )
                                 op_names[0], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
                                 NULL );
-	XtOverrideTranslations( op_buttons[0], key_trans );
-	XtAddCallback( op_buttons[0], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview0 );
-	XtVaGetValues( op_buttons[0], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
+    XtOverrideTranslations( op_buttons[0], key_trans );
+    XtAddCallback( op_buttons[0], XmNdisarmCallback, mtl_func_operate_CB,
+                   &op_preview0 );
+    XtVaGetValues( op_buttons[0], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
 
     static int op_preview1 = OP_CANCEL;
@@ -4220,12 +4196,12 @@ create_mtl_manager( Widget main_widg )
                                 op_names[1], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
                                 NULL );
-	XtOverrideTranslations( op_buttons[1], key_trans );
-	XtAddCallback( op_buttons[1], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview1 );
-	XtVaGetValues( op_buttons[1], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
+    XtOverrideTranslations( op_buttons[1], key_trans );
+    XtAddCallback( op_buttons[1], XmNdisarmCallback, mtl_func_operate_CB,
+                   &op_preview1 );
+    XtVaGetValues( op_buttons[1], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
 
     static int op_preview2 = OP_APPLY ;
@@ -4233,12 +4209,12 @@ create_mtl_manager( Widget main_widg )
                                 op_names[2], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
                                 NULL );
-	XtOverrideTranslations( op_buttons[2], key_trans );
-	XtAddCallback( op_buttons[2], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview2 );
-	XtVaGetValues( op_buttons[2], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
+    XtOverrideTranslations( op_buttons[2], key_trans );
+    XtAddCallback( op_buttons[2], XmNdisarmCallback, mtl_func_operate_CB,
+                   &op_preview2 );
+    XtVaGetValues( op_buttons[2], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
 
     static int op_preview3 = OP_DEFAULT;
@@ -4246,12 +4222,12 @@ create_mtl_manager( Widget main_widg )
                                 op_names[3], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
                                 NULL );
-	XtOverrideTranslations( op_buttons[3], key_trans );
-	XtAddCallback( op_buttons[3], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview3 );
-	XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
+    XtOverrideTranslations( op_buttons[3], key_trans );
+    XtAddCallback( op_buttons[3], XmNdisarmCallback, mtl_func_operate_CB,
+                   &op_preview3 );
+    XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
 
     /*
@@ -7541,10 +7517,10 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
     swtype = (int *) client_data;
 
     static int render_shell_win = RENDER_SHELL_WIN,
-    		      util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
-    		      mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
-    		      surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
-    		      control_shell_win = CONTROL_SHELL_WIN;
+                  util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
+                  mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
+                  surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
+                  control_shell_win = CONTROL_SHELL_WIN;
 
     switch ( *swtype )
     {
@@ -7914,8 +7890,8 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Material_list_obj *p_mtl;
     Material_list_obj *temp_mtl;
     Mesh_data *p_mesh;
-	char* tempName;
-	Htable_entry *tempEnt;
+    char* tempName;
+    Htable_entry *tempEnt;
 
     p_mesh = env.curr_analy->mesh_table;
     qty_mtls = p_mesh->material_qty;
@@ -7993,171 +7969,171 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
         if ( vis_set && enable_set )
         {
-        	p_mtl = mtl_deselect_list;
-        	int i = 0;
-        	while(p_mtl != NULL){
-        		i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-        	}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( vis_set && disable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( invis_set && enable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( invis_set && disable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( vis_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_invis[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_invis[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( invis_set )
         {
-        	p_mtl = mtl_deselect_list;
-			i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_invis[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_invis[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( enable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( disable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else{
             /* Set all if color function selected, else unset all. */
@@ -9564,7 +9540,7 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
         strcpy( cmd, "hotmap" );
         break;
     case CM_COOL:
-    	parse_command( "coolmap", analy );
+        parse_command( "coolmap", analy );
         strcpy( cmd, "coolmap" );
         break;
     case CM_GRAYSCALE:
@@ -9576,19 +9552,19 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
         strcpy( cmd, "igrmap" );
         break;
     case CM_HSV:
-    	parse_command( "hsvmap", analy );
+        parse_command( "hsvmap", analy );
         strcpy( cmd, "hsvmap" );
         break;
     case CM_JET:
-    	parse_command( "jetmap", analy );
+        parse_command( "jetmap", analy );
         strcpy( cmd, "jetmap" );
         break;
     case CM_PRISM:
-    	parse_command( "prismmap", analy );
+        parse_command( "prismmap", analy );
         strcpy( cmd, "prismmap" );
         break;
     case CM_WINTER:
-    	parse_command( "wintermap", analy );
+        parse_command( "wintermap", analy );
         strcpy( cmd, "wintermap" );
         break;
     }
@@ -10473,37 +10449,37 @@ load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
         for ( p_src = "mat "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     else{
-    	if(visset && enableset){
-			t_cnt++;
-			for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    	}
-    	else if(invisset && disableset){
-			t_cnt++;
-			for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    	}
-    	else{
-			if ( visset )
-			{
-				t_cnt++;
-				for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
-			if ( invisset )
-			{
-				t_cnt++;
-				for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
-			if ( enableset )
-			{
-				t_cnt++;
-				for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
+        if(visset && enableset){
+            t_cnt++;
+            for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+        }
+        else if(invisset && disableset){
+            t_cnt++;
+            for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+        }
+        else{
+            if ( visset )
+            {
+                t_cnt++;
+                for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
+            if ( invisset )
+            {
+                t_cnt++;
+                for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
+            if ( enableset )
+            {
+                t_cnt++;
+                for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
 
-			if ( disableset )
-			{
-				t_cnt++;
-				for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
-    	}
+            if ( disableset )
+            {
+                t_cnt++;
+                for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
+        }
     }
 
     *p_token_cnt = t_cnt;
@@ -11655,12 +11631,12 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 
 
     if ((cnt + analy->num_messages + 1) <= (MAX_DBTEXT_LINES-5)){
-    	start_text[cnt++] = (char *) strdup("\n");
-    	int pos = 0;
-		for(pos = 0; pos < analy->num_messages; pos++){
-			start_text[cnt++] = (char *) strdup(analy->conflict_messages[pos]) ;
-			//wrt_text();
-		}
+        start_text[cnt++] = (char *) strdup("\n");
+        int pos = 0;
+        for(pos = 0; pos < analy->num_messages; pos++){
+            start_text[cnt++] = (char *) strdup(analy->conflict_messages[pos]) ;
+            //wrt_text();
+        }
     }
 
     strcat( temp_text, "\n" );

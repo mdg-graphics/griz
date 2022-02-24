@@ -1729,8 +1729,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                     if ( strcmp( svar_names[k], "nodpos" ) == 0 )
                     {
                         if ( p_sro[i].node_pos_subrec != -1 )
-                            popup_dialog( WARNING_POPUP,
-                                          "Multiple \"node\" position subrecs." );
+                            popup_dialog( WARNING_POPUP, "Multiple \"node\" position subrecs." );
 
                         p_sro[i].node_pos_subrec = subrec_index;
                         analy->stateDB = FALSE;
@@ -1749,8 +1748,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                     else if ( strcmp( svar_names[k], "nodvel" ) == 0 )
                     {
                         if ( p_sro[i].node_vel_subrec != -1 )
-                            popup_dialog( WARNING_POPUP,
-                                          "Multiple \"node\" velocity subrecs." );
+                            popup_dialog( WARNING_POPUP, "Multiple \"node\" velocity subrecs." );
                         p_sro[i].node_vel_subrec = j;
                     }
                 }
