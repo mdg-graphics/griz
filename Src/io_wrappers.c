@@ -2521,12 +2521,9 @@ find_matching_primal_results(Result_candidate *p_rc,  Analysis *analy )
     int subrec_idx;
     Subrec_obj *p_subrecs;
     
-    fprintf(stderr,"%s\n",p_rc->short_names[0]);
-    
     for(i=0; p_rc->primals[i]!=NULL;i++){}
     
     primal_count= i;
-    fprintf(stderr, "%d\n", primal_count);
     
     //Lets look for the first primal to see if it exists.
     // Otherwise anything else is a mute point.
@@ -2537,8 +2534,6 @@ find_matching_primal_results(Result_candidate *p_rc,  Analysis *analy )
     {
         p_pr = (Primal_result*) p_hte->data;
         
-        
-        
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
             p_subrecs = analy->srec_tree[i].subrecs;
@@ -2546,21 +2541,6 @@ find_matching_primal_results(Result_candidate *p_rc,  Analysis *analy )
             p_i = (int *) p_pr->srec_map[i].list;
                 
             subr_qty = p_pr->srec_map[i].qty;
-            
-            for ( j = 0; j < subr_qty; j++ )
-            {
-                subrec_idx = p_i[j];
-                if ( p_rc->primal_superclasses[0]
-                     == p_subrecs[subrec_idx].p_object_class->superclass )
-                {
-                    if(subr_qty == 1 && primal_count == 1)
-                    {
-                        //We are done
-                        fprintf(stderr, "Primal %s: has only one solution class name %s, subrec_id %d\n", 
-                                p_rc->primals[0],  p_subrecs[subrec_idx].subrec.class_name,subrec_idx);
-                    }
-                }
-            }
         }
     
     }else
