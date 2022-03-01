@@ -1,137 +1,6 @@
 /* $Id$ */
 /*
- *
  * gui.c - Graphical user interface routines.
- *
- *      Donald J. Dovey
- *      Lawrence Livermore National Laboratory
- *      Apr 27 1992
- *
- ************************************************************************
- * Modifications:
- *  I. R. Corey - Oct 1, 2004:Changed reference to env variable GRIZ4HOME
- *  to GRIZHOME.
- *
- *  I. R. Corey - Jan 5, 2005: Added new option to allow for selecting
- *                a beta version of the code. This option (-beta) is
- *                also parsed by the griz4s shell script.
- *                See SCR #298.
- *
- *  I. R. Corey - Mar 29, 2005: Print list of in objects state records.
- *
- *  I. R. Corey - Apr 11, 2005: Increased length of cnt to 100 in
- *                function wrt_standard_db_text.
- *
- *  I. R. Corey - May 19, 2005: Added new option to allow for selecting
- *                a alpha version of the code. This option (-alpha) is
- *                also parsed by the griz4s shell script.
- *                See SCR #328.
- *
- *  I. R. Corey - Aug 26, 2005: Add option to hide result from pull-down
- *                list using new variable 'hide_in_menu'.
- *                See SRC# 339.
- *
- *  I. R. Corey - Jan 17, 2006: Add Rubberband zoom capability. Activated
- *                using control key with left mouse button.
- *                See SRC#354 .
- *
- *  I. R. Corey - Feb 02, 2006: Add a new capability to display meshless,
- *                particle-based results.
- *                See SRC#367.
- *
- *  I. R. Corey - October 24, 2006: Add a class selector to all vis/invis
- *                and enable/disable commands.
- *                See SRC#421.
- *
- *  I. R. Corey - Dec 16, 2006: Added full path name to plot window and remove
- *                from titlebar.
- *                See SRC#431.
- *
- *  I. R. Corey - Feb 12, 2007: Added wireframe viewing capability and added
- *                logic to fix degenerate polygon faces.
- *                See SRC#437.
- *
- *  I. R. Corey - Apr 25, 2007:	Added check to make sure we really had a
- *                button press.
- *
- *  I. R. Corey - Apr 27, 2007:	Added a new menu item and button for Help
- *                to display the PDF manual.
- *
- *  I. R. Corey - May 11, 2007:	Raise Utility and Control windows to the
- *                top.
- *                See SRC#456.
- *
- *  I. R. Corey - May 15, 2007:	Save/Restore window attributes.
- *                See SRC#458.
- *
- *  I. R. Corey - Aug 15, 2007:	Added menus for displaying TI results.
- *                See SRC#480.
- *
- *  I. R. Corey - Aug 24, 2007:	Made a minor adjustment to the RB zoom
- *                factor, set to 1.28 - RE Mark Gracia.
- *                See SRC#482.
- *
- *  I. R. Corey - Aug 24, 2007:	Added a new help button to display cur-
- *                rent release notes.
- *                See SRC#483.
- *
- *  I. R. Corey - Oct 04, 2007: Increase size of history buffer in control
- *                window to 25.
- *                See SRC#493.
- *
- *  I. R. Corey - Jan 09, 2008: Added button to utility menu for Greyscale
- *                              mode.
- *                See SRC#476.
- *
- *  I. R. Corey - Feb 12, 2008: Added a condition compile option for IRIX.
- *
- *  K. Durrenberger - April 29, 2008: added a define for the glwMDrawingAreaWidgetClass
- *                    to be compiled as glwDrawingAreaWidgetClass except on the
- *		      sun and irix systems.
- *
- *  I. R. Corey - Feb 12, 2008: Added a conditional compile option for
- *                              IRIX.
- *
- *  I. R. Corey - May 5, 2008: Added support for code usage tracking using
- *                the AX tracker tool.
- *                See SRC#533.
- *
- *  I. R. Corey - Aug 12, 2009: Rewrote the code to get blocking and class
- *                info for the wrt_standard_db_text() function.
- *                See SRC#621.
- *
- *  I. R. Corey - Nov 09, 2009: Added enhancements to better support
- *                running multiple sessions of Griz.
- *                See SRC#638.
- *
- *  I. R. Corey - Sept 14, 2010: Added support for tear-off menus.
- *                See SRC#686
- *
- *  I. R. Corey - June 1, 2011: Added support for long result menus using
- *                a multi-column layout.
- *
- *  I. R. Corey - April 8th, 2012: Completed development of surface class
- *                based on new requirements.
- *                See TeamForge#17795
- *
- *  I. R. Corey - May 2nd, 2012: Added path to top of window panes.
- *                See TeamForge#17900
- *
- *  I. R. Corey - July 26th, 2012: Added capability to plot a Modal
- *                database from Diablo.
- *                See TeamForge#18395 & 18396
- *
- *  I. R. Corey - October 18th, 2012: Fixed problem with output of blocking
- *                info.
- *
- *  I. R. Corey - November 14th, 2012: Removed code name & date from top
- *                of all windows and moved to Control Window text box.
- *
- *  I. R. Corey - March 20th, 2013:
- *                of all windows and moved to Control Window text box.
- *                See TeamForge#18395 & 18396
- *
- ************************************************************************
  */
 
 #include <stdlib.h>
@@ -467,7 +336,6 @@ static void stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
                              Boolean *continue_dispatch );
 static void find_ancestral_root_child( Widget widg, Window *root_child );
 static void create_app_widg( Btn_type btn );
-static void create_result_menus( Widget parent );
 static void create_derived_res_menu( Widget parent );
 static void create_primal_res_menu( Widget parent );
 static void create_ti_res_menu( Widget parent );
@@ -698,7 +566,6 @@ static Widget plot_coord_widg = NULL;
 static Widget x_coord_widg = NULL;
 static Widget y_coord_widg = NULL;
 static Widget menu_widg = NULL;
-static Widget ctl_menu_pane = NULL;
 static Widget derived_menu_widg = NULL;
 static Widget primal_menu_widg = NULL;
 static Widget ti_menu_widg = NULL;
@@ -709,8 +576,6 @@ static Widget mtl_base = NULL;
 static Widget surf_mgr_widg = NULL;
 static Widget surf_mgr_button = NULL;
 static Widget surf_base = NULL;
-static Widget util_button = NULL;
-static Widget quit_button = NULL;
 static Widget mtl_mgr_func_toggles[5];
 static Widget select_buttons[4];
 static Widget surf_mgr_func_toggles[SURF_FUNC_QTY];
@@ -736,7 +601,6 @@ static Widget stride_label = NULL;
 static Widget setpick_menu1_widg = NULL;
 static Widget setpick_menu2_widg = NULL;
 static Widget setpick_menu3_widg = NULL;
-static Widget colormap_menu_widg = NULL;
 
 typedef enum _shell_win_type
 {
@@ -1486,610 +1350,70 @@ gui_swap_buffers( void )
 #endif /* SERIAL_BATCH */
 }
 
-
-/*****************************************************************
- * TAG( create_menu_bar )
- *
- * Create the menu bar for the main window.
- */
-static Widget
-create_menu_bar( Widget parent, Analysis *analy )
+static void 
+sep( Widget parent )
 {
-    Widget menu_bar;
-    Widget cascade;
-    Widget menu_pane;
-    Widget button;
-    Widget colormap_menu;
-    Arg args[10];
-    int n;
-    static int btn_cpyright, 
-               btn_util_panel, 
-               btn_mtl_mgr,
-               btn_surf_mgr = BTN_SURF_MGR,
-               btn_save_session_global,
-               btn_save_session_plot,
-               btn_load_session_global,
-               btn_load_session_plot,
-               btn_quit;
-    
-    btn_cpyright = BTN_COPYRIGHT;
-    btn_util_panel = BTN_UTIL_PANEL;
-    btn_mtl_mgr = BTN_MTL_MGR; 
-    
-    XmString accel_str;
-
-    n = 0;
-    XtSetArg( args[n], XmNx, 0 );
-    n++;
-    XtSetArg( args[n], XmNx, 0 );
-    n++;
-    menu_bar = XmCreateMenuBar( parent, "menu_bar", args, n );
-    XtManageChild( menu_bar );
-
-    /****************/
-    /* Control menu.*/
-    /****************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    ctl_menu_pane = XmCreatePulldownMenu( menu_bar, "ctl_menu_pane", args, n );
-
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Copyright", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_cpyright );
-
-    /* If utility panel not part of control window, allow it from pulldown. */
-    if ( !include_util_panel )
-    {
-        accel_str = XmStringCreateSimple( "Ctrl+u" );
-        n = 0;
-        XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>u" );
-        n++;
-        XtSetArg( args[n], XmNacceleratorText, accel_str );
-        n++;
-        util_button = XmCreatePushButtonGadget( ctl_menu_pane, "Utility Panel",
-                                                args, n );
-        XmStringFree( accel_str );
-        XtManageChild( util_button );
-        XtAddCallback( util_button, XmNactivateCallback, menu_CB,
-                       &btn_util_panel );
-    }
-
-    accel_str = XmStringCreateSimple( "Ctrl+m" );
-    n = 0;
-    XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>m" );
-    n++;
-    XtSetArg( args[n], XmNacceleratorText, accel_str );
-    n++;
-    mtl_mgr_button = XmCreatePushButtonGadget( ctl_menu_pane, "Material Mgr",
-                     args, n );
-    XmStringFree( accel_str );
-    XtManageChild( mtl_mgr_button );
-    XtAddCallback( mtl_mgr_button, XmNactivateCallback, menu_CB,
-                   &btn_mtl_mgr );
-
-    if( env.curr_analy->mesh_table[0].surface_qty > 0 )
-    {
-        accel_str = XmStringCreateSimple( "Ctrl+s" );
-        n = 0;
-        XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>s" );
-        n++;
-        XtSetArg( args[n], XmNacceleratorText, accel_str );
-        n++;
-        surf_mgr_button = XmCreatePushButtonGadget( ctl_menu_pane, "Surface Mgr",
-                          args, n );
-        XmStringFree( accel_str );
-        XtManageChild( surf_mgr_button );
-        XtAddCallback( surf_mgr_button, XmNactivateCallback, menu_CB,
-                       &btn_surf_mgr);
-    }
-
-    n = 0;
-    button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
-    XtManageChild( button );
-    
-    btn_save_session_global = BTN_SAVE_SESSION_GLOBAL;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Save Session - Global", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_save_session_global );
-
-    btn_save_session_plot = BTN_SAVE_SESSION_PLOT;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Save Session - Plotfile", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_save_session_plot );
-
-
-    button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    btn_load_session_global = BTN_LOAD_SESSION_GLOBAL;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Load Session - Global", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_load_session_global );
-
-    btn_load_session_plot = BTN_LOAD_SESSION_PLOT;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Load Session - Plotfile", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_load_session_plot );
-
-    button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    btn_quit = BTN_QUIT;
-    accel_str = XmStringCreateSimple( "Ctrl+q" );
-    n = 0;
-    XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>q" );
-    n++;
-    XtSetArg( args[n], XmNacceleratorText, accel_str );
-    n++;
-    
-    quit_button = XmCreatePushButtonGadget( ctl_menu_pane, "Quit", args, n );
-    XmStringFree( accel_str );
-    XtManageChild( quit_button );
-    XtAddCallback( quit_button, XmNactivateCallback, menu_CB,
-                   &btn_quit);
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, ctl_menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Control", args, n );
-    XtManageChild( cascade );
-
-    /******************/
-    /* Rendering menu.*/
-    /******************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Solid", args, n );
-    XtManageChild( button );
-    static int btn_drawfilled = BTN_DRAWFILLED;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawfilled );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Hidden", args, n );
-    XtManageChild( button );
-    static int btn_drawhidden = BTN_DRAWHIDDEN;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawhidden );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe", args, n );
-    XtManageChild( button );
-    static int btn_drawwireframe = BTN_DRAWWIREFRAME;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawwireframe );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe Transparent", args, n );
-    XtManageChild( button );
-    static int btn_drawwireframetrans = BTN_DRAWWIREFRAMETRANS;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawwireframetrans );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Coord Sys On/Off", args, n );
-    XtManageChild( button );
-    static int btn_coordsys = BTN_COORDSYS;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_coordsys );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Title On/Off", args, n );
-    XtManageChild( button );
-    static int btn_title = BTN_TITLE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_title );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Time On/Off", args, n );
-    XtManageChild( button );
-    static int btn_time = BTN_TIME;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_time );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Colormap On/Off", args, n );
-    XtManageChild( button );
-    static int btn_colormap = BTN_COLORMAP;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_colormap );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Min/max On/Off", args, n );
-    XtManageChild( button );
-    static int btn_minmax = BTN_MINMAX;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_minmax );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Disp Scale On/Off", args, n );
-    XtManageChild( button );
-    static int btn_scale = BTN_SCALE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_scale );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Error Indicator On/Off", args, n );
-    XtManageChild( button );
-    static int btn_ei = BTN_EI;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_ei );
-
-    button = XmCreatePushButtonGadget( menu_pane, "All On", args, n );
-    XtManageChild( button );
-    static int btn_allon = BTN_ALLON;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_allon );
-
-    button = XmCreatePushButtonGadget( menu_pane, "All Off", args, n );
-    XtManageChild( button );
-    static int btn_alloff = BTN_ALLOFF;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_alloff );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Bound Box On/Off", args, n );
-    XtManageChild( button );
-    static int btn_bbox = BTN_BBOX;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_bbox );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Edges On/Off", args, n );
-    XtManageChild( button );
-    static int btn_edges = BTN_EDGES;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_edges );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Greyscale On/Off", args, n );
-    XtManageChild( button );
-    static int btn_gs = BTN_GS;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_gs );
-
-
-    if ( analy->free_nodes_found || analy->particle_nodes_found )
-    {
-        button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-        XtManageChild( button );
-
-        if ( analy->free_nodes_found )
-        {
-            button = XmCreatePushButtonGadget( menu_pane, "Free Nodes On/Off", args, n );
-            XtManageChild( button );
-            static int btn_fn = BTN_FN;
-            XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           &btn_fn );
-        }
-
-        if ( analy->particle_nodes_found )
-        {
-            button = XmCreatePushButtonGadget( menu_pane, "Particle Nodes On/Off", args, n );
-            XtManageChild( button );
-            static int btn_pn = BTN_PN;
-            XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           &btn_pn );
-        }
-    }
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Perspective", args, n );
-    XtManageChild( button );
-    static int btn_perspective = BTN_PERSPECTIVE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_perspective );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Orthographic", args, n );
-    XtManageChild( button );
-    static int btn_orthographic = BTN_ORTHOGRAPHIC;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_orthographic );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Adjust Near/Far", args, n );
-    XtManageChild( button );
-    static int btn_adjustnf = BTN_ADJUSTNF;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_adjustnf );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Reset View", args, n );
-    XtManageChild( button );
-    static int btn_resetview = BTN_RESETVIEW;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_resetview );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Supress Screen Refresh", args, n );
-    XtManageChild( button );
-    static int btn_su = BTN_SU;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_su );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    colormap_menu_widg = create_colormap_menu( menu_pane, BTN_CM_PICK,
-                         "Set Colormap" );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Rendering", args, n );
-    XtManageChild( cascade );
-
-    /****************/
-    /* Picking menu.*/
-    /****************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Mouse Hilite", args, n );
-    XtManageChild( button );
-    static int btn_hilite = BTN_HILITE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_hilite );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Mouse Select", args, n );
-    XtManageChild( button );
-    static int btn_select = BTN_SELECT;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_select );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Clear Hilite", args, n );
-    XtManageChild( button );
-    static int btn_clearhilite = BTN_CLEARHILITE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_clearhilite );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Clear Select", args, n );
-    XtManageChild( button );
-    static int btn_clearselect = BTN_CLEARSELECT;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_clearselect );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Clear All", args, n );
-    XtManageChild( button );
-    static int btn_clearall = BTN_CLEARALL;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_clearall );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    static int btn1_pick = BTN1_PICK;
-    static int btn2_pick = BTN2_PICK;
-    static int btn3_pick = BTN3_PICK;
-    setpick_menu1_widg = create_pick_menu( menu_pane, &btn1_pick,
-                                           "Set Btn 1 Pick" );
-    setpick_menu2_widg = create_pick_menu( menu_pane, &btn2_pick,
-                                           "Set Btn 2 Pick" );
-    setpick_menu3_widg = create_pick_menu( menu_pane, &btn3_pick,
-                                           "Set Btn 3 Pick" );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Center Hilite On", args, n);
-    XtManageChild( button );
-    static int btn_centeron = BTN_CENTERON;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_centeron );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Center Hilite Off", args, n);
-    XtManageChild( button );
-    static int btn_centeroff = BTN_CENTEROFF;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_centeroff );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Picking", args, n );
-    XtManageChild( cascade );
-
-    /************************************/
-    /* Build db-sensitive result menus. */
-    /************************************/
-    create_result_menus( menu_bar );
-
-    /* Time menu. */
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Next State", args, n );
-    XtManageChild( button );
-    static int btn_nextstate = BTN_NEXTSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_nextstate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Prev State", args, n );
-    XtManageChild( button );
-    static int btn_prevstate = BTN_PREVSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_prevstate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "First State", args, n );
-    XtManageChild( button );
-    static int btn_firststate = BTN_FIRSTSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_firststate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Last State", args, n );
-    XtManageChild( button );
-    static int btn_laststate = BTN_LASTSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_laststate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Animate States", args, n );
-    XtManageChild( button );
-    static int btn_animate = BTN_ANIMATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_animate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Stop Animate", args, n );
-    XtManageChild( button );
-    static int btn_stopanimate = BTN_STOPANIMATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_stopanimate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Continue Animate", args, n );
-    XtManageChild( button );
-    static int btn_contanimate = BTN_CONTANIMATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_contanimate );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Time", args, n );
-    XtManageChild( cascade );
-
-    /**************/
-    /* Plot menu. */
-    /**************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Time Hist Plot", args, n );
-    XtManageChild( button );
-    static int btn_timeplot = BTN_TIMEPLOT;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_timeplot );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Plot", args, n );
-    XtManageChild( cascade );
-
-    /**************/
-    /* Help menu. */
-    /**************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Display Griz Manual", args, n );
-    XtManageChild( button );
-    static int btn_help = BTN_HELP;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_help );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Display Release Notes", args, n );
-    XtManageChild( button );
-    static int btn_relnotes = BTN_RELNOTES;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_relnotes );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Help", args, n );
-
-    XtManageChild( cascade );
-
-    return( menu_bar );
+    XtManageChild( XmCreateSeparatorGadget( parent, "separator", NULL, 0 ) );
 }
 
-
-/*****************************************************************
- * TAG( create_result_menus )
- *
- * Create the results menu(s) for the Control window menu bar.
- */
 static void
-create_result_menus( Widget parent )
+add_simple_button( Widget parent, char * label, XtCallbackProc cback, XtPointer cback_args )
 {
-    int n;
-    Arg args[10];
-    Widget cascade;
-    Analysis *analy;
-
-    analy = env.curr_analy;
-
-    /* Create new result menus. */
-    create_derived_res_menu( parent );
-    create_primal_res_menu( parent );
-
-    /* Bring up TI menus if TI data is found */
-    if (  analy->ti_data_found )
-        create_ti_res_menu( parent );
-
-    /* Create cascade buttons for the new menus. */
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, derived_menu_widg );
-    n++;
-    cascade = XmCreateCascadeButton( parent, derived_menu_name, args, n );
-    XtManageChild( cascade );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, primal_menu_widg );
-    n++;
-    cascade = XmCreateCascadeButton( parent, primal_menu_name, args, n );
-    XtManageChild( cascade );
-
-    /* Create cascade buttons for TI menus */
-#ifdef TIGUI
-    if (  analy->ti_data_found )
-    {
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, ti_menu_widg );
-        n++;
-        cascade = XmCreateCascadeButton( parent, ti_menu_name,
-                                         args, n );
-        XtManageChild( cascade );
-    }
-#endif
+    Widget button = XmCreatePushButtonGadget( parent, label, NULL, 0 );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, cback, cback_args );
 }
 
+static void
+add_shortcut_button( Widget parent, char * label, char * key_label, char * key_combo, XtCallbackProc cback, XtPointer cback_args )
+{
+    Arg args[2];
+    XmString key_label_str = XmStringCreateSimple( key_label );
+    XtSetArg( args[0], XmNaccelerator, key_combo );
+    XtSetArg( args[1], XmNacceleratorText, key_label_str );
+    Widget button = XmCreatePushButtonGadget( parent, label, args, 2 );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, cback, cback_args );
+    XmStringFree( key_label_str );
+}
+
+static void 
+add_menu_buttons( Widget parent, int count, char * labels[], XtCallbackProc cback, int cback_ids[] )
+{
+    int ii = 0; 
+    for( ii = 0; ii < count; ++ii )
+    {
+        if( cback_ids[ii] != -1 )
+        {
+            add_simple_button( parent, labels[ii], cback, &cback_ids[ii] );
+        }
+        else
+        {
+            sep( parent );
+        }
+    }
+}
 
 static void 
 add_show_button( Widget parent, char * label, char * show_name )
 {
-    Widget button = XmCreatePushButtonGadget( parent, label, NULL, 0 );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB, show_name );
+    add_simple_button( parent, label, res_menu_CB, show_name );
 }
 
 static Widget
 add_pulldown_submenu( Widget parent, char * label )
 {
-    Arg args[1];
-    int n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    Widget pulldown = XmCreatePulldownMenu( parent, "pulldown", args, n );
+    Arg arg;
+    XtSetArg( arg, XmNtearOffModel, XmTEAR_OFF_ENABLED );
+    Widget pulldown = XmCreatePulldownMenu( parent, "pulldown", &arg, 1 );
 
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, pulldown );
-    n++;
-    Widget cascade = XmCreateCascadeButton( parent, label, args, n );
-    XtManageChild( cascade );
+    XtSetArg( arg, XmNsubMenuId, pulldown );
+    XtManageChild( XmCreateCascadeButton( parent, label, &arg, 1 ) );
 
     return pulldown;
 }
+
+///// TEMP BELOW HERE
 
 // check if the primal result has all of the components in the svar, in any order
 // basically check if the primal result svar comps are a superset of the passed svard comps
@@ -2177,6 +1501,257 @@ es_try_add_subset_result_buttons( Widget parent, Primal_result * p_pr, char * sv
         }
     }
 }
+
+///// TEMP ABOVE HERE
+
+
+/*****************************************************************
+ * TAG( create_menu_bar )
+ *
+ * Create the menu bar for the main window.
+ */
+static Widget
+create_menu_bar( Widget parent, Analysis *analy )
+{
+    Widget menu_bar = XmCreateMenuBar( parent, "menu_bar", NULL, 0 );
+    XtManageChild( menu_bar );
+
+    /* Control menu.*/
+    Widget menu_pane = add_pulldown_submenu( menu_bar, "Control" );
+
+    int btn_cpyright = BTN_COPYRIGHT;
+    add_simple_button( menu_pane, "Copyright", menu_CB, &btn_cpyright );
+
+    /* If utility panel not part of control window, allow it from pulldown. */
+    if ( !include_util_panel )
+    {
+        static int btn_util_panel = BTN_UTIL_PANEL;
+        add_shortcut_button( menu_pane, "Utility Panel", "Ctrl+u", "Ctrl<Key>u", menu_CB, &btn_util_panel );
+    }
+
+    static int btn_mtl_mgr = BTN_MTL_MGR;
+    add_shortcut_button( menu_pane, "Material Mgr", "Ctrl+m", "Ctrl<Key>m", menu_CB, &btn_mtl_mgr );
+
+    if( env.curr_analy->mesh_table[0].surface_qty > 0 )
+    {
+        static int btn_surf_mgr = BTN_SURF_MGR;
+        add_shortcut_button( menu_pane, "Surface Mgr", "Ctrl+s", "Ctrl<Key>s", menu_CB, &btn_surf_mgr );
+    }
+
+    static int ctl_btn_ids[] = 
+    {
+        -1,
+        BTN_SAVE_SESSION_GLOBAL,
+        BTN_SAVE_SESSION_PLOT,
+        -1,
+        BTN_LOAD_SESSION_GLOBAL,
+        BTN_LOAD_SESSION_PLOT,
+        -1
+    };
+    char * ctl_btn_labels[] = 
+    { 
+        "---",
+        "Save Session - Global",
+        "Save Session - Plotfile",
+        "---",
+        "Load Session - Global",
+        "Load Session - Plotfile",
+        "---"
+    };
+    add_menu_buttons( menu_pane, sizeof(ctl_btn_ids) / sizeof(ctl_btn_ids[0]), ctl_btn_labels, menu_CB, ctl_btn_ids );
+
+    static int btn_quit = BTN_QUIT;
+    add_shortcut_button( menu_pane, "Quit", "Ctrl+q", "Ctrl<Key>q", menu_CB, &btn_quit);
+
+    /* Rendering menu.*/
+    menu_pane = add_pulldown_submenu( menu_bar, "Rendering" );
+    static int render_btn_ids[] = 
+    {
+        BTN_DRAWFILLED,
+        BTN_DRAWHIDDEN,
+        BTN_DRAWWIREFRAME,
+        BTN_DRAWWIREFRAMETRANS,
+        BTN_COORDSYS,
+        BTN_TITLE,
+        BTN_TIME,
+        BTN_COLORMAP,
+        BTN_MINMAX,
+        BTN_SCALE,
+        BTN_EI,
+        BTN_ALLON,
+        BTN_ALLOFF,
+        BTN_BBOX,
+        BTN_EDGES,
+        BTN_GS
+    };
+    char * render_btn_labels[] = 
+    {
+        "Draw Solid", 
+        "Draw Hidden", 
+        "Draw Wireframe", 
+        "Draw Wireframe Transparent", 
+        "Coord Sys On/Off", 
+        "Title On/Off", 
+        "Time On/Off", 
+        "Colormap On/Off", 
+        "Min/max On/Off", 
+        "Disp Scale On/Off", 
+        "Error Indicator On/Off", 
+        "All On", 
+        "All Off", 
+        "Bound Box On/Off", 
+        "Edges On/Off", 
+        "Greyscale On/Off",
+    };
+    add_menu_buttons( menu_pane, sizeof(render_btn_ids) / sizeof(render_btn_ids[0]), render_btn_labels, menu_CB, render_btn_ids );
+
+    if ( analy->free_nodes_found || analy->particle_nodes_found )
+    {
+        static int render_btn_ids_2[] = 
+        {
+            -1,
+            BTN_FN,
+            BTN_PN,
+        };
+        char * render_btn_labels_2[] = 
+        { 
+            "---",
+            "Free Nodes On/Off",
+            "Particle Nodes On/Off"
+        };
+        add_menu_buttons( menu_pane, sizeof(render_btn_ids_2) / sizeof(render_btn_ids_2[0]), render_btn_labels_2, menu_CB, render_btn_ids_2 );
+    }
+
+    static int render_btn_ids_3[] = 
+    {
+        -1,
+        BTN_PERSPECTIVE,
+        BTN_ORTHOGRAPHIC,
+        -1,
+        BTN_ADJUSTNF,
+        -1,
+        BTN_RESETVIEW,
+        BTN_SU,
+        -1
+    };
+    char * render_btn_labels_3[] = 
+    { 
+        "---",
+        "Perspective",
+        "Orthographic",
+        "---",
+        "Adjust Near/Far",
+        "---",
+        "Reset View",
+        "Supress Screen Refresh",
+        "---"
+    };
+    add_menu_buttons( menu_pane, sizeof(render_btn_ids_3) / sizeof(render_btn_ids_3[0]), render_btn_labels_3, menu_CB, render_btn_ids_3 );
+
+    create_colormap_menu( menu_pane, BTN_CM_PICK, "Set Colormap" );
+
+    /* Picking menu.*/
+    menu_pane = add_pulldown_submenu( menu_bar, "Picking" );
+
+    static int pick_btn_ids[] = 
+    {
+        BTN_HILITE,
+        BTN_SELECT,
+        -1,
+        BTN_CLEARHILITE,
+        BTN_CLEARSELECT,
+        BTN_CLEARALL,
+        -1
+    };
+    char * pick_btn_labels[] = 
+    { 
+        "Mouse Hilite",
+        "Mouse Select",
+        "---",
+        "Clear Hilite",
+        "Clear Select",
+        "Clear All",
+        "---"
+    };
+    add_menu_buttons( menu_pane, sizeof(pick_btn_ids) / sizeof(pick_btn_ids[0]), pick_btn_labels, menu_CB, pick_btn_ids );
+
+    static int btn1_pick = BTN1_PICK;
+    setpick_menu1_widg = create_pick_menu( menu_pane, &btn1_pick, "Set Btn 1 Pick" );
+    static int btn2_pick = BTN2_PICK;
+    setpick_menu2_widg = create_pick_menu( menu_pane, &btn2_pick, "Set Btn 2 Pick" );
+    static int btn3_pick = BTN3_PICK;
+    setpick_menu3_widg = create_pick_menu( menu_pane, &btn3_pick, "Set Btn 3 Pick" );
+
+    static int pick_btn_ids_2[] = 
+    {
+        -1,
+        BTN_CENTERON,
+        BTN_CENTEROFF,
+    };
+    char * pick_btn_labels_2[] = 
+    { 
+        "---",
+        "Center Hilite On",
+        "Center Hilite Off",
+    };
+    add_menu_buttons( menu_pane, sizeof(pick_btn_ids_2) / sizeof(pick_btn_ids_2[0]), pick_btn_labels_2, menu_CB, pick_btn_ids_2 );
+
+    /* Build db-sensitive result menus. */
+    create_derived_res_menu( menu_bar );
+    create_primal_res_menu( menu_bar );
+
+#ifdef TIGUI
+    /* Bring up TI menus if TI data is found */
+    if (  analy->ti_data_found )
+        create_ti_res_menu( menu_bar );
+#endif
+
+    /* Time menu. */
+    menu_pane = add_pulldown_submenu( menu_bar, "Time" );
+    static int time_btn_ids[] = 
+    {
+        BTN_NEXTSTATE,
+        BTN_PREVSTATE,
+        BTN_FIRSTSTATE,
+        BTN_LASTSTATE,
+        BTN_ANIMATE,
+        BTN_STOPANIMATE,
+        BTN_CONTANIMATE
+    };
+    char * time_btn_labels[] = 
+    { 
+        "Next State",
+        "Prev State",
+        "First State",
+        "Last State",
+        "Animate States",
+        "Stop Animate",
+        "Continue Animate",
+    };
+    add_menu_buttons( menu_pane, sizeof(time_btn_ids) / sizeof(time_btn_ids[0]), time_btn_labels, menu_CB, time_btn_ids );
+
+    /* Plot menu. */
+    menu_pane = add_pulldown_submenu( menu_bar, "Plot" );
+    static int btn_timeplot = BTN_TIMEPLOT;
+    add_simple_button( menu_pane, "Time Hist Plot", menu_CB, &btn_timeplot );
+
+    /* Help menu. */
+    menu_pane = add_pulldown_submenu( menu_bar, "Help" );
+    static int help_btn_ids[] = 
+    {
+        BTN_HELP,
+        BTN_RELNOTES
+    };
+    char * help_btn_labels[] = 
+    { 
+        "Display Griz Manual",
+        "Display Release Notes"
+    };
+    add_menu_buttons( menu_pane, sizeof(help_btn_ids) / sizeof(help_btn_ids[0]), help_btn_labels, menu_CB, help_btn_ids );
+
+    return menu_bar;
+}
+
 
 
 /*****************************************************************
@@ -3168,13 +2743,17 @@ create_derived_res_menu( Widget parent )
     n = 0;
     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
     n++;
-    derived_menu_widg = XmCreatePulldownMenu( parent, "derived_menu_pane",
-                        args, n );
+    derived_menu_widg = XmCreatePulldownMenu( parent, "derived_menu_pane", args, n );
+    
+    n = 0;
+    XtSetArg( args[n], XmNsubMenuId, derived_menu_widg );
+    n++;
+    Widget cascade = XmCreateCascadeButton( parent, derived_menu_name, args, n );
+    XtManageChild( cascade );
 
     /* Always add an entry to show materials. */
     n = 0;
-    button = XmCreatePushButtonGadget( derived_menu_widg, "Result off",
-                                       args, n );
+    button = XmCreatePushButtonGadget( derived_menu_widg, "Result off", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
 
@@ -3286,6 +2865,13 @@ create_primal_res_menu( Widget parent )
     n++;
     primal_menu_widg = XmCreatePulldownMenu( parent, "primal_menu_pane", args, n );
 
+    n = 0;
+    XtSetArg( args[n], XmNsubMenuId, primal_menu_widg );
+    n++;
+    Widget cascade = XmCreateCascadeButton( parent, primal_menu_name, args, n );
+    XtManageChild( cascade );
+
+
     /* Always add an entry to show materials. */
     n = 0;
     button = XmCreatePushButtonGadget( primal_menu_widg, "Result off", args, n );
@@ -3379,13 +2965,17 @@ create_ti_res_menu( Widget parent )
     n = 0;
     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
     n++;
-    ti_menu_widg = XmCreatePulldownMenu( parent, "ti_menu_pane",
-                                         args, n );
+    ti_menu_widg = XmCreatePulldownMenu( parent, "ti_menu_pane", args, n );
+
+    n = 0;
+    XtSetArg( args[n], XmNsubMenuId, ti_menu_widg );
+    n++;
+    Widget cascade = XmCreateCascadeButton( parent, ti_menu_name, args, n );
+    XtManageChild( cascade );
 
     /* Always add an entry to show materials. */
     n = 0;
-    button = XmCreatePushButtonGadget( ti_menu_widg, "Result off",
-                                       args, n );
+    button = XmCreatePushButtonGadget( ti_menu_widg, "Result off", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
 
@@ -5378,24 +4968,21 @@ create_utility_panel( Widget main_widg )
     if ( width > child_width )
         child_width = width;
     static int btn1_pick = BTN1_PICK;
-    util_render_btns[BTN1_PICK] = create_pick_menu( rend_child, &btn1_pick,
-                                  NULL );
+    util_render_btns[BTN1_PICK] = create_pick_menu( rend_child, &btn1_pick, NULL );
     XtVaGetValues( util_render_btns[BTN1_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
     XtOverrideTranslations( util_render_btns[BTN1_PICK], key_trans );
     static int btn2_pick = BTN2_PICK;
-    util_render_btns[BTN2_PICK] = create_pick_menu( rend_child, &btn2_pick,
-                                  NULL );
+    util_render_btns[BTN2_PICK] = create_pick_menu( rend_child, &btn2_pick, NULL );
     XtVaGetValues( util_render_btns[BTN2_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
     XtOverrideTranslations( util_render_btns[BTN2_PICK], key_trans );
     static int btn3_pick = BTN3_PICK;
-    util_render_btns[BTN3_PICK] = create_pick_menu( rend_child, &btn3_pick,
-                                  NULL );
+    util_render_btns[BTN3_PICK] = create_pick_menu( rend_child, &btn3_pick, NULL );
     XtVaGetValues( util_render_btns[BTN3_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
@@ -5473,42 +5060,29 @@ create_utility_panel( Widget main_widg )
  * classes for pick actions.
  */
 static Widget
-create_pick_menu( Widget parent, int *btn_type,
-                  char *cascade_name )
+create_pick_menu( Widget parent, int *btn_type, char *cascade_name )
 {
-    int n;
     Arg args[5];
-    Widget pick_menu;
-    Widget menu, initial_class_btn;
 
-    pick_menu = create_pick_submenu( parent, btn_type, cascade_name,
-                                     &initial_class_btn );
-
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    XtSetArg( args[n], XmNsubMenuId, pick_menu );
-    n++;
-
+    Widget initial_class_btn;
+    Widget pick_menu = create_pick_submenu( parent, btn_type, cascade_name, &initial_class_btn );
+    XtSetArg( args[0], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+    XtSetArg( args[1], XmNsubMenuId, pick_menu );
+    Widget menu;
     if ( cascade_name == NULL )
     {
         /* Create an option menu. */
-        XtSetArg( args[n], XmNmenuHistory, initial_class_btn );
-        n++;
-        XtSetArg( args[n], XmNmarginHeight, 0 );
-        n++;
-        XtSetArg( args[n], XmNmarginWidth, 0 );
-        n++;
-        menu = XmCreateOptionMenu( parent, "pick_option", args, n );
+        XtSetArg( args[2], XmNmenuHistory, initial_class_btn );
+        XtSetArg( args[3], XmNmarginHeight, 0 );
+        XtSetArg( args[4], XmNmarginWidth, 0 );
+        menu = XmCreateOptionMenu( parent, "pick_option", args, 5 );
     }
     else
     {
         /* Create a cascade menu. */
-        menu = XmCreateCascadeButton( parent, cascade_name, args, n );
+        menu = XmCreateCascadeButton( parent, cascade_name, args, 2 );
     }
-
     XtManageChild( menu );
-
     return menu;
 }
 
@@ -5520,8 +5094,7 @@ create_pick_menu( Widget parent, int *btn_type,
  * select mesh object classes for pick actions.
  */
 static Widget
-create_pick_submenu( Widget parent, int *btn_type,
-                     char *cascade_name, Widget *p_initial_button )
+create_pick_submenu( Widget parent, int *btn_type, char *cascade_name, Widget *p_initial_button )
 {
     int n, i, j;
     int *nbtn_type = (int*)btn_type;
