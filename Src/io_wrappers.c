@@ -106,7 +106,7 @@ determine_naming( char *p_name , State_variable *p_sv)
    {
        return NULL;
    }
-   if(!strcmp(p_name,"strain") || !strcmp(p_name,"stress"))
+   if(!strcmp(p_name,stress_str) || !strcmp(p_name,strain_str))
    {
        return NULL;
    }
