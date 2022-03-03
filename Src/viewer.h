@@ -1917,8 +1917,8 @@ extern void model_history_log_update( char *command, Analysis *analy );
 extern void model_history_log_comment(char *comment, Analysis *analy);
 extern void model_history_log_run( Analysis * analy );
 
-extern char *griz_version;
-extern char *particle_cname;
+extern char * griz_version;
+extern char * particle_cname;
 extern Database_type_griz db_type;
 
 /* faces.c */
@@ -1950,9 +1950,7 @@ extern void get_hex_face_verts( int, int, MO_class_data *, Analysis *,
                                 float [][3] );
 extern void get_pyramid_face_verts( int, int, MO_class_data *, Analysis *,
                                     float [][3] );
-void
-get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class,
-                    Analysis *analy, int *faceNodes );
+void get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class, Analysis *analy, int *faceNodes );
 extern void get_hex_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_pyramid_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_particle_verts( int, MO_class_data *, Analysis *, float [][3] );
@@ -2297,7 +2295,9 @@ extern void update_cursor_vals( void );
 extern void set_plot_win_params( float, float, float, float, float *, float * );
 extern void suppress_display_updates( Bool_type );
 extern void write_start_text( void );
-extern void init_griz_name( Analysis *analy  );
+
+extern char * make_path_str( Analysis * analy );
+extern char * make_griz_name( Analysis * analy, char * vstr );
 
 /* DERIVED VARIABLES. */
 
@@ -2429,66 +2429,43 @@ extern void get_class_nodes ( int superclass, Mesh_data *p_mesh,
 extern void compute_global_acceleration( Analysis *, float *, Bool_type );
 /* frame.c */
 
-extern void global_to_local_mtx( Analysis *, MO_class_data *, int,
-                                 Bool_type, GVec3D2P *,
-                                 float [3][3] );
-extern void global_to_local_tri_mtx( Analysis *, MO_class_data *, int,
-                                     Bool_type, GVec3D2P *,
-                                     float [3][3] );
-extern Bool_type transform_stress_strain( char **, int, Analysis *,
-        float [3][3], float * );
+extern void global_to_local_mtx( Analysis *, MO_class_data *, int, Bool_type, GVec3D2P *, float [3][3] );
+extern void global_to_local_tri_mtx( Analysis *, MO_class_data *, int, Bool_type, GVec3D2P *, float [3][3] );
+extern Bool_type transform_stress_strain( char **, int, Analysis *, float [3][3], float * );
 extern void transform_tensors( int, double (*)[6], float [][3] );
 extern void transform_tensors_1p( int, float (*)[6], float [][3] );
 
 /* explode.c */
-extern int associate_matl_exp( int token_cnt,
-                               char tokens[MAXTOKENS][TOKENLENGTH],
-                               Analysis *analy, Exploded_view_type exp );
-extern void explode_materials( int token_cnt,
-                               char tokens[MAXTOKENS][TOKENLENGTH],
-                               Analysis *analy, Bool_type scaled );
+extern int associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], Analysis *analy, Exploded_view_type exp );
+extern void explode_materials( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], Analysis *analy, Bool_type scaled );
 extern void free_matl_exp( void );
-extern void remove_exp_assoc( int token_cnt,
-                              char tokens[MAXTOKENS][TOKENLENGTH] );
+extern void remove_exp_assoc( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] );
 extern void report_exp_assoc( void );
 
 /* init_io.c */
+extern void parse_griz_init_file( void ); // maybe into interpret.c instead?
 extern Bool_type is_known_db( char *fname, Database_type_griz *p_db_type );
 extern Bool_type init_db_io( Database_type_griz db_type, Analysis *analy );
 extern void reset_db_io( Database_type_griz db_type );
 
 /* tell.c */
-extern void parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
-                                int token_cnt, Bool_type ignore_tell_token,
-                                Redraw_mode_type *p_redraw );
+extern void parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH], int token_cnt, Bool_type ignore_tell_token, Redraw_mode_type *p_redraw );
 
 /* damage.c */
-extern void compute_hex_damage( Analysis *analy, float *resultArr,
-                                Bool_type interpolate );
+extern void compute_hex_damage( Analysis *analy, float *resultArr, Bool_type interpolate );
 
 /* free node functions  - an = all nodes counted, not just free nodes */
 
 extern int *get_free_nodes( Analysis *analy );
-extern void compute_fnmass( Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
-extern void compute_anmass( Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
-extern void compute_fnmoment( Analysis *analy, float *resultArr,
-                              Bool_type interpolate );
-extern void compute_anmoment( Analysis *analy, float *resultArr,
-                              Bool_type interpolate );
-extern void compute_fnvol(  Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
-extern void compute_anvol(  Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
+extern void compute_fnmass( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_anmass( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_fnmoment( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_anmoment( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_fnvol(  Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_anvol(  Analysis *analy, float *resultArr, Bool_type interpolate );
 
-extern void write_griz_session_file( Analysis *analy, Session *session,
-                                     char *sessionFileName,
-                                     int session_id, Bool_type global );
-
-extern int read_griz_session_file( Session *session,
-                                   char *sessionFileName,
-                                   int session_id, Bool_type global );
+extern void write_griz_session_file( Analysis *analy, Session *session, char *sessionFileName, int session_id, Bool_type global );
+extern int read_griz_session_file( Session *session, char *sessionFileName, int session_id, Bool_type global );
 
 char *get_VersionInfo( Analysis * );
 extern char *bi_date(void);

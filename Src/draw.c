@@ -15441,7 +15441,7 @@ static void
 draw_locref_hex( Analysis *analy )
 {
     int j;
-    float vi[3], vj[3], vk[3], vd[3];
+    float visual_info[3], vj[3], vk[3], vd[3];
     float len;
     Transf_mat tmat;
     float pt[3], pto[3], pti[3], ptj[3], ptk[3];
@@ -15503,10 +15503,10 @@ draw_locref_hex( Analysis *analy )
             /*
              *  "i" axis is the direction from node 1 to node 2
              */
-            vi[0] = x[n2] - x[n1];
-            vi[1] = y[n2] - y[n1];
-            vi[2] = z[n2] - z[n1];
-            len = VEC_LENGTH( vi );
+            visual_info[0] = x[n2] - x[n1];
+            visual_info[1] = y[n2] - y[n1];
+            visual_info[2] = z[n2] - z[n1];
+            len = VEC_LENGTH( visual_info );
 
             /*
              *  Vector "D" is the direction from node 1 to node 4
@@ -15518,22 +15518,22 @@ draw_locref_hex( Analysis *analy )
             /*
              * Normalize the reference vectors
              */
-            vec_norm(vi);
+            vec_norm(visual_info);
             vec_norm(vd);
 
             /*
              *  "k" axis is cross-product of "i" and vector "D"
              */
-            VEC_CROSS( vk, vi, vd );
+            VEC_CROSS( vk, visual_info, vd );
 
             /*
              *  "j" axis is cross-product of "k" and "i"
              */
-            VEC_CROSS( vj, vk, vi );
+            VEC_CROSS( vj, vk, visual_info );
 
             for ( j = 0; j < 3; j++ )
             {
-                tmat.mat[0][j] = vi[j];
+                tmat.mat[0][j] = visual_info[j];
                 tmat.mat[1][j] = vj[j];
                 tmat.mat[2][j] = vk[j];
                 tmat.mat[3][j] = pto[j];
