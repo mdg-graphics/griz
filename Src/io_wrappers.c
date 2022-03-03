@@ -93,6 +93,8 @@ determine_naming( char *p_name , State_variable *p_sv)
    // Unfortunately we need to hard code what we are looking for
    // in the database.  If another case appears it needs to be
    // added here.
+   static const char* stress_str = "stress";
+   static const char* strain_str = "strain";
    char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
    char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
    int int_array[6]={0};
@@ -134,9 +136,7 @@ determine_naming( char *p_name , State_variable *p_sv)
 
    if(valid)
    {
-       return_value = (char*)malloc(7);
-       strcpy(return_value,"stress");
-       return return_value;
+       return stress_str;
    }
 
    /* Well we might as well check for strains if we made it this far. */
@@ -169,9 +169,7 @@ determine_naming( char *p_name , State_variable *p_sv)
 
    if(valid)
    {
-       return_value = (char*)malloc(7);
-       strcpy(return_value,"strain");
-       return return_value;
+       return strain_str;
    }
 
    return NULL;
@@ -2139,7 +2137,6 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             {
                 strcpy(p_pr->long_name,"Strain");
             }
-            free(es_short_name);
         }
 
         p_pr->origin.is_primal = 1;
