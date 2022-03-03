@@ -55,6 +55,7 @@
 #define RESULTS_H
 
 #include "misc.h"
+typedef struct _subrec_obj Subrec_obj; // Forward declaration so it can be used in Primal_result.
 
 typedef struct _result_origin_flags
 {
@@ -114,14 +115,12 @@ typedef struct _es_result_candidate
     Bool_type single_precision_input;
     Bool_type hide_in_menu ;
     void (*compute_func)();
-    /*void (*primal_func)();*/
     Bool_type (*check_compute_func)();
     char **short_names;
     char **long_names;
     char **primals;
     int *primal_superclasses;
 } es_Result_candidate;
-
 
 typedef struct _list_head
 {
@@ -167,11 +166,17 @@ typedef struct _list_head
  */
 typedef struct _primal_result
 {
-    State_variable *var;
-    Result_origin_flags origin;
-    List_head *srec_map;
     char *short_name;
     char *long_name;
+    State_variable *var;
+    Result_origin_flags origin;
+    List_head *srec_map;        // List of subrec numbers.
+    Subrec_obj **subrecs;         // List of Subrec_objs
+    int qty_subrecs;
+    Bool_type is_shared;        // Is the result shared by multiple element classes
+    int possible_owning_vec_count;
+    struct _primal_result **possible_owning_vector_result;
+    char **original_names_per_subrec;
     Bool_type in_menu;
 } Primal_result;
 

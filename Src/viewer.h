@@ -491,6 +491,23 @@ typedef struct _result_mo_list_obj
 
 
 /*****************************************************************
+ * TAG( ElementSet )
+ *
+ * Information about a Element Set.
+ */
+typedef struct _ElementSet
+{
+  int size;                 /* Size of the integration_points in the array */
+  int * integration_points;  /* The actual integration point put out by the code the int at
+                               size is the simulation actual integration points processed*/
+  int current_index;        /* The selected integration point by the user. Default is zero? */
+  int tempIndex;
+  int middle_index;
+  int material_number;
+} ElementSet;
+
+
+/*****************************************************************
  * TAG( Subrec_obj )
  *
  * Information about a subrecord of a state record format.
@@ -503,6 +520,7 @@ typedef struct _subrec_obj
     int *referenced_nodes;
     int ref_node_qty;
     Subrecord subrec;
+    ElementSet *element_set;
 
     /*
      * Handle for temporary storage of references to results

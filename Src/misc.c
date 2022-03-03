@@ -871,20 +871,54 @@ void
 delete_primal_result( void *p_primal_result )
 {
     Primal_result *p_pr;
-    int i;
+    int i,j;
 
     p_pr = (Primal_result *) p_primal_result;
+    if(p_pr->long_name == NULL)
+    {
+       p_primal_result = NULL;
+       return;
+    }
+    free( p_pr->long_name );
+    p_pr->long_name = NULL;
+    free( p_pr->short_name );
+    p_pr->short_name = NULL;
 
-    if ( p_pr->origin.is_alias )
-        free( p_pr->long_name );
+    //These are just null and freed elsewhere
+    for(i=0;i<p_pr->possible_owning_vec_count;i++)
+    {
+        p_pr->possible_owning_vector_result[i] = NULL;
+    }
 
     for ( i = 0; i < env.curr_analy->qty_srec_fmts; i++ )
+    {
         if ( p_pr->srec_map[i].qty != 0 )
+        {
+            if(p_pr->original_names_per_subrec != NULL)
+            {
+                for(j=0; j<p_pr->srec_map[i].qty;j++)
+                {
+                    free( p_pr->original_names_per_subrec[j]);
+                    p_pr->original_names_per_subrec[j] = NULL;
+                }
+            }
             free( p_pr->srec_map[i].list );
+        }
+    }
 
     free( p_pr->srec_map );
 
-    free( p_pr );
+    if(p_pr->original_names_per_subrec != NULL)
+    {
+        free( p_pr->original_names_per_subrec);
+        p_pr->original_names_per_subrec = NULL;
+    }
+
+    free( p_pr->subrecs);
+
+    free( p_primal_result );
+    p_primal_result = NULL;
+    p_pr= NULL;
 }
 
 

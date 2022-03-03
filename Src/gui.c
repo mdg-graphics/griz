@@ -2016,70 +2016,15 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
 static void
 get_primal_submenu_name( Analysis *analy, Primal_result *p_pr, char *name )
 {
-    Subrecord *p_subrec;
-    char **class_names;
-    int qty, subr_qty;
-    int *subr_indxs;
-    int i, j, k;
-    Bool_type done;
-    Htable_entry *p_hte;
-    MO_class_data *p_mo_class;
-
-    qty = 0;
-    done = FALSE;
-    class_names = NULL;
-    for ( i = 0; i < analy->qty_srec_fmts && !done; i++ )
-    {
-        subr_qty = p_pr->srec_map[i].qty;
-
-        if ( subr_qty == 0 )
-            continue;
-
-        subr_indxs = (int *) p_pr->srec_map[i].list;
-
-        for ( j = 0; j < p_pr->srec_map[i].qty; j++ )
-        {
-            p_subrec = &analy->srec_tree[i].subrecs[ subr_indxs[j] ].subrec;
-
-            /* Search through existing class names to see if this is new. */
-            for ( k = 0; k < qty; k++ )
-                if ( strcmp( p_subrec->class_name, class_names[k] ) == 0 )
-                    break;
-
-            if ( k == qty )
-            {
-                /* New class name; add it to list. */
-                class_names = RENEW_N( char *, class_names, qty, 1, "Extend class name list" );
-                griz_str_dup( class_names + qty, p_subrec->class_name );
-                qty++;
-
-                /* If we see more than one class name, menu is "Shared". */
-                if ( qty > 1 )
-                {
-                    done = TRUE;
-                    break;
-                }
-            }
-        }
-    }
-
-    if ( qty == 1 )
-    {
-        /* Only saw one class, so submenu name is class name. */
-
-        /* Need to look up the long name. */
-        htable_search( MESH_P( analy )->class_table, class_names[0], FIND_ENTRY, &p_hte );
-        p_mo_class = (MO_class_data *) p_hte->data;
-        sprintf( name, "%s (%s)", p_mo_class->long_name, class_names[0] );
-    }
-    else
-        /* Saw multiple classes, menu is "Shared". */
+    if ( p_pr->is_shared ){
         strcpy( name, "Shared" );
-
-    /* Clean-up. */
-    for ( i = 0; i < qty; i++ )
-        free( class_names[i] );
-    free( class_names );
+    }
+    else{
+        /* Only one class, so submenu name is class name. */
+        sprintf(name, "%s (%s)",
+                p_pr->subrecs[0]->p_object_class->long_name,
+                p_pr->subrecs[0]->p_object_class->short_name);
+    }
 }
 
 

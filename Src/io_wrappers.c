@@ -79,6 +79,103 @@ char        *get_subrecord( Analysis *analy, int num );
 
 int mili_compare_labels( const void *label1, const void *label2 );
 
+/************************************************************
+ * TAG( determine_naming )
+ *
+ * Determine if the es_ naming is a stress or strain.
+ *
+ * Return NULL if it is not a full set of the required parameters.
+ *
+ */
+char *
+determine_naming( char *p_name , State_variable *p_sv)
+{
+   // Unfortunately we need to hard code what we are looking for
+   // in the database.  If another case appears it needs to be
+   // added here.
+   char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
+   char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
+   int int_array[6]={0};
+   int i,j;
+   int valid;
+   char *return_value = NULL;
+
+   if(p_sv->agg_type != VEC_ARRAY && p_sv->agg_type != VECTOR)
+   {
+       return NULL;
+   }
+   if(!strcmp(p_name,"strain") || !strcmp(p_name,"stress"))
+   {
+       return NULL;
+   }
+   /*lets check stresses first*/
+   for(i=0;i<6;i++)
+   {
+      for(j=0;j<p_sv->vec_size;j++)
+      {
+          if(!int_array[i] &&
+             !strcmp(stresses[i],p_sv->components[j]))
+          {
+              int_array[i] = 1;
+              break;
+          }
+      }
+   }
+
+   valid = 1;
+   // Loop over the flags. If any are zero then it is not a match.
+   for(i=0;i<6;i++)
+   {
+       if(!int_array[i])
+       {
+         valid = 0;
+       }
+   }
+
+   if(valid)
+   {
+       return_value = (char*)malloc(7);
+       strcpy(return_value,"stress");
+       return return_value;
+   }
+
+   /* Well we might as well check for strains if we made it this far. */
+   for(i=0;i<6;i++)
+   {
+       int_array[i]=0;
+   }
+
+   for(i=0;i<6;i++)
+   {
+      for(j=0;j<p_sv->vec_size;j++)
+      {
+          if(!strcmp(strains[i],p_sv->components[j]))
+          {
+              int_array[i] = 1;
+              break;
+          }
+      }
+   }
+
+   valid = 1;
+
+   for(i=0;i<6;i++)
+   {
+       if(!int_array[i])
+       {
+         valid = 0;
+       }
+   }
+
+   if(valid)
+   {
+       return_value = (char*)malloc(7);
+       strcpy(return_value,"strain");
+       return return_value;
+   }
+
+   return NULL;
+}
 
 /************************************************************
  * TAG( mili_db_open )
@@ -1525,6 +1622,7 @@ extern int
 mili_db_get_st_descriptors( Analysis *analy, int dbid )
 {
     int srec_qty, svar_qty, subrec_qty, mesh_node_qty;
+    int stat;
     Famid fid;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrecs;
@@ -1627,9 +1725,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
         node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
 
         /* Loop over subrecs */
-        for ( j = 0;
-                j < subrec_qty;
-                j++ )
+        for ( j = 0; j < subrec_qty; j++ )
         {
             p_subr = &p_subrecs[subrec_index].subrec;
 
@@ -1653,6 +1749,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 continue;
             }
 
+            /* Look up element class in subrecord */
             htable_search( p_mesh->class_table, p_subr->class_name, FIND_ENTRY,
                            &p_hte );
             p_mocd = ((MO_class_data *) p_hte->data);
@@ -1706,12 +1803,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
              * table entries.
              */
             svar_names = p_subr->svar_names;
-            k=0;
-
             for ( k = 0; k < p_subr->qty_svars; k++ )
             {
-                rval = create_st_variable( fid, p_sv_ht, svar_names[k],
-                                           &p_svar );
+                // Create new state variable entry
+                rval = create_st_variable( fid, p_sv_ht, svar_names[k], &p_svar );
                 if ( rval != 0 )
                 {
                     popup_dialog( WARNING_POPUP,
@@ -1719,7 +1814,6 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                                   "create state variable." );
                     return rval;
                 }
-
 
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
                                       srec_qty, svar_names[k], p_sv_ht, analy );
@@ -1977,17 +2071,27 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                       Subrec_obj *p_subr_obj, Hash_table *p_primal_ht,
                       int qty_srec_fmts, char *p_name, Hash_table *p_sv_ht, Analysis * analy )
 {
-    int rval;
-    Htable_entry *p_hte, *p_hte2, *p_hte3, *p_hte4;
-    Hash_table * p_es_components_ht;
+    int rval, rval2;
+    Htable_entry *p_hte, *p_hte2, *p_hte3=NULL, *p_hte4;
     State_variable *p_sv;
     Primal_result *p_pr;
     ES_in_menu *p_es;
+    Subrec_obj **p_subrec;
     int i, j, size;
     int *p_i;
     int superclass;
     char *p_sand_var;
+    char *es_short_name = NULL;
     static int first = 0;
+
+
+    // Look up state variable by name and check if it is an element set.
+    rval = htable_search( p_sv_ht, p_name, FIND_ENTRY, &p_hte2 );
+    if(rval == OK){
+        p_sv = (State_variable *) p_hte2->data;
+        es_short_name = determine_naming(p_name, p_sv);
+    }
+
     /*
      * See if primal result has already been entered in table.
      * Use ENTER_MERGE to return entry even when it already exists so
@@ -1995,17 +2099,15 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
      * "sand" flag test.
      */
 
-    rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
-   if(analy->es_components_table == NULL)
-    //if(first == 0)
-    { 
-        size = p_primal_ht->size;
-        p_es_components_ht = htable_create( size );
-    } else
+    // Look up primal_result for state variable and element set name (if it exists).
+    if(es_short_name == NULL)
     {
-        p_es_components_ht = analy->es_components_table;
+        rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
+    }else
+    {
+        rval = htable_search( p_primal_ht, es_short_name, ENTER_MERGE, &p_hte );
+        rval2 = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte3 );
     }
-   
     
     /* If new... */
     if ( rval == OK )
@@ -2014,37 +2116,31 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         p_pr = NEW( Primal_result, "New primal result" );
 
         /* Get the State_variable for it. */
-        rval = htable_search( p_sv_ht, p_name, FIND_ENTRY, &p_hte2 );
-        p_sv = (State_variable *) p_hte2->data;
         p_pr->var = p_sv;
 
-        if(!strncmp(p_sv->short_name, "es_", 3))
-        {
-            for(j = 0; j < p_sv->vec_size; j++)
-            {
-               
-                if(p_sv->components == NULL)
-                {
-                    continue;
-                } 
-                p_es = NEW( ES_in_menu, "New es in menu structure");
-                strcpy(p_es->component_name, p_sv->components[j]);
-                strcpy(p_es->parent_menu, "");
-                p_es->in_menu = FALSE;
-                if(p_es_components_ht->qty_entries > 0)
-                { 
-                    rval = htable_search(p_es_components_ht, p_es->component_name, FIND_ENTRY, &p_hte3);
-                    if(rval == OK)
-                        continue;
-                } 
-                rval = htable_search(p_es_components_ht, p_es->component_name, ENTER_UNIQUE, &p_hte4); 
-                p_hte4->data = (ES_in_menu *) p_es; 
-            }
+        /* Assign appropriate long/short name to Primal_result. */
+        if(es_short_name == NULL){
+            /* Not an element set, use existing short/long name */
+            p_pr->short_name = (char*)calloc(sizeof(char),strlen(p_sv->short_name)+1);
+            strcpy(p_pr->short_name, p_sv->short_name);
+            p_pr->long_name = (char*)calloc(sizeof(char),strlen(p_sv->long_name)+1);
+            strcpy(p_pr->long_name ,p_sv->long_name);
         }
- 
-        /* Reference names from the State_variable. */
-        p_pr->short_name = p_sv->short_name;
-        p_pr->long_name = p_sv->long_name;
+        else{
+            /* Is an element set, check for stress/strain */
+            p_pr->short_name = (char*)calloc(sizeof(char),strlen(es_short_name)+1);
+            strcpy(p_pr->short_name, es_short_name);
+            p_pr->long_name = calloc(sizeof(char),7);
+            p_pr->long_name[0] = '\0';
+            if(strcmp(es_short_name ,"stress")==0)
+            {
+                strcpy(p_pr->long_name,"Stress");
+            }else
+            {
+                strcpy(p_pr->long_name,"Strain");
+            }
+            free(es_short_name);
+        }
 
         p_pr->origin.is_primal = 1;
 
@@ -2072,13 +2168,27 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         p_pr->srec_map[srec_id].list = (void *) p_i;
         p_pr->srec_map[srec_id].qty = 1;
 
+        /* Initialize list of pointers to subrecords */
+        p_pr->subrecs = NEW_N( Subrec_obj*, 1, "PR subrec object list");
+        p_pr->subrecs[0] = p_subr_obj;
+        p_pr->qty_subrecs = 1;
+
         /* Store primal result. */
         p_hte->data = (void *) p_pr;
+        if(p_hte3 != NULL && rval2 == OK )
+        {
+            p_hte3->data = (void *) p_pr;
+        }
     }
     else
     {
         /* Primal result already exists, so just update the presence tree. */
         p_pr = (Primal_result *) p_hte->data;
+
+        if(rval2 == OK && p_hte3 != NULL)
+        {
+            p_hte3->data = (void *) p_pr;
+        }
 
         if ( p_pr->srec_map[srec_id].list == NULL )
         {
@@ -2111,6 +2221,31 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             }
 
         }
+
+        /* Also update list of Subrec_objs and check if primal_result is "shared" */
+        p_subrec = (Subrec_obj **) p_pr->subrecs;
+
+        /* Loop over all subrecords currently associated with this primal_result */
+        for(i = 0; i < p_pr->qty_subrecs; i++){
+            /* Check if subrecord already in list */
+            if(p_subrec[i]->subrec.name == p_subr_obj->subrec.name)
+                break;
+
+            /* Check if "shared" */
+            if(strcmp(p_subrec[i]->subrec.class_name, p_subr_obj->subrec.class_name) != 0){
+                // If new element class name, this result is shared
+                p_pr->is_shared = TRUE;
+            }
+        }
+
+        /* if not in list... */
+        if(i == p_pr->qty_subrecs){
+            p_subrec = RENEW_N(Subrec_obj*, p_subrec, i, 1, "Extend Subrec_obj list");
+            p_subrec[i] = p_subr_obj;
+            /* Assign back in case realloc moved the array */
+            p_pr->subrecs = p_subrec;
+            p_pr->qty_subrecs++;
+        }
     }
 
     /* Check for sand flag. */
@@ -2124,11 +2259,6 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             p_mesh->double_precision_sand = TRUE;
     }
   
-    if(first == 0)
-    { 
-        analy->es_components_table = p_es_components_ht;
-        first = 1;
-    }
     return OK;
 }
 
@@ -4118,6 +4248,9 @@ mili_db_close( Analysis *analy )
 
             if ( p_subrec[j].referenced_nodes != NULL )
                 free( p_subrec[j].referenced_nodes );
+
+            if (p_subrec[j].element_set != NULL)
+                free( p_subrec[j].element_set);
         }
 
         free( p_subrec );
