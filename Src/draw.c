@@ -1922,7 +1922,7 @@ static int check_for_tri_face( int, int, MO_class_data *, float [4][3],
 static void get_min_max( Analysis *, Bool_type, float *, float * );
 
 /*static void draw_grid( Analysis * );
-static void draw_grid_2d( Analysis * ); */ 
+static void draw_grid_2d( Analysis * ); */
 
 static void draw_hexs( Bool_type, Bool_type, Bool_type, MO_class_data *,
                        Analysis * );
@@ -2016,7 +2016,7 @@ static void linear_variable_scale( float, float, int, float *, float *,
                                    float *, int * );
 extern void log_variable_scale( float, float, int, float *, float *,
                                 float *, float *, int * );
-extern void log_scale_data_shift( float val, float data_minimum, 
+extern void log_scale_data_shift( float val, float data_minimum,
                                   float data_maximum,
                                   float *new_val, float *new_data_minimum,
                                   float *new_data_maximum, float *data_shift,
@@ -2035,7 +2035,7 @@ static void change_current_color_property( Color_property *, int );
 void update_current_color_property( Color_property *, Material_property_type );
 
 static float
-get_free_node_result( Analysis *, MO_class_data *, int, Bool_type *, 
+get_free_node_result( Analysis *, MO_class_data *, int, Bool_type *,
                       Bool_type * );
 
 static float
@@ -4105,7 +4105,7 @@ draw_grid( Analysis *analy )
      * Draw free nodes.
      */
     if ( analy->free_nodes_enabled || analy->particle_nodes_enabled )
-        draw_free_nodes( analy ); 
+        draw_free_nodes( analy );
       /*if(analy->free_nodes_enabled)
       {
           draw_free_nodes(analy);
@@ -4230,8 +4230,8 @@ draw_grid( Analysis *analy )
     //{
         /*analy->show_particle_class = FALSE; */
     //    analy->show_particle_class = TRUE;
-        
-    //} 
+
+    //}
 
     /*  Set glMaterial to draw from the correct color property data base */
     if ( analy->show_particle_class )
@@ -4240,7 +4240,7 @@ draw_grid( Analysis *analy )
         for(i=0; i < qty_classes; i++)
         {
             draw_particles_3d( mo_classes[i], analy);
-        } 
+        }
     }
 
     /*
@@ -4681,7 +4681,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     char **results_map;
     char * result_name = NULL;
     char * short_name = NULL;
-    
+
     static int first = 0;
 
     mesh_id = p_hex_class->mesh_id;
@@ -4707,7 +4707,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
+        }
 
         first = 1;
     } */
@@ -4720,10 +4720,10 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
-   
+        }
+
     if(show_result)
-    { 
+    {
         if(result_name != NULL)
         {
             if(strcmp(result_name, p_result->name))
@@ -4754,8 +4754,8 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                     results_map[mesh_id] = NULL;
                 }
             }
-        }  
-       
+        }
+
         if(results_map[mesh_id] == NULL)
         {
             results_map[mesh_id] = (char *) malloc(p_hex_class->qty+1);
@@ -4787,13 +4787,13 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         }
     }
 
-    if(show_result && analy->cur_result != NULL) 
-    { 
+    if(show_result && analy->cur_result != NULL)
+    {
         populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
     }
 
 
- 
+
     Bool_type hidden_poly=FALSE,
               hidden_poly_elem=FALSE,
               hidden_poly_elem_wft=FALSE,
@@ -4806,7 +4806,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         return;
 
     if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
-        return; 
+        return;
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -4997,7 +4997,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         hidden_poly_elem = hide_by_object_type( p_hex_class, matl, el, analy, data_array );
         if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
         {
-            hidden_poly_elem_wft = TRUE;  
+            hidden_poly_elem_wft = TRUE;
            /*hidden_poly_elem_wft = disable_by_object_type( p_hex_class, matl, el, analy, data_array ); */
         }
 
@@ -5016,7 +5016,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
             grayel = 0;
             if((results_map[mesh_id][el+1] == '0') && !disable_mtl[matl] && !disable_flag)
             {
-                grayel = 1;         
+                grayel = 1;
                 for(j = 0; j < 4; j++)
                 {
                     for(k = 0; k < 4; k++)
@@ -5024,7 +5024,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                         cols[j][k] = grayval;
                     }
                 }
-               
+
             }
         } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
@@ -5036,9 +5036,9 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                     cols[j][k] = grayval;
                 }
             }
-             
+
         }
-  
+
         if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
         {
             draw_edges_3d(analy);
@@ -5118,7 +5118,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     show_result = show_node_result
                   || result_has_class( analy->cur_result, p_tet_class, analy )
                   || show_mat_result
-                  || show_mesh_result; 
+                  || show_mesh_result;
 
     if(result_has_class( analy->cur_result, p_tet_class, analy))
     {
@@ -5136,13 +5136,13 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
+        }
 
         first = 1;
     }
-   
+
     if(show_result)
-    { 
+    {
         if(result_name != NULL)
         {
             if(strcmp(result_name, p_result->name))
@@ -5173,8 +5173,8 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                     results_map[mesh_id] = NULL;
                 }
             }
-        }  
-       
+        }
+
         if(results_map[mesh_id] == NULL)
         {
             results_map[mesh_id] = (char *) malloc(p_tet_class->qty+1);
@@ -5206,8 +5206,8 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
+    if(show_result && analy->cur_result != NULL && !same_as_last)
+    {
         populate_result(G_TET, results_map[mesh_id], p_tet_class->qty + 1, p_tet_class, analy);
     }
 
@@ -5267,7 +5267,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     show_result = show_node_result
                   || result_has_class( analy->cur_result, p_tet_class, analy )
                   || show_mat_result
-                  || show_mesh_result; 
+                  || show_mesh_result;
 
     get_min_max( analy, FALSE, &rmin, &rmax );
 
@@ -5373,7 +5373,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
             {
-                grayel = 1;         
+                grayel = 1;
                 for(j = 0; j < 3; j++)
                 {
                     for(k = 0; k < 4; k++)
@@ -5381,7 +5381,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                         cols[j][k] = grayval;
                     }
                 }
-               
+
             }
         } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
@@ -5393,7 +5393,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                     cols[j][k] = grayval;
                 }
             }
-             
+
         }
 
         hidden_poly = hide_by_object_type( p_tet_class, matl, el, analy, data_array );
@@ -5474,13 +5474,13 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
+        }
 
         first = 1;
     }
-   
+
     if(show_result)
-    { 
+    {
         if(result_name != NULL)
         {
             if(strcmp(result_name, p_result->name))
@@ -5511,8 +5511,8 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                     results_map[mesh_id] = NULL;
                 }
             }
-        }  
-       
+        }
+
         if(results_map[mesh_id] == NULL)
         {
             results_map[mesh_id] = (char *) malloc(p_quad_class->qty+1);
@@ -5544,8 +5544,8 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
+    if(show_result && analy->cur_result != NULL && !same_as_last)
+    {
         populate_result(G_QUAD, results_map[mesh_id], p_quad_class->qty + 1, p_quad_class, analy);
     }
 
@@ -5682,7 +5682,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         if ( has_degen &&
                 connects[i][2] == connects[i][3] )
             cnt = 3;
-      
+
         disable_flag = disable_by_object_type(p_quad_class, matl, i, analy, NULL);
 
         /* check to see if this element has the variable to be shown */
@@ -5691,7 +5691,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
             {
-                grayel = 1;         
+                grayel = 1;
                 for(j = 0; j < 4; j++)
                 {
                     for(k = 0; k < 4; k++)
@@ -5699,7 +5699,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                         cols[j][k] = grayval;
                     }
                 }
-               
+
             }
         } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
@@ -5714,7 +5714,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         }
 
         hidden_poly = hide_by_object_type( p_quad_class, matl, i, analy, data_array );
- 
+
         if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
         {
             draw_edges_3d(analy);
@@ -5803,13 +5803,13 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
+        }
 
         first = 1;
     }
-   
+
     if(show_result)
-    { 
+    {
         if(result_name != NULL)
         {
             if(strcmp(result_name, p_result->name))
@@ -5840,8 +5840,8 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                     results_map[mesh_id] = NULL;
                 }
             }
-        }  
-       
+        }
+
         if(results_map[mesh_id] == NULL)
         {
             results_map[mesh_id] = (char *) malloc(p_tri_class->qty+1);
@@ -5873,8 +5873,8 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
+    if(show_result && analy->cur_result != NULL && !same_as_last)
+    {
         populate_result(G_TRI, results_map[mesh_id], p_tri_class->qty + 1, p_tri_class, analy);
     }
 
@@ -6021,7 +6021,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
             {
-                grayel = 1;         
+                grayel = 1;
                 for(j = 0; j < 4; j++)
                 {
                     for(k = 0; k < 4; k++)
@@ -6029,7 +6029,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                         cols[j][k] = grayval;
                     }
                 }
-               
+
             }
         } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
@@ -6041,7 +6041,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                     cols[j][k] = grayval;
                 }
             }
-             
+
         }
 
         hidden_poly = FALSE;
@@ -6106,7 +6106,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                   || show_node_result
                   || show_mat_result
                   || show_mesh_result;
-   
+
     if(result_has_class( analy->cur_result, p_beam_class, analy ))
     {
         disable_gray = FALSE;
@@ -6123,13 +6123,13 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
+        }
 
         first = 1;
     }
-   
+
     if(show_result)
-    { 
+    {
         if(result_name != NULL)
         {
             if(strcmp(result_name, p_result->name))
@@ -6160,8 +6160,8 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                     results_map[mesh_id] = NULL;
                 }
             }
-        }  
-       
+        }
+
         if(results_map[mesh_id] == NULL)
         {
             results_map[mesh_id] = (char *) malloc(p_beam_class->qty+1);
@@ -6193,8 +6193,8 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
+    if(show_result && analy->cur_result != NULL && !same_as_last)
+    {
         populate_result(G_BEAM, results_map[mesh_id], p_beam_class->qty + 1, p_beam_class, analy);
     }
 
@@ -6295,12 +6295,12 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
             grayel = 1;
 
             if((results_map[mesh_id][i + 1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
-            {   
+            {
                 for(j = 0; j < 4; j++)
                 {
                     col[j] = 0.7;
                 }
-                
+
                 glColor3fv(col);
             }
         } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
@@ -6309,7 +6309,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
             {
                 col[j] = 0.7;
             }
-             
+
             glColor3fv(col);
         }
 
@@ -6319,7 +6319,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 pts[j*3+k] = verts[j][k];
         draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
     }
-    
+
     grayel = 0;
 
     /* Remove depth bias. */
@@ -6354,8 +6354,8 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     unsigned char *disable_mtl, *hide_mtl;
     Mesh_data *p_mesh;
     Bool_type disable_flag=FALSE;
-   
-    int grayel = 0; 
+
+    int grayel = 0;
     int mesh_id;
     static int first = 0;
     static char **results_map;
@@ -6366,7 +6366,7 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     Result * p_result;
 
     mesh_id = p_truss_class->mesh_id;
-    p_result = analy->cur_result; 
+    p_result = analy->cur_result;
 
     show_result = result_has_class( analy->cur_result, p_truss_class, analy )
                   || show_mat_result
@@ -6388,13 +6388,13 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
         for(i = 0; i < analy->mesh_qty; i++)
         {
             results_map[i] = NULL;
-        } 
+        }
 
         first = 1;
     }
-   
+
     if(show_result)
-    { 
+    {
         if(result_name != NULL)
         {
             if(strcmp(result_name, p_result->name))
@@ -6425,8 +6425,8 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                     results_map[mesh_id] = NULL;
                 }
             }
-        }  
-       
+        }
+
         if(results_map[mesh_id] == NULL)
         {
             results_map[mesh_id] = (char *) malloc(p_truss_class->qty+1);
@@ -6458,8 +6458,8 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
+    if(show_result && analy->cur_result != NULL && !same_as_last)
+    {
         populate_result(G_TRUSS, results_map[mesh_id], p_truss_class->qty + 1, p_truss_class, analy);
     }
 
@@ -6561,7 +6561,7 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
             {
-                grayel = 1;         
+                grayel = 1;
                 for(k = 0; k < 4; k++)
                 {
                     col[k] = grayval;
@@ -7749,7 +7749,7 @@ draw_surfaces_2d( Color_property *p_cp,
     int surface_qty;
     float *data_array;
     int *p_index_source;
-    GVec2D *nodes; 
+    GVec2D *nodes;
     Interp_mode_type save_interp_mode;
 
     if ( analy->mesh_view_mode != RENDER_FILLED &&
@@ -7766,7 +7766,7 @@ draw_surfaces_2d( Color_property *p_cp,
     hide_surf = p_mesh->hide_surface;
 
     nodes = analy->state_p->nodes.nodes2d;
-    
+
     /* 2D, so set Z coord of every vertex to zero. */
     verts[0][2] = verts[1][2] = verts[2][2] = verts[3][2] = 0.0;
 
@@ -8114,7 +8114,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     {
         show_result = result_has_class(analy->cur_result, p_particle_class, analy);
     }
-  
+
     get_min_max(analy, FALSE, &rmin, &rmax);
 
     display_list = glGenLists( 1 );
@@ -8150,7 +8150,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
         {
             continue;
         }
- 
+
         matl = p_particle_class->objects.elems->mat[i];
 
         if(v_win->mesh_materials.current_index != matl)
@@ -8170,10 +8170,10 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
         glPushMatrix();
         node = p_particle_class->objects.elems->nodes[i];
-        x = p_node_class->objects.nodes3d[node][0]; 
-        y = p_node_class->objects.nodes3d[node][1]; 
+        x = p_node_class->objects.nodes3d[node][0];
+        y = p_node_class->objects.nodes3d[node][1];
         z = p_node_class->objects.nodes3d[node][2];
-  
+
         /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
         glTranslatef( x, y, z );
 
@@ -8592,7 +8592,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
     hilite_label = get_class_label( p_mo_class, hilite_num );
     /*if ( p_mo_class->labels_found )
-        
+
     else
         hilite_label = hilite_num;
 */
@@ -8692,7 +8692,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                     sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
                              val );
                 } else
-                { 
+                {
                     sprintf( label, " %s %d", cname, hilite_label );
                 }
             }
@@ -11550,7 +11550,7 @@ draw_edged_wireframe_poly( int cnt, float pts[4][3], float norm[4][3], float col
     if ( analy->interp_mode == GOOD_INTERP )
     {
         if(!grayel)
-        { 
+        {
             /* Scan convert the polygon by hand. */
             scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
         } else
@@ -11619,7 +11619,7 @@ draw_plain_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
             /* Scan convert the polygon by hand. */
             scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
         } else
-        {    
+        {
             glBegin( GL_POLYGON );
             for ( i = 0; i < cnt; i++ )
             {
@@ -11628,7 +11628,7 @@ draw_plain_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
                 glVertex3fv( pts[i] );
             }
             glEnd();
-        
+
         }
     }
     else
@@ -11681,7 +11681,7 @@ scan_poly( int cnt, float pts[4][3], float norm[4][3], float vals[4], int matl,
     float rmin, rmax, threshold;
     int dist, ni, nj;
     int i, ii, j, k;
- 
+
     /*
      * For triangular faces, duplicate the last vertex value
      * and then treat as a quad.  Is interpolation correct in
@@ -12684,7 +12684,7 @@ draw_foreground( Analysis *analy )
                     hmove2( xp, yp - (0.6 * text_height) );
                     sprintf( str, "%.*e", fracsz, low );
                     hcharstr( str );
-                } 
+                }
             }
 
             xp = xpos - (2.0 * b_width);
@@ -12907,7 +12907,7 @@ draw_foreground( Analysis *analy )
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
             name =  analy->sorted_labels[i];
-            
+
             status = htable_search(analy->mat_labels,name,FIND_ENTRY,&tempEnt);
             if(status != OK)
             {
@@ -12925,7 +12925,7 @@ draw_foreground( Analysis *analy )
 
             glColor3fv( v_win->text_color );
             hmove2( xp - 0.5*text_height, yp );
-            
+
             hcharstr( name );
 
             yp -= 1.5*text_height;
@@ -14032,7 +14032,7 @@ hot_cold_colormap( void )
         v_win->colormap[i][2] = bv;
         i++;
     }
-    
+
     /* set the initial colormap to go back from grayscale to the initial colormap */
     for(i = 0; i < CMAP_SIZE; i++)
     {
@@ -14195,20 +14195,20 @@ cutoff_colormap( Bool_type cut_low, Bool_type cut_high )
 /************************************************************
  * TAG( restore_colormap )
  *
- * restores the colormap to that which was the colormap on startup 
- * By William Oliver 
+ * restores the colormap to that which was the colormap on startup
+ * By William Oliver
  */
 void
 restore_colormap()
 {
     int sz, i;
-    
+
     sz = CMAP_SIZE;
     for(i = 0; i < sz; i++)
     {
-        v_win->colormap[i][0] = v_win->initial_colormap[i][0];      
-        v_win->colormap[i][1] = v_win->initial_colormap[i][1];      
-        v_win->colormap[i][2] = v_win->initial_colormap[i][2];      
+        v_win->colormap[i][0] = v_win->initial_colormap[i][0];
+        v_win->colormap[i][1] = v_win->initial_colormap[i][1];
+        v_win->colormap[i][2] = v_win->initial_colormap[i][2];
     }
 
     VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
@@ -15441,7 +15441,7 @@ static void
 draw_locref_hex( Analysis *analy )
 {
     int j;
-    float visual_info[3], vj[3], vk[3], vd[3];
+    float vi[3], vj[3], vk[3], vd[3];
     float len;
     Transf_mat tmat;
     float pt[3], pto[3], pti[3], ptj[3], ptk[3];
@@ -15503,10 +15503,10 @@ draw_locref_hex( Analysis *analy )
             /*
              *  "i" axis is the direction from node 1 to node 2
              */
-            visual_info[0] = x[n2] - x[n1];
-            visual_info[1] = y[n2] - y[n1];
-            visual_info[2] = z[n2] - z[n1];
-            len = VEC_LENGTH( visual_info );
+            vi[0] = x[n2] - x[n1];
+            vi[1] = y[n2] - y[n1];
+            vi[2] = z[n2] - z[n1];
+            len = VEC_LENGTH( vi );
 
             /*
              *  Vector "D" is the direction from node 1 to node 4
@@ -15518,22 +15518,22 @@ draw_locref_hex( Analysis *analy )
             /*
              * Normalize the reference vectors
              */
-            vec_norm(visual_info);
+            vec_norm(vi);
             vec_norm(vd);
 
             /*
              *  "k" axis is cross-product of "i" and vector "D"
              */
-            VEC_CROSS( vk, visual_info, vd );
+            VEC_CROSS( vk, vi, vd );
 
             /*
              *  "j" axis is cross-product of "k" and "i"
              */
-            VEC_CROSS( vj, vk, visual_info );
+            VEC_CROSS( vj, vk, vi );
 
             for ( j = 0; j < 3; j++ )
             {
-                tmat.mat[0][j] = visual_info[j];
+                tmat.mat[0][j] = vi[j];
                 tmat.mat[1][j] = vj[j];
                 tmat.mat[2][j] = vk[j];
                 tmat.mat[3][j] = pto[j];
@@ -15599,7 +15599,7 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
     Bool_type nodal_result=TRUE;
 
     *valid_free_node = FALSE;
-    
+
     node_loc = 8*particle_num;
 
     particle_nodes = p_mo_class->objects.elems->nodes;
@@ -15650,7 +15650,7 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
     {
         return(0.0);
     }
-  
+
     if(analy->cur_result != NULL)
     {
         *result_defined = TRUE;
@@ -15727,9 +15727,9 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
             {
                 *result_defined = TRUE;
             }
-             
+
         }
-    } */ 
+    } */
     return ( val );
 }
 
@@ -16092,7 +16092,7 @@ draw_free_nodes( Analysis *analy )
                     {
                         activity_flag = 1.0;
                     }
-                    
+
                     mat_num = mat[k];
 
                      if ( !particle_class)
@@ -17307,7 +17307,7 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
 
     if ( !hide_elem && class_select_index>=0 && elm<p_class->qty)
     {
-        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] || 
+        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] ||
              p_mesh->by_class_select[class_select_index].exclude_class_elem[elm])
             hide_elem = TRUE;
     }
@@ -17529,7 +17529,7 @@ get_class_label_index( MO_class_data *class, int label_num )
 /************************************************************
  * TAG( populate_result )
  *
- * Added Jan 17 2014: William Oliver 
+ * Added Jan 17 2014: William Oliver
  * Takes a result array and loops thru the subrecords and the map array and puts a 1
  * in the indexes representing the element number if that element has that subrecord variable.
  *
@@ -17578,9 +17578,9 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
     {
         map[i] = '0';
     }
-    
+
     /* loop thru the subrecs associated with this result to get the total
- *     number of subrec blocks*/ 
+ *     number of subrec blocks*/
     for(i = 0; i < p_result->qty; i++)
     {
         /*p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[p_result->subrecs[i]]; */
@@ -17592,9 +17592,9 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
 
     total_blocks = qty_blocks*2;
 
-    /*now that we know the total quantity of subrecord blocks allocate the range array*/ 
+    /*now that we know the total quantity of subrecord blocks allocate the range array*/
     range = (int *) malloc(2*qty_blocks*sizeof(int));
-    /* check to make sure we are not out of memory */ 
+    /* check to make sure we are not out of memory */
     if(range == NULL)
     {
         abort();
@@ -17609,7 +17609,7 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
         p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
 
         qty_blocks = p_subrec->subrec.qty_blocks;
-         /* make sure we have the correct superclass*/ 
+         /* make sure we have the correct superclass*/
         for(k = 0; k < qty_blocks*2; k+=2)
         {
             range[j] = p_subrec->subrec.mo_blocks[k];
@@ -17634,7 +17634,7 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
     }
 
     free(range);
-   
+
 }
 
 
