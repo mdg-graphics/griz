@@ -2228,7 +2228,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         /* Loop over all subrecords currently associated with this primal_result */
         for(i = 0; i < p_pr->qty_subrecs; i++){
             /* Check if subrecord already in list */
-            if(p_subrec[i]->subrec.name == p_subr_obj->subrec.name)
+            if(strcmp(p_subrec[i]->subrec.name, p_subr_obj->subrec.name) == 0)
                 break;
 
             /* Check if "shared" */
