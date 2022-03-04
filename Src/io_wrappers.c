@@ -2541,10 +2541,11 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
     int rval;
     Htable_entry *p_hte;
     Derived_result *p_dr;
-    int i, j;
+    int i, j, k;
     int qty_srecs, qty_subrecs;
     Subrecord_result *p_sr;
     Subrec_obj *p_subrec;
+    Subrec_obj **p_subrec_list;
     Bool_type added;
 
     p_subrec = analy->srec_tree[srec_id].subrecs + subrec_id;
@@ -2638,6 +2639,40 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
             }
             else
                 added = FALSE;
+        }
+
+        // Maintain List of subrecords associated with this derived result
+        // and check is the result is shared by multiple element classes
+        if(p_dr->subrecs == NULL){
+            /* Initialize list of pointers to subrecords */
+            p_dr->subrecs = NEW_N( Subrec_obj*, 1, "DR subrec object list");
+            p_dr->subrecs[0] = p_subrec;
+            p_dr->qty_subrecs = 1;
+        }
+        else{
+            p_subrec_list = (Subrec_obj **) p_dr->subrecs;
+
+            /* Loop over all subrecords currently associated with this primal_result */
+            for(k = 0; k < p_dr->qty_subrecs; k++){
+                /* Check if subrecord already in list */
+                if(strcmp(p_subrec_list[k]->subrec.name, p_subrec->subrec.name) == 0)
+                    break;
+
+                /* Check if "shared" */
+                if(strcmp(p_subrec_list[k]->subrec.class_name, p_subrec->subrec.class_name) != 0){
+                    // If new element class name, this result is shared
+                    p_dr->is_shared = TRUE;
+                }
+            }
+
+            /* if not in list... */
+            if(k == p_dr->qty_subrecs){
+                p_subrec_list = RENEW_N(Subrec_obj*, p_subrec_list, k, 1, "Extend Subrec_obj list");
+                p_subrec_list[k] = p_subrec;
+                /* Assign back in case realloc moved the array */
+                p_dr->subrecs = p_subrec_list;
+                p_dr->qty_subrecs++;
+            }
         }
 
         if ( added )

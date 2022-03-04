@@ -224,6 +224,9 @@ typedef struct _derived_result
 {
     Result_origin_flags origin;
     List_head *srec_map;
+    Subrec_obj **subrecs;         // List of Subrec_objs
+    int qty_subrecs;
+    Bool_type is_shared;        // Is the result shared by multiple element classes
     Bool_type in_menu;
     Bool_type has_indirect;
 } Derived_result;
