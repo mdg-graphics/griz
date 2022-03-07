@@ -206,7 +206,7 @@ static void create_primal_res_menu( Widget parent );
 static void create_ti_res_menu( Widget parent );
 static void add_primal_result_button( Widget parent, Primal_result * );
 static void add_ti_result_button( Widget parent, Primal_result * );
-static void add_derived_result_button( Derived_result * );
+static void add_derived_result_button( Widget parent, Derived_result * );
 static void get_derived_submenu_name( Derived_result *, char * );
 static Widget create_menu_bar( Widget parent, Analysis * );
 static Widget create_mtl_manager( Widget main_widg );
@@ -251,14 +251,10 @@ void put_window_attributes( void );
 void defineDialogColor( Display* dpy );
 void pushpop_window( PushPop_type direction );
 
-MO_class_data *
-assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objects, int *label_block_qty, int *num_blocks, int *blocks, int *blocks_labels );
-
-MO_class_data *
-get_blocking_info( Analysis *analy,  char *class_name, int superclass, int *qty_objects, int *num_blocks,  int **blocks );
+MO_class_data * assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objects, int *label_block_qty, int *num_blocks, int *blocks, int *blocks_labels );
+MO_class_data * get_blocking_info( Analysis *analy,  char *class_name, int superclass, int *qty_objects, int *num_blocks,  int **blocks );
 
 int assemble_compare_blocks( int *blockl1, int *block2 );
-
 void defineBorderColor( Display* dpy );
 
 static Widget create_colormap_menu( Widget parent, Util_panel_button_type btn_type, char *cascade_name );
@@ -274,7 +270,6 @@ String fallback_resources[] =
 };
 
 static void load_colormap( Analysis *analy, char *colormap );
-
 
 /* Material manager function button values. */
 typedef enum
@@ -375,8 +370,6 @@ static Widget plot_coord_widg = NULL;
 static Widget x_coord_widg = NULL;
 static Widget y_coord_widg = NULL;
 static Widget menu_widg = NULL;
-static Widget derived_menu_widg = NULL;
-static Widget primal_menu_widg = NULL;
 static Widget ti_menu_widg = NULL;
 static Widget monitor_widg = NULL;
 static Widget mtl_mgr_widg = NULL;
@@ -1071,7 +1064,7 @@ gui_swap_buffers( void )
 static void
 sep( Widget parent )
 {
-    XtCreateManagedWidget( "seperator", xmSeparatorGadgetClass, parent, NULL, 0 );
+    XtCreateManagedWidget( "separator", xmSeparatorGadgetClass, parent, NULL, 0 );
 }
 
 static void
@@ -1129,41 +1122,6 @@ add_pulldown_submenu( Widget parent, char * label )
     XtVaCreateManagedWidget( label, xmCascadeButtonWidgetClass, parent, &arg, 2, XmNsubMenuId, pulldown );
     return pulldown;
 }
-
-///// TEMP BELOW HERE
-
-// check if the primal result has all of the components in the svar, in any order
-// basically check if the primal result svar comps are a superset of the passed svard comps
-// if so return the permutation mapping the svar comps to their corresponding indxs in the
-//  primal result superset
-static int
-contains_subset( State_variable * superset, State_variable * subset_candidate, int ** permutation )
-{
-    *permutation = NEW_N(int, subset_candidate->vec_size, "");
-    int jj = 0;
-    int contains = 0;
-    for( jj = 0; jj < subset_candidate->vec_size; ++jj )
-    {
-        int kk = 0;
-        for( kk = 0; kk < superset->vec_size; ++kk )
-        {
-            if( !strcmp( subset_candidate->components[jj], superset->components[kk] ) )
-            {
-                (*permutation)[jj] = kk;
-                contains++;
-                break;
-            }
-        }
-    }
-    if( contains != subset_candidate->vec_size )
-    {
-        free(*permutation);
-    }
-    return contains;
-}
-
-///// TEMP ABOVE HERE
-
 
 /*****************************************************************
  * TAG( create_menu_bar )
@@ -1275,8 +1233,8 @@ create_menu_bar( Widget parent, Analysis *analy )
     add_menu_buttons( menu_pane, sizeof(pick_btn_ids_2) / sizeof(pick_btn_ids_2[0]), pick_btn_labels_2, menu_CB, pick_btn_ids_2 );
 
     /* Build db-sensitive result menus. */
-    create_derived_res_menu( menu_bar );
     create_primal_res_menu( menu_bar );
+    create_derived_res_menu( menu_bar );
 
 #ifdef TIGUI
     /* Bring up TI menus if TI data is found */
@@ -1377,8 +1335,8 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
     // ensure the submenu exists
     int idx = -1;
-    if( ! find_labelled_child( primal_menu_widg, label_buffer, &submenu_cascade, &idx ) )
-        submenu = add_pulldown_submenu( primal_menu_widg, label_buffer );
+    if( ! find_labelled_child( parent, label_buffer, &submenu_cascade, &idx ) )
+        submenu = add_pulldown_submenu( parent, label_buffer );
     else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
@@ -1395,39 +1353,20 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         spec_qty = &analy->component_spec_qty;
         int vec_size = p_pr->var->vec_size;
 
-        if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type == VEC_ARRAY )
+        if( p_pr->owning_vec_count == 0 )
         {
-            /* Non-scalar types require another submenu level. */
-            sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
-            result_menu = add_pulldown_submenu( submenu, label_buffer );
-
-            for ( i = 0; i < p_pr->var->vec_size; i++ )
+            if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type == VEC_ARRAY )
             {
-                /* Find State_variable to provide component long name. */
-                htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
-                comp_svar = (State_variable *) p_hte->data;
+                /* Non-scalar types require another submenu level. */
+                sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+                result_menu = add_pulldown_submenu( submenu, label_buffer );
 
-                sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
-                sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                add_show_button( result_menu, label_buffer, show_buffer );
-
-                /* Build/save complete result specification string. */
-                (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-                griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
-                (*spec_qty)++;
-
-            }
-        }
-        else if ( p_pr->var->agg_type == ARRAY )
-        {
-            /* Non-scalar types require another submenu level. */
-            sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
-            result_menu = add_pulldown_submenu( submenu, label_buffer );
-
-            if ( p_pr->var->rank == 1 )
-            {
-                for ( i = 0; i < p_pr->var->dims[0]; i++ )
+                for ( i = 0; i < p_pr->var->vec_size; i++ )
                 {
+                    /* Find State_variable to provide component long name. */
+                    htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
+                    comp_svar = (State_variable *) p_hte->data;
+
                     sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
                     sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
                     add_show_button( result_menu, label_buffer, show_buffer );
@@ -1436,17 +1375,20 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                     (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
                     griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
                     (*spec_qty)++;
+
                 }
             }
-            else /* rank is 2 */
+            else if ( p_pr->var->agg_type == ARRAY )
             {
-                for ( i = 0; i < p_pr->var->dims[1]; i++ )
+                /* Non-scalar types require another submenu level. */
+                sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+                result_menu = add_pulldown_submenu( submenu, label_buffer );
+
+                if ( p_pr->var->rank == 1 )
                 {
-                    /* Create button. */
-                    result_submenu = add_pulldown_submenu( result_menu, cell_nums[i] );
-                    for ( j = 0; j < p_pr->var->dims[0]; j++ )
+                    for ( i = 0; i < p_pr->var->dims[0]; i++ )
                     {
-                        sprintf( show_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
+                        sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
                         sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
                         add_show_button( result_menu, label_buffer, show_buffer );
 
@@ -1456,11 +1398,30 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                         (*spec_qty)++;
                     }
                 }
+                else /* rank is 2 */
+                {
+                    for ( i = 0; i < p_pr->var->dims[1]; i++ )
+                    {
+                        /* Create button. */
+                        result_submenu = add_pulldown_submenu( result_menu, cell_nums[i] );
+                        for ( j = 0; j < p_pr->var->dims[0]; j++ )
+                        {
+                            sprintf( show_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
+                            sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                            add_show_button( result_menu, label_buffer, show_buffer );
+
+                            /* Build/save complete result specification string. */
+                            (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
+                            griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
+                            (*spec_qty)++;
+                        }
+                    }
+                }
             }
-        }
-        else
-        {
-            popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s", p_pr->long_name, "not included in pulldown menu." );
+            else
+            {
+                popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s", p_pr->long_name, "not included in pulldown menu." );
+            }
         }
     }
 }
@@ -1476,9 +1437,7 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
     Bool_type found_hex = FALSE;
     Bool_type found_shell = FALSE;
     Bool_type found_beam = FALSE;
-
     Analysis * analy = env.curr_analy;
-
     int i = 0;
     for ( i = 0; i < analy->ti_var_count; i++ )
     {
@@ -1489,13 +1448,11 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
         if ( analy->ti_vars[i].superclass==M_BEAM)
             found_beam = TRUE;
     }
-
     if ( found_hex )
     {
         add_pulldown_submenu( ti_menu_widg, "Bricks" );
     }
 }
-
 
 /*****************************************************************
  * TAG( add_derived_result_button )
@@ -1503,7 +1460,7 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
  * Add a single derived result button to the menu.
  */
 static void
-add_derived_result_button( Derived_result *p_dr )
+add_derived_result_button( Widget parent, Derived_result *p_dr )
 {
     Widget submenu_cascade, submenu, subsubmenu, cascade, sub_cascade, button;
     int i, j, k, n;
@@ -1529,11 +1486,19 @@ add_derived_result_button( Derived_result *p_dr )
 
     analy = env.curr_analy;
 
-    get_derived_submenu_name( p_dr, submenu_name );
+    if ( p_dr->is_shared )
+    {
+        strcpy( submenu_name, "Shared" );
+    }
+    else
+    {
+        /* Only one class, so submenu name is class name. */
+        sprintf(submenu_name, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
+    }
 
     int idx = -1;
-    if( ! find_labelled_child( derived_menu_widg, submenu_name, &submenu_cascade, &idx ) )
-        submenu = add_pulldown_submenu( derived_menu_widg, submenu_name );
+    if( ! find_labelled_child( parent, submenu_name, &submenu_cascade, &idx ) )
+        submenu = add_pulldown_submenu( parent, submenu_name );
     else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
@@ -1580,7 +1545,8 @@ add_derived_result_button( Derived_result *p_dr )
         }
     }
     sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
-    add_show_button( submenu, nambuf, p_subr_res->candidate->short_names[idx]);
+    add_show_button( submenu, nambuf, p_subr_res->candidate->short_names[idx] );
+    p_dr->in_menu = TRUE;
 }
 
 /*****************************************************************
@@ -1597,24 +1563,13 @@ add_derived_result_button( Derived_result *p_dr )
 static void
 get_derived_submenu_name( Derived_result *p_dr, char *name )
 {
-    int i, j, k;
-    int qty_fmts, sr_qty, class_qty;
-    Subrec_obj *subrecs;
-    int subr_id;
-    Subrecord_result *p_sr;
-    int candidate_sclass, subrecord_sclass;
-    MO_class_data *p_mo_class;
-    Mesh_data *p_mesh;
-    char *shared = "Shared";
-    char *subrecord_class;
-
-    qty_fmts = env.curr_analy->qty_srec_fmts;
-
+    int qty_fmts = env.curr_analy->qty_srec_fmts;
     /*
      * Search all state record formats to get a menu name from the
      * first format that supports the derived result.
      */
-    for ( i = 0; i < qty_fmts; i++ )
+    int ii = 0;
+    for ( ii = 0; ii < qty_fmts; ii++ )
     {
         /*
          * Compare data for the first class supporting the result
@@ -1622,29 +1577,25 @@ get_derived_submenu_name( Derived_result *p_dr, char *name )
          * determine if the submenu name should be "Shared" or a
          * class name.
          */
-        sr_qty = p_dr->srec_map[i].qty;
-
+        int sr_qty = p_dr->srec_map[ii].qty;
         if ( sr_qty == 0 )
             continue;
-
-        p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
-        subrecs = env.curr_analy->srec_tree[i].subrecs;
-
+        Subrecord_result * p_sr = (Subrecord_result *) p_dr->srec_map[ii].list;
+        Subrec_obj * subrecs = env.curr_analy->srec_tree[ii].subrecs;
         /* Parameterize data for the first class. */
-        candidate_sclass = p_sr[0].candidate->superclass;
-        subr_id = p_sr[0].subrec_id;
-        subrecord_sclass = subrecs[subr_id].p_object_class->superclass;
-        subrecord_class = subrecs[subr_id].p_object_class->short_name;
-
+        int candidate_sclass = p_sr[0].candidate->superclass;
+        int subr_id = p_sr[0].subrec_id;
+        int subrecord_sclass = subrecs[subr_id].p_object_class->superclass;
+        char * subrecord_class = subrecs[subr_id].p_object_class->short_name;
         /*
          * Loop over the subrecords supporting the result derivation
          * to determine if the result is shared.
          */
-        for ( j = 1; j < sr_qty; j++ )
+        int jj = 0;
+        for ( jj = 1; jj < sr_qty; jj++ )
         {
-            subr_id = p_sr[j].subrec_id;
-
-            if ( candidate_sclass != p_sr[j].candidate->superclass ||
+            subr_id = p_sr[jj].subrec_id;
+            if ( candidate_sclass != p_sr[jj].candidate->superclass ||
                  subrecord_sclass != subrecs[subr_id].p_object_class->superclass ||
                  strcmp( subrecord_class, subrecs[subr_id].p_object_class->short_name) != 0 )
             {
@@ -1676,12 +1627,11 @@ get_derived_submenu_name( Derived_result *p_dr, char *name )
                  * the final result from both subrecords would be for the
                  * same class.  Assume this won't occur for now.
                  */
-                strcpy( name, shared );
+                strcpy( name, "Shared" );
                 break;
             }
         }
-
-        if ( j == sr_qty && sr_qty != 0 )
+        if ( jj == sr_qty && sr_qty != 0 )
         {
             /*
              * Might still be shared if the result is indirect and there are
@@ -1690,9 +1640,7 @@ get_derived_submenu_name( Derived_result *p_dr, char *name )
              * superclass, use that class name.  Otherwise, use the class
              * name of the class bound to the subrecord.
              */
-
-            p_mo_class = subrecs[p_sr[0].subrec_id].p_object_class;
-
+            MO_class_data * p_mo_class = subrecs[p_sr[0].subrec_id].p_object_class;
             if ( candidate_sclass != p_mo_class->superclass )
             {
                 /*
@@ -1701,35 +1649,29 @@ get_derived_submenu_name( Derived_result *p_dr, char *name )
                  * know about classes.  Pick the first class of the correct
                  * superclass.
                  */
-                for ( k = 0; k < env.curr_analy->mesh_qty; k++ )
+                int kk = 0;
+                for ( kk = 0; kk < env.curr_analy->mesh_qty; kk++ )
                 {
-                    p_mesh = env.curr_analy->mesh_table + k;
-                    class_qty = p_mesh->classes_by_sclass[candidate_sclass].qty;
-
+                    Mesh_data * p_mesh = env.curr_analy->mesh_table + kk;
+                    int class_qty = p_mesh->classes_by_sclass[candidate_sclass].qty;
                     if ( class_qty > 0 )
                     {
-                        p_mo_class = ((MO_class_data **)
-                                      p_mesh->classes_by_sclass[candidate_sclass].list)[0];
-
+                        p_mo_class = ((MO_class_data **) p_mesh->classes_by_sclass[candidate_sclass].list)[0];
                         if ( class_qty > 1 )
                         {
-                            strcpy( name, shared );
+                            strcpy( name, "Shared" );
                             p_mo_class = NULL;
                         }
                         break;
                     }
                 }
             }
-
             if ( p_mo_class != NULL )
                 sprintf( name, "%s (%s)", p_mo_class->long_name, p_mo_class->short_name );
         }
     }
-
     return;
 }
-
-
 /*****************************************************************
  * TAG( create_derived_res_menu )
  *
@@ -1738,47 +1680,27 @@ get_derived_submenu_name( Derived_result *p_dr, char *name )
 static void
 create_derived_res_menu( Widget parent )
 {
-    Widget button;
-    int i, j, k, n;
-    int qty_fmts;
-    Arg args[1];
-    int qty_candidates;
-    Result_candidate *p_rc;
-    Hash_table *p_dr_ht;
-    Htable_entry *p_hte;
-    Derived_result *p_dr = NULL;
-    Hash_table *p_pr_ht;
-    Htable_entry *pp_hte;
-    Primal_result *p_pr = NULL;
-    Subrecord_result *p_sr;
-    char **cbuf;
-    char **svar_names;
-    Bool_type short_name_is_primal = FALSE;
-    Bool_type match = FALSE;
-
     int num_in_menu = 0;
     int ii = 0;
-    int rval;
     Analysis * p_analy = get_analy_ptr();
-    void ** p_dr_data = NULL;
-
-    derived_menu_widg = add_pulldown_submenu( parent, derived_menu_name );
+    Widget derived_menu_widg = add_pulldown_submenu( parent, derived_menu_name );
     add_show_button( derived_menu_widg, "Result off", "mat" );
-
     // Go no further if there aren't actually any derived results.
-    p_dr_ht = env.curr_analy->derived_results;
+    Hash_table * p_dr_ht = env.curr_analy->derived_results;
     if ( p_dr_ht == NULL )
         return;
-
-    rval = htable_get_data( p_dr_ht, &p_dr_data, &qty_candidates );
+    void ** p_dr_data = NULL;
+    int qty_dr = 0;
+    int rval = htable_get_data( p_dr_ht, &p_dr_data, &qty_dr );
     if( rval == OK )
     {
-        for( i = 0; i < qty_candidates; ++i )
+        int ii = 0;
+        for( ii = 0; ii < qty_dr; ++ii )
         {
-            Derived_result * p_dr = (Derived_result*) p_dr_data[i];
+            Derived_result * p_dr = (Derived_result*) p_dr_data[ii];
             if ( !p_dr->in_menu )
             {
-                add_derived_result_button( p_dr );
+                add_derived_result_button( derived_menu_widg, p_dr );
                 p_dr->in_menu = TRUE;
             }
         }
@@ -1795,41 +1717,26 @@ create_derived_res_menu( Widget parent )
 static void
 create_primal_res_menu( Widget parent )
 {
-    int i, j, k, n;
-    Arg args[1];
-    Hash_table *p_pr_ht;
-    Htable_entry *p_hte;
-    Primal_result *p_pr;
-    int rval;
-    Widget button;
-    int srec_qty, subrec_qty;
-    char **svar_names;
-    int dbid;
-    Subrecord subrec;
-
-    primal_menu_widg = add_pulldown_submenu( parent, primal_menu_name );
+    Widget primal_menu_widg = add_pulldown_submenu( parent, primal_menu_name );
     add_show_button( primal_menu_widg, "Result off", "mat" );
-
-    p_pr_ht = env.curr_analy->primal_results;
+    Hash_table * p_pr_ht = env.curr_analy->primal_results;
     if ( p_pr_ht == NULL )
         return;
-
     void ** p_pr_data = NULL;
     int qty_pr = 0;
-    rval = htable_get_data( p_pr_ht, &p_pr_data, &qty_pr );
+    int rval = htable_get_data( p_pr_ht, &p_pr_data, &qty_pr );
     if ( rval == OK )
     {
         int ii = 0;
         for( ii = 0; ii < qty_pr; ++ii )
         {
-            p_pr = (Primal_result *) p_pr_data[ii];
+            Primal_result * p_pr = (Primal_result *) p_pr_data[ii];
             // Don't put string results data in the menu
             if ( p_pr->var->num_type == M_STRING )
                 continue;
-
             if ( !p_pr->in_menu )
             {
-                add_primal_result_button( parent, p_pr );
+                add_primal_result_button( primal_menu_widg, p_pr );
                 p_pr->in_menu = TRUE;
             }
         }
@@ -1846,21 +1753,8 @@ create_primal_res_menu( Widget parent )
 static void
 create_ti_res_menu( Widget parent )
 {
-    int i, j, k, n;
-    Arg args[1];
-    Hash_table *p_pr_ht;
-    Htable_entry *p_hte;
-    Primal_result *p_pr;
-    int rval;
-    Widget button;
-    int srec_qty, subrec_qty;
-    char **svar_names;
-    int dbid;
-    Subrecord subrec;
-    Analysis *analy;
-
-    analy = env.curr_analy;
-    ti_menu_widg = add_pulldown_submenu( parent, ti_menu_name );
+    Analysis * analy = env.curr_analy;
+    Widget ti_menu_widg = add_pulldown_submenu( parent, ti_menu_name );
     add_show_button( ti_menu_widg, "Result off", "mat" );
     // for ti_result in ti_results...
     /* add_ti_result_button( parent, p_pr ); */
@@ -1881,11 +1775,11 @@ regenerate_result_menus( void )
     analy = env.curr_analy;
 
     /* Destroy the existing pulldown menus. */
-    XtDestroyWidget( derived_menu_widg );
-    derived_menu_widg = NULL;
+    // XtDestroyWidget( derived_menu_widg );
+    // derived_menu_widg = NULL;
 
-    XtDestroyWidget( primal_menu_widg );
-    primal_menu_widg = NULL;
+    // XtDestroyWidget( primal_menu_widg );
+    // primal_menu_widg = NULL;
 
     if ( analy->ti_data_found && ti_menu_widg != NULL )
     {
@@ -1905,10 +1799,10 @@ regenerate_result_menus( void )
     Widget child;
     int idx = -1;
     find_labelled_child( menu_widg, derived_menu_name, &child, &idx );
-    XtVaSetValues( child, XmNsubMenuId, derived_menu_widg, NULL );
+    XtVaSetValues( child, XmNsubMenuId, NULL, NULL );
 
     find_labelled_child( menu_widg, primal_menu_name, &child, &idx );
-    XtVaSetValues( child, XmNsubMenuId, primal_menu_widg, NULL );
+    XtVaSetValues( child, XmNsubMenuId, NULL, NULL );
 
     /*
     if ( analy->ti_data_found )
@@ -2341,7 +2235,6 @@ create_mtl_manager( Widget main_widg )
         max_mgr_width = func_width;
 
     widg = XtVaCreateManagedWidget( "Action", xmLabelGadgetClass, mtl_base, XmNalignment, XmALIGNMENT_CENTER, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, func_operate, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
-
     /* Place a separator on top of the operation buttons. */
     sep2 = XtVaCreateManagedWidget( "sep2", xmSeparatorGadgetClass, mtl_base, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, widg, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 

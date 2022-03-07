@@ -87,7 +87,7 @@ int mili_compare_labels( const void *label1, const void *label2 );
  * Return NULL if it is not a full set of the required parameters.
  *
  */
-char *
+const char *
 determine_naming( char *p_name , State_variable *p_sv)
 {
    // Unfortunately we need to hard code what we are looking for
@@ -667,7 +667,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 p_mocd->superclass = elem_sclasses[j];
                 p_mocd->elem_class_index = elem_class_count++;
                 p_mocd->qty = obj_qty;
-               
+
                 p_ed = NEW( Elem_data, "Element conn struct" );
 
                 p_mocd->objects.elems = p_ed;
@@ -1673,7 +1673,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
         {
             p_sv_ht = htable_create( 151 );
             p_primal_ht = htable_create( 151 );
-            
+
         }
         else
         {
@@ -2106,8 +2106,7 @@ create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
         if ( p_sv->agg_type == VECTOR || p_sv->agg_type == VEC_ARRAY )
         {
             for ( i = 0; i < p_sv->vec_size; i++ )
-                rval = create_st_variable( fid, p_sv_ht, p_sv->components[i],
-                                           NULL );
+                rval = create_st_variable( fid, p_sv_ht, p_sv->components[i], NULL );
             if ( rval != 0 )
                 return rval;
         }
@@ -2137,7 +2136,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     int *p_i;
     int superclass;
     char *p_sand_var;
-    char *es_short_name = NULL;
+    const char * es_short_name = NULL;
     static int first = 0;
 
 
@@ -2164,7 +2163,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         rval = htable_search( p_primal_ht, es_short_name, ENTER_MERGE, &p_hte );
         rval2 = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte3 );
     }
-    
+
     /* If new... */
     if ( rval == OK )
     {
@@ -2324,7 +2323,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         if ( ((Primal_result *) (p_hte->data))->var->num_type == M_FLOAT8 )
             p_mesh->double_precision_sand = TRUE;
     }
-  
+
     return OK;
 }
 
@@ -2367,7 +2366,7 @@ mili_db_set_results( Analysis *analy )
     for ( qty_es_candidates = 0;
             possible_es_results[qty_es_candidates].superclass != QTY_SCLASS;
             qty_es_candidates++ );
-    
+
     /* Count derived result candidates. */
     for ( qty_candidates = 0;
             possible_results[qty_candidates].superclass != QTY_SCLASS;
@@ -2436,7 +2435,7 @@ mili_db_set_results( Analysis *analy )
                 p_pr = (Primal_result *) p_hte->data;
             else
                 continue;
-    
+
             rval = htable_search( p_pr_ht, p_es_rc->primals[j], FIND_ENTRY, &p_hte2);
             if(rval == OK )
             {
@@ -2571,7 +2570,7 @@ mili_db_set_results( Analysis *analy )
     free( counts );
 
     if(num_entries > 0)
-    {    
+    {
         for(i = 0; i < qty_es_candidates; i++)
         {
             p_es_rc = &possible_es_results[i];
@@ -2694,8 +2693,7 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
 
             if ( j == qty_subrecs )
             {
-                p_sr = RENEW_N( Subrecord_result, p_sr, j, 1,
-                                "Extend subrec result list" );
+                p_sr = RENEW_N( Subrecord_result, p_sr, j, 1, "Extend subrec result list" );
                 p_sr[j].subrec_id = subrec_id;
                 p_sr[j].index = i;
                 p_sr[j].candidate = p_rc;
