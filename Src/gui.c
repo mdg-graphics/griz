@@ -1283,32 +1283,13 @@ create_menu_bar( Widget parent, Analysis *analy )
 static void
 add_primal_result_button( Widget parent, Primal_result *p_pr )
 {
-    Widget submenu_cascade, submenu, result_menu;
-    Widget button, cascade, result_submenu, subsubmenu_cascade;
-    int position, vec_size;
-    int i, j, n, rval;
-    char label_buffer[M_MAX_NAME_LEN];
-    char show_buffer[M_MAX_NAME_LEN];
-    char parent_menu[32];
-    Bool_type make_submenu;
-    Arg args[10];
-    char **comps;
-    char ***p_specs;
-    int * spec_qty;
-    Analysis *analy;
-    State_variable * comp_svar;
-    State_variable * svar;
-    Htable_entry * p_hte2;
     static char *cell_nums[] =
     {
         "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]", "[11]", "[12]", "[13]", "[14]", "[15]", "[16]", "[17]", "[18]", "[19]", "[20]"
     };
-    int qty_cell_nums;
-    Htable_entry *p_hte;
+    int qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
+    Analysis * analy = env.curr_analy;
 
-    analy = env.curr_analy;
-
-    qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
 
     /* Arrays and Vector Arrays that are too big don't go in menu. */
     if ( ( p_pr->var->agg_type == ARRAY &&
@@ -1323,6 +1304,9 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         return;
     }
 
+    char label_buffer[M_MAX_NAME_LEN];
+    char show_buffer[M_MAX_NAME_LEN];
+    char parent_menu[32];
     if ( p_pr->is_shared )
     {
         strcpy( label_buffer, "Shared" );
@@ -1335,6 +1319,8 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
     // ensure the submenu exists
     int idx = -1;
+    Widget submenu;
+    Widget submenu_cascade;
     if( ! find_labelled_child( parent, label_buffer, &submenu_cascade, &idx ) )
         submenu = add_pulldown_submenu( parent, label_buffer );
     else
@@ -1350,22 +1336,25 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         }
         else
         {
-            comps = p_pr->var->components;
-            p_specs = &analy->component_menu_specs;
-            spec_qty = &analy->component_spec_qty;
+            char ** comps = p_pr->var->components;
+            char *** p_specs = &analy->component_menu_specs;
+            int * spec_qty = &analy->component_spec_qty;
             int vec_size = p_pr->var->vec_size;
 
+            Widget result_menu;
+            Htable_entry * p_hte;
+            int i;
+            int j;
             if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type == VEC_ARRAY )
             {
                 /* Non-scalar types require another submenu level. */
                 sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
                 result_menu = add_pulldown_submenu( submenu, label_buffer );
-
                 for ( i = 0; i < p_pr->var->vec_size; i++ )
                 {
                     /* Find State_variable to provide component long name. */
                     htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
-                    comp_svar = (State_variable *) p_hte->data;
+                    State_variable * comp_svar = (State_variable *) p_hte->data;
 
                     sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
                     sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
@@ -1382,14 +1371,15 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
             {
                 /* Non-scalar types require another submenu level. */
                 sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
-                result_menu = add_pulldown_submenu( submenu, label_buffer );
+                Widget result_menu = add_pulldown_submenu( submenu, label_buffer );
 
                 if ( p_pr->var->rank == 1 )
                 {
                     for ( i = 0; i < p_pr->var->dims[0]; i++ )
                     {
-                        sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
-                        sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+
+                        sprintf( show_buffer, "%s[%s]", p_pr->short_name, i+1 );
+                        sprintf( label_buffer, "[%s]", i+1 );
                         add_show_button( result_menu, label_buffer, show_buffer );
 
                         /* Build/save complete result specification string. */
@@ -1402,12 +1392,15 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 {
                     for ( i = 0; i < p_pr->var->dims[1]; i++ )
                     {
-                        /* Create button. */
-                        result_submenu = add_pulldown_submenu( result_menu, cell_nums[i] );
+                        sprintf( label_buffer, "[%s]", i + 1 );
+                        Widget result_submenu = add_pulldown_submenu( result_menu, label_buffer );
                         for ( j = 0; j < p_pr->var->dims[0]; j++ )
                         {
+                            htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
+                            State_variable * comp_svar = (State_variable *) p_hte->data;
+
                             sprintf( show_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
-                            sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                            sprintf( label_buffer, "[%s]", j + 1 );
                             add_show_button( result_menu, label_buffer, show_buffer );
 
                             /* Build/save complete result specification string. */

@@ -2092,8 +2092,7 @@ create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
         rval = mc_get_svar_def( fid, p_name, p_sv );
         if ( rval != 0 )
         {
-            mc_print_error( "create_st_variable() call mc_get_svar_def()",
-                            rval );
+            mc_print_error( "create_st_variable() call mc_get_svar_def()", rval );
             return GRIZ_FAIL;
         }
 
