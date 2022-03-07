@@ -1627,7 +1627,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     Subrecord *p_subr;
     int rval;
     Hash_table *p_sv_ht, *p_primal_ht;
-    int i, j, k;
+    int i, j, k, l;
     char **svar_names;
     int mesh_id;
     Htable_entry *p_hte;
@@ -1815,6 +1815,64 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
 
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
                                       srec_qty, svar_names[k], p_sv_ht, analy );
+
+                // If this result is a vector or a vector-array, create a primal result
+                // for each vector component and record the associated vector name
+                rval = htable_search(p_primal_ht,svar_names[k], FIND_ENTRY,&p_hte );
+                if(rval == OK)
+                {
+                    Primal_result *p_pr = (Primal_result *)p_hte->data;
+                    if(p_pr->owning_vec_count == 0)
+                    {
+                        p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
+                        p_pr->owning_vector_result[0] = NULL;
+                    }else
+                    {
+                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
+                                                                      p_pr->owning_vec_count, 1,"Extending vector results");
+                        p_pr->owning_vector_result[p_pr->owning_vec_count] = NULL;
+                    }
+                    if ( p_svar->agg_type == VECTOR || p_svar->agg_type == VEC_ARRAY)
+                    {
+                        Primal_result *owning_pr = p_pr;
+                        int vec_index;
+                        // Loop over vector components and create primal results
+                        for(vec_index = 0; vec_index< p_svar->vec_size; vec_index++)
+                        {
+                            create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index,
+                                                p_primal_ht, srec_qty, p_svar->components[vec_index],
+                                                p_sv_ht, analy );
+
+                            // Lookup newly created primal result and record owning vector or vector-array result
+                            rval = htable_search(p_primal_ht,p_svar->components[vec_index], FIND_ENTRY,&p_hte );
+                            if(rval == OK)
+                            {
+                                p_pr = (Primal_result *)p_hte->data;
+                                if(p_pr->owning_vec_count == 0)
+                                {
+                                    p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
+                                    p_pr->owning_vector_result[0] = (struct _primal_result*)owning_pr;
+                                    p_pr->owning_vec_count++;
+                                }else
+                                {
+                                    /* Check if owning_pr already recorded */
+                                    for( l = 0; l < p_pr->owning_vec_count; l++){
+                                        if( p_pr->owning_vector_result[l] == owning_pr)
+                                            break;
+                                    }
+                                    /* If not, add it */
+                                    if( l == p_pr->owning_vec_count){
+                                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
+                                                                                p_pr->owning_vec_count, 1,
+                                                                                "Extending vector results");
+                                        p_pr->owning_vector_result[p_pr->owning_vec_count] = (struct _primal_result*)owning_pr;
+                                        p_pr->owning_vec_count++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if ( nodal )
                 {
@@ -2158,6 +2216,11 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         else
             p_pr->origin.is_elem_result = 1;
 
+        /* Record the original name of the result */
+        p_pr->original_names_per_subrec = NEW_N( char* , 1, "Original names" );
+        p_pr->original_names_per_subrec[0] = NEW_N(char, strlen(p_name)+1, "First alternate name");
+        strcpy(  p_pr->original_names_per_subrec[0], p_name);
+
         /* Initialize the state rec/subrec presence map. */
         p_pr->srec_map = NEW_N( List_head, qty_srec_fmts, "PR srec map" );
         p_i = NEW( int, "Subrec primal list" );
@@ -2215,6 +2278,12 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 /* Assign back in case realloc moved the array. */
                 p_pr->srec_map[srec_id].list = (void *) p_i;
                 p_pr->srec_map[srec_id].qty++;
+
+                /* Record the original name of the result */
+                p_pr->original_names_per_subrec = RENEW_N(char*,p_pr->original_names_per_subrec,
+                                                          i,1,"Extending original names");
+                p_pr->original_names_per_subrec[i] = NEW_N(char, strlen(p_name)+1, "Next alternate name");
+                strcpy(  p_pr->original_names_per_subrec[i], p_name);
             }
 
         }

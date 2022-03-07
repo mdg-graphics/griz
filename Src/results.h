@@ -174,8 +174,8 @@ typedef struct _primal_result
     Subrec_obj **subrecs;         // List of Subrec_objs
     int qty_subrecs;
     Bool_type is_shared;        // Is the result shared by multiple element classes
-    int possible_owning_vec_count;
-    struct _primal_result **possible_owning_vector_result;
+    int owning_vec_count;
+    struct _primal_result **owning_vector_result;
     char **original_names_per_subrec;
     Bool_type in_menu;
 } Primal_result;

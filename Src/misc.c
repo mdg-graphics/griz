@@ -885,9 +885,9 @@ delete_primal_result( void *p_primal_result )
     p_pr->short_name = NULL;
 
     //These are just null and freed elsewhere
-    for(i=0;i<p_pr->possible_owning_vec_count;i++)
+    for(i=0;i<p_pr->owning_vec_count;i++)
     {
-        p_pr->possible_owning_vector_result[i] = NULL;
+        p_pr->owning_vector_result[i] = NULL;
     }
 
     for ( i = 0; i < env.curr_analy->qty_srec_fmts; i++ )
