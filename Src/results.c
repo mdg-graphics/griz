@@ -2671,42 +2671,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
      * are to be searched, look for a derived result first.
      */
 
-    if ( table == DERIVED || table == ALL )
-    {
-        rval = htable_search( analy->derived_results, root, FIND_ENTRY,
-                              &p_hte );
-
-        if ( rval != OK && table == DERIVED )
-            return FALSE; /* Unable to match requested result. */
-        else if ( rval == OK )
-        {
-            /* Found Derived result matching name. */
-            p_dr = (Derived_result *) p_hte->data;
-
-            /* Call check functions if extant to verify derivability. */
-            srec_map = p_dr->srec_map;
-            p_sr = (Subrecord_result *) srec_map[srec_id].list;
-            qty = srec_map[srec_id].qty;
-
-            for ( i = 0; i < qty; i++ )
-            {
-                check_func = p_sr[i].candidate->check_compute_func;
-                if ( check_func != NULL && !check_func( analy ) )
-                    return FALSE;
-            }
-
-            found = TRUE;
-
-            /* Assign return parameters for derived results. */
-            if ( pp_dr != NULL )
-                *pp_dr = p_dr;
-            if ( p_srec_map != NULL )
-                *p_srec_map = srec_map;
-        }
-    }
-
-    if ( !found
-            && ( table == PRIMAL || table == ALL ) )
+    if ( table == PRIMAL || table == ALL )
     {
         rval = htable_search( analy->primal_results, root, FIND_ENTRY,
                               &p_hte );
@@ -2731,6 +2696,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
 
         /* Found Primal result matching name. */
         p_pr = (Primal_result *) p_hte->data;
+        found = TRUE;
 
         /*
          * Additional checks for specification errors.
@@ -2813,6 +2779,41 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
                 p_indices[i] = indices[i];
     }
 
+    if ( !found
+            && ( table == DERIVED || table == ALL ) )
+    {
+        rval = htable_search( analy->derived_results, root, FIND_ENTRY,
+                              &p_hte );
+
+        if ( rval != OK && table == DERIVED )
+            return FALSE; /* Unable to match requested result. */
+        else if ( rval == OK )
+        {
+            /* Found Derived result matching name. */
+            p_dr = (Derived_result *) p_hte->data;
+
+            /* Call check functions if extant to verify derivability. */
+            srec_map = p_dr->srec_map;
+            p_sr = (Subrecord_result *) srec_map[srec_id].list;
+            qty = srec_map[srec_id].qty;
+
+            for ( i = 0; i < qty; i++ )
+            {
+                check_func = p_sr[i].candidate->check_compute_func;
+                if ( check_func != NULL && !check_func( analy ) )
+                    return FALSE;
+            }
+
+            found = TRUE;
+
+            /* Assign return parameters for derived results. */
+            if ( pp_dr != NULL )
+                *pp_dr = p_dr;
+            if ( p_srec_map != NULL )
+                *p_srec_map = srec_map;
+        }
+    }
+
     /* Assign remaining return parameters. */
     if ( p_root != NULL )
         strcpy( p_root, root );
@@ -2821,7 +2822,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
     if ( p_scalar != NULL )
         *p_scalar = scalar;
 
-    return TRUE;
+    return found;
 }
 
 
