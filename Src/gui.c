@@ -1341,20 +1341,20 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
     /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type == SCALAR )
+    if( p_pr->owning_vec_count == 0 ) // don't add buttons for terms contained in other terms as they should be added by vec/vec_array/array?
     {
-        sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        add_show_button( submenu, label_buffer, p_pr->short_name );
-    }
-    else
-    {
-        comps = p_pr->var->components;
-        p_specs = &analy->component_menu_specs;
-        spec_qty = &analy->component_spec_qty;
-        int vec_size = p_pr->var->vec_size;
-
-        if( p_pr->owning_vec_count == 0 )
+        if ( p_pr->var->agg_type == SCALAR )
         {
+            sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+            add_show_button( submenu, label_buffer, p_pr->short_name );
+        }
+        else
+        {
+            comps = p_pr->var->components;
+            p_specs = &analy->component_menu_specs;
+            spec_qty = &analy->component_spec_qty;
+            int vec_size = p_pr->var->vec_size;
+
             if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type == VEC_ARRAY )
             {
                 /* Non-scalar types require another submenu level. */
