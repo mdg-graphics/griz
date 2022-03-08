@@ -1295,10 +1295,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
         popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\nentries for inclusion in pulldown menu.", p_pr->long_name );
         return;
     }
-
     char label_buffer[M_MAX_NAME_LEN];
-    char show_buffer[M_MAX_NAME_LEN];
-
     if ( p_pr->is_shared )
     {
         strcpy( label_buffer, "Shared" );
@@ -1328,9 +1325,6 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
         }
         else
         {
-            char ** comps = p_pr->var->components;
-            char *** p_specs = &analy->component_menu_specs;
-            int * spec_qty = &analy->component_spec_qty;
             int vec_size = p_pr->var->vec_size;
 
             Widget result_menu;
@@ -1345,18 +1339,15 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                 for ( i = 0; i < p_pr->var->vec_size; i++ )
                 {
                     /* Find State_variable to provide component long name. */
-                    htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
+                    htable_search( analy->st_var_table, p_pr->var->components[i], FIND_ENTRY, &p_hte );
                     State_variable * comp_svar = (State_variable *) p_hte->data;
 
-                    sprintf( show_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
+                    analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
+                    sprintf( label_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
+                    griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
                     sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                    add_show_button( result_menu, label_buffer, show_buffer );
-
-                    /* Build/save complete result specification string. */
-                    (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-                    griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
-                    (*spec_qty)++;
-
+                    add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty] );
+                    analy->component_spec_qty++;
                 }
             }
             else if ( p_pr->var->agg_type == ARRAY )
@@ -1369,15 +1360,12 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                 {
                     for ( i = 0; i < p_pr->var->dims[0]; i++ )
                     {
-
-                        sprintf( show_buffer, "%s[%s]", p_pr->short_name, i+1 );
+                        analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
+                        sprintf( label_buffer, "%s[%s]", p_pr->short_name, i+1 );
+                        griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
                         sprintf( label_buffer, "[%s]", i+1 );
-                        add_show_button( result_menu, label_buffer, show_buffer );
-
-                        /* Build/save complete result specification string. */
-                        (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-                        griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
-                        (*spec_qty)++;
+                        add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty] );
+                        analy->component_spec_qty++;
                     }
                 }
                 else /* rank is 2 */
@@ -1388,17 +1376,15 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                         Widget result_submenu = add_pulldown_submenu( result_menu, label_buffer );
                         for ( j = 0; j < p_pr->var->dims[0]; j++ )
                         {
-                            htable_search( analy->st_var_table, comps[i], FIND_ENTRY, &p_hte );
+                            htable_search( analy->st_var_table, p_pr->var->components[i], FIND_ENTRY, &p_hte );
                             State_variable * comp_svar = (State_variable *) p_hte->data;
 
-                            sprintf( show_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
+                            analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
+                            sprintf( label_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
+                            griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
                             sprintf( label_buffer, "[%s]", j + 1 );
-                            add_show_button( result_menu, label_buffer, show_buffer );
-
-                            /* Build/save complete result specification string. */
-                            (*p_specs) = RENEW_N( char *, (*p_specs), (*spec_qty), 1, "Extend menu specs" );
-                            griz_str_dup( (*p_specs) + (*spec_qty), show_buffer );
-                            (*spec_qty)++;
+                            add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty] );
+                            analy->component_spec_qty++;
                         }
                     }
                 }
