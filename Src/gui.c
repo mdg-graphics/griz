@@ -201,13 +201,12 @@ static void stack_init_EH( Widget w, XtPointer client_data, XEvent *event, Boole
 static void stack_window_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
 static void find_ancestral_root_child( Widget widg, Window *root_child );
 static void create_app_widg( Btn_type btn );
-static void create_derived_res_menu( Widget parent );
+static void create_derived_res_menu( Analysis * analy, Widget parent );
 static void create_primal_res_menu( Analysis * analy, Widget parent );
 static void create_ti_res_menu( Widget parent );
 static void add_primal_result_button( Analysis * analy, Widget parent, Primal_result * );
 static void add_ti_result_button( Widget parent, Primal_result * );
-static void add_derived_result_button( Widget parent, Derived_result * );
-static void get_derived_submenu_name( Derived_result *, char * );
+static void add_derived_result_button( Analysis * analy, Widget parent, Derived_result * );
 static Widget create_menu_bar( Analysis * Analy, Widget parent );
 static Widget create_mtl_manager( Widget main_widg );
 static Widget create_surf_manager( Widget main_widg );
@@ -1234,7 +1233,7 @@ create_menu_bar( Analysis * analy, Widget parent )
 
     /* Build db-sensitive result menus. */
     create_primal_res_menu( analy, menu_bar );
-    create_derived_res_menu( menu_bar );
+    create_derived_res_menu( analy, menu_bar );
 
 #ifdef TIGUI
     /* Bring up TI menus if TI data is found */
@@ -1446,187 +1445,42 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
  * Add a single derived result button to the menu.
  */
 static void
-add_derived_result_button( Widget parent, Derived_result *p_dr )
+add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_dr )
 {
-    Widget submenu_cascade, submenu, subsubmenu, cascade, sub_cascade, button;
-    int i, j, k, n;
-    int position;
-    char cbuf[M_MAX_NAME_LEN], nambuf[M_MAX_NAME_LEN];
-    Bool_type make_submenu;
-    Arg args[10];
-    Analysis *analy;
-    Subrecord_result *p_subr_res;
-
-    /* Vars added to add element set derived results */
-    int es_id=0;
-    char submenu_name[64], *cb_name=NULL, cb_name_temp[64];
-    Bool_type es_found=FALSE;
-    State_variable sv;
-    Subrecord subrec;
-    Hash_table *p_pr_ht;
-    Htable_entry *p_hte;
-    Primal_result *p_pr;
-    int dbid=0, srec_qty=0;
-    int subrec_qty=0;
-    int rval=0;
-
-    analy = env.curr_analy;
-
+    char label_buffer[M_MAX_NAME_LEN];
     if ( p_dr->is_shared )
     {
-        strcpy( submenu_name, "Shared" );
+        strcpy( label_buffer, "Shared" );
     }
     else
     {
         /* Only one class, so submenu name is class name. */
-        sprintf(submenu_name, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
+        sprintf( label_buffer, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
     }
-
-    int idx = -1;
-    if( ! find_labelled_child( parent, submenu_name, &submenu_cascade, &idx ) )
-        submenu = add_pulldown_submenu( parent, submenu_name );
+    int child_idx = -1;
+    Widget submenu;
+    Widget submenu_cascade;
+    if( ! find_labelled_child( parent, label_buffer, &submenu_cascade, &child_idx ) )
+        submenu = add_pulldown_submenu( parent, label_buffer );
     else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
+    int i = 0;
     for ( i = 0; i < analy->qty_srec_fmts && p_dr->srec_map[i].qty == 0; i++ );
-    p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
-    idx = p_subr_res->index;
+    Subrecord_result * p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
+    int idx = p_subr_res->index;
 
-    sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
-    add_show_button( submenu, nambuf, p_subr_res->candidate->short_names[idx] );
-    p_dr->in_menu = TRUE;
+    sprintf( label_buffer, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
+    add_show_button( submenu, label_buffer, p_subr_res->candidate->short_names[idx] );
 }
 
-/*****************************************************************
- * TAG( get_derived_submenu_name )
- *
- * Determine the proper submenu name for a derived result by
- * determining if multiple classes support the result.  Because
- * a result can be derived for one class from data in another
- * class (for ex., brick strains calculated from nodal positions), * we can't rely on simple examinations of the class names for
- * the subrecords to identify the classes actually supporting the
- * result derivation or to provide the menu name of a non-shared
- * result.
- */
-static void
-get_derived_submenu_name( Derived_result *p_dr, char *name )
-{
-    int qty_fmts = env.curr_analy->qty_srec_fmts;
-    /*
-     * Search all state record formats to get a menu name from the
-     * first format that supports the derived result.
-     */
-    int ii = 0;
-    for ( ii = 0; ii < qty_fmts; ii++ )
-    {
-        /*
-         * Compare data for the first class supporting the result
-         * with the rest of the classes supporting the result to
-         * determine if the submenu name should be "Shared" or a
-         * class name.
-         */
-        int sr_qty = p_dr->srec_map[ii].qty;
-        if ( sr_qty == 0 )
-            continue;
-        Subrecord_result * p_sr = (Subrecord_result *) p_dr->srec_map[ii].list;
-        Subrec_obj * subrecs = env.curr_analy->srec_tree[ii].subrecs;
-        /* Parameterize data for the first class. */
-        int candidate_sclass = p_sr[0].candidate->superclass;
-        int subr_id = p_sr[0].subrec_id;
-        int subrecord_sclass = subrecs[subr_id].p_object_class->superclass;
-        char * subrecord_class = subrecs[subr_id].p_object_class->short_name;
-        /*
-         * Loop over the subrecords supporting the result derivation
-         * to determine if the result is shared.
-         */
-        int jj = 0;
-        for ( jj = 1; jj < sr_qty; jj++ )
-        {
-            subr_id = p_sr[jj].subrec_id;
-            if ( candidate_sclass != p_sr[jj].candidate->superclass ||
-                 subrecord_sclass != subrecs[subr_id].p_object_class->superclass ||
-                 strcmp( subrecord_class, subrecs[subr_id].p_object_class->short_name) != 0 )
-            {
-                /*
-                 * The superclasses from originating Result_candidate's
-                 * differ; go no farther, it's a shared result.
-                 */
-                /*
-                 * The originating superclasses are the same but the
-                 * supporting subrecords bind data from classes which
-                 * themselves have different superclasses, so it's a shared
-                 * result (maybe, for example, nodal data supporting
-                 * brick strain calculations and thick shell data which
-                 * includes a strain tensor explicitly - bricks and
-                 * thick shells would both be G_HEX, but the supporting
-                 * subrecords would have superclasses G_NODE and G_HEX).
-                 */
-                /*
-                 * The Result_candidate and subrecord superclasses match, * but the subrecord classes differ - almost certainly a
-                 * shared result (for example, a stress derived result
-                 * from a brick subrecord containing a stress tensor and
-                 * a thick shell subrecord containing a stress tensor).
-                 * An exception might be if for some reason there were two
-                 * nodal classes in the mesh (not currently supported by
-                 * Griz), and subrecords binding each of the nodal classes
-                 * independently support the same result derivation on
-                 * another class (i.e., brick strains from nodal positions).
-                 * In that case, it shouldn't be treated as shared since
-                 * the final result from both subrecords would be for the
-                 * same class.  Assume this won't occur for now.
-                 */
-                strcpy( name, "Shared" );
-                break;
-            }
-        }
-        if ( jj == sr_qty && sr_qty != 0 )
-        {
-            /*
-             * Might still be shared if the result is indirect and there are
-             * multiple classes from the superclass of the derived result.
-             * If it's indirect but there's only one class from that
-             * superclass, use that class name.  Otherwise, use the class
-             * name of the class bound to the subrecord.
-             */
-            MO_class_data * p_mo_class = subrecs[p_sr[0].subrec_id].p_object_class;
-            if ( candidate_sclass != p_mo_class->superclass )
-            {
-                /*
-                 * The superclasses differ, so we have to find a suitable
-                 * class name somewhere, but the Result_candidate doesn't
-                 * know about classes.  Pick the first class of the correct
-                 * superclass.
-                 */
-                int kk = 0;
-                for ( kk = 0; kk < env.curr_analy->mesh_qty; kk++ )
-                {
-                    Mesh_data * p_mesh = env.curr_analy->mesh_table + kk;
-                    int class_qty = p_mesh->classes_by_sclass[candidate_sclass].qty;
-                    if ( class_qty > 0 )
-                    {
-                        p_mo_class = ((MO_class_data **) p_mesh->classes_by_sclass[candidate_sclass].list)[0];
-                        if ( class_qty > 1 )
-                        {
-                            strcpy( name, "Shared" );
-                            p_mo_class = NULL;
-                        }
-                        break;
-                    }
-                }
-            }
-            if ( p_mo_class != NULL )
-                sprintf( name, "%s (%s)", p_mo_class->long_name, p_mo_class->short_name );
-        }
-    }
-    return;
-}
 /*****************************************************************
  * TAG( create_derived_res_menu )
  *
  * Create the derived results menu for the Control window menu bar.
  */
 static void
-create_derived_res_menu( Widget parent )
+create_derived_res_menu( Analysis * analy, Widget parent )
 {
     int num_in_menu = 0;
     int ii = 0;
@@ -1648,7 +1502,7 @@ create_derived_res_menu( Widget parent )
             Derived_result * p_dr = (Derived_result*) p_dr_data[ii];
             if ( !p_dr->in_menu )
             {
-                add_derived_result_button( derived_menu_widg, p_dr );
+                add_derived_result_button( analy, derived_menu_widg, p_dr );
                 p_dr->in_menu = TRUE;
             }
         }
@@ -1734,7 +1588,7 @@ regenerate_result_menus( void )
     }
 
     /* Create new result menus. */
-    create_derived_res_menu( menu_widg );
+    create_derived_res_menu( analy, menu_widg );
     create_primal_res_menu( analy, menu_widg );
 
     /* Bring up TI menus if TI data is found */
