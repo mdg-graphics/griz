@@ -2715,24 +2715,28 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
             p_dr->subrecs[0] = p_subrec;
             p_dr->qty_subrecs = 1;
         }
-        else{
+        else
+        {
             p_subrec_list = (Subrec_obj **) p_dr->subrecs;
 
             /* Loop over all subrecords currently associated with this primal_result */
-            for(k = 0; k < p_dr->qty_subrecs; k++){
+            for(k = 0; k < p_dr->qty_subrecs; k++)
+            {
                 /* Check if subrecord already in list */
                 if(strcmp(p_subrec_list[k]->subrec.name, p_subrec->subrec.name) == 0)
                     break;
 
                 /* Check if "shared" */
-                if(strcmp(p_subrec_list[k]->subrec.class_name, p_subrec->subrec.class_name) != 0){
+                if(strcmp(p_subrec_list[k]->subrec.class_name, p_subrec->subrec.class_name) != 0)
+                {
                     // If new element class name, this result is shared
                     p_dr->is_shared = TRUE;
                 }
             }
 
             /* if not in list... */
-            if(k == p_dr->qty_subrecs){
+            if(k == p_dr->qty_subrecs)
+            {
                 p_subrec_list = RENEW_N(Subrec_obj*, p_subrec_list, k, 1, "Extend Subrec_obj list");
                 p_subrec_list[k] = p_subrec;
                 /* Assign back in case realloc moved the array */

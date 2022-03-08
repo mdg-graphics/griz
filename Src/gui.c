@@ -202,13 +202,13 @@ static void stack_window_EH( Widget w, XtPointer client_data, XEvent *event, Boo
 static void find_ancestral_root_child( Widget widg, Window *root_child );
 static void create_app_widg( Btn_type btn );
 static void create_derived_res_menu( Widget parent );
-static void create_primal_res_menu( Widget parent );
+static void create_primal_res_menu( Analysis * analy, Widget parent );
 static void create_ti_res_menu( Widget parent );
-static void add_primal_result_button( Widget parent, Primal_result * );
+static void add_primal_result_button( Analysis * analy, Widget parent, Primal_result * );
 static void add_ti_result_button( Widget parent, Primal_result * );
 static void add_derived_result_button( Widget parent, Derived_result * );
 static void get_derived_submenu_name( Derived_result *, char * );
-static Widget create_menu_bar( Widget parent, Analysis * );
+static Widget create_menu_bar( Analysis * Analy, Widget parent );
 static Widget create_mtl_manager( Widget main_widg );
 static Widget create_surf_manager( Widget main_widg );
 static Widget create_free_util_panel( Widget main_widg );
@@ -726,7 +726,7 @@ gui_start( int argc, char **argv , Analysis * analy )
      * automatically called when the child becomes managed if the parent is already realized.
      */
     mainwin_widg = XtCreateManagedWidget( "mainw", xmMainWindowWidgetClass, ctl_shell_widg, NULL, 0 );
-    menu_widg = create_menu_bar( mainwin_widg, analy );
+    menu_widg = create_menu_bar( analy, mainwin_widg );
 
     /*
      * Everything else for the control window goes onto a pane.
@@ -1129,7 +1129,7 @@ add_pulldown_submenu( Widget parent, char * label )
  * Create the menu bar for the main window.
  */
 static Widget
-create_menu_bar( Widget parent, Analysis *analy )
+create_menu_bar( Analysis * analy, Widget parent )
 {
     Widget menu_bar = XmCreateMenuBar( parent, "menu_bar", NULL, 0 );
     XtManageChild( menu_bar );
@@ -1233,7 +1233,7 @@ create_menu_bar( Widget parent, Analysis *analy )
     add_menu_buttons( menu_pane, sizeof(pick_btn_ids_2) / sizeof(pick_btn_ids_2[0]), pick_btn_labels_2, menu_CB, pick_btn_ids_2 );
 
     /* Build db-sensitive result menus. */
-    create_primal_res_menu( menu_bar );
+    create_primal_res_menu( analy, menu_bar );
     create_derived_res_menu( menu_bar );
 
 #ifdef TIGUI
@@ -1281,22 +1281,15 @@ create_menu_bar( Widget parent, Analysis *analy )
  * Add a single primal result button to the menu.
  */
 static void
-add_primal_result_button( Widget parent, Primal_result *p_pr )
+add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
 {
-    static char *cell_nums[] =
-    {
-        "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]", "[11]", "[12]", "[13]", "[14]", "[15]", "[16]", "[17]", "[18]", "[19]", "[20]"
-    };
-    int qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
-    Analysis * analy = env.curr_analy;
-
-
     /* Arrays and Vector Arrays that are too big don't go in menu. */
+    int array_limit = 20;
     if ( ( p_pr->var->agg_type == ARRAY &&
-           ( p_pr->var->rank > 2 || p_pr->var->dims[0] > qty_cell_nums || ( p_pr->var->rank == 2 && p_pr->var->dims[1] > qty_cell_nums ) )
+           ( p_pr->var->rank > 2 || p_pr->var->dims[0] > array_limit || ( p_pr->var->rank == 2 && p_pr->var->dims[1] > array_limit ) )
          ) ||
          ( p_pr->var->agg_type == VEC_ARRAY &&
-           ( p_pr->var->rank > 1 || p_pr->var->dims[0] > qty_cell_nums )
+           ( p_pr->var->rank > 1 || p_pr->var->dims[0] > array_limit )
          )
        )
     {
@@ -1306,7 +1299,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
     char label_buffer[M_MAX_NAME_LEN];
     char show_buffer[M_MAX_NAME_LEN];
-    char parent_menu[32];
+
     if ( p_pr->is_shared )
     {
         strcpy( label_buffer, "Shared" );
@@ -1314,7 +1307,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     else
     {
         /* Only one class, so submenu name is class name. */
-        sprintf(label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
+        sprintf( label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
     }
 
     // ensure the submenu exists
@@ -1495,48 +1488,10 @@ add_derived_result_button( Widget parent, Derived_result *p_dr )
     else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
-    for ( i = 0; i < analy->qty_srec_fmts; i++ )
-        if ( p_dr->srec_map[i].qty > 0 )
-            break;
+    for ( i = 0; i < analy->qty_srec_fmts && p_dr->srec_map[i].qty == 0; i++ );
     p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
     idx = p_subr_res->index;
 
-    /* If we have element set derived results then add them now */
-    p_pr_ht = env.curr_analy->primal_results;
-    if ( analy->es_cnt > 0 && p_pr_ht != NULL )
-    {
-        /* Get state record format count for this database. */
-        dbid = env.curr_analy->db_ident;
-        srec_qty = 0;
-        env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL, (void *) &srec_qty );
-
-        /* Loop over srecs */
-        for ( i = 0; i < srec_qty; i++ )
-        {
-            /* Get subrecord count for this state record. */
-            rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty );
-            if ( rval != OK )
-                continue;
-
-            /* Loop over subrecs */
-            for ( j = 0; j < subrec_qty; j++ )
-            {
-                /* Get binding */
-                rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
-                if ( rval != OK )
-                    continue;
-
-                /* Look for element set svars to add to sub-menu */
-                if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name) && !strncmp( subrec.svar_names[0], "es_", 3 ) )
-                {
-                    continue;
-                } /* es variable test */
-
-                /* Don't care about return value for this. */
-                env.curr_analy->db_cleanse_subrec( &subrec );
-            } /* for on j */
-        }
-    }
     sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
     add_show_button( submenu, nambuf, p_subr_res->candidate->short_names[idx] );
     p_dr->in_menu = TRUE;
@@ -1708,7 +1663,7 @@ create_derived_res_menu( Widget parent )
  * Create the primal results menu for the Control window menu bar.
  */
 static void
-create_primal_res_menu( Widget parent )
+create_primal_res_menu( Analysis * analy, Widget parent )
 {
     Widget primal_menu_widg = add_pulldown_submenu( parent, primal_menu_name );
     add_show_button( primal_menu_widg, "Result off", "mat" );
@@ -1729,7 +1684,7 @@ create_primal_res_menu( Widget parent )
                 continue;
             if ( !p_pr->in_menu )
             {
-                add_primal_result_button( primal_menu_widg, p_pr );
+                add_primal_result_button( analy, primal_menu_widg, p_pr );
                 p_pr->in_menu = TRUE;
             }
         }
@@ -1763,9 +1718,7 @@ void
 regenerate_result_menus( void )
 {
     int position;
-    Analysis *analy;
-
-    analy = env.curr_analy;
+    Analysis * analy = env.curr_analy;
 
     /* Destroy the existing pulldown menus. */
     // XtDestroyWidget( derived_menu_widg );
@@ -1782,7 +1735,7 @@ regenerate_result_menus( void )
 
     /* Create new result menus. */
     create_derived_res_menu( menu_widg );
-    create_primal_res_menu( menu_widg );
+    create_primal_res_menu( analy, menu_widg );
 
     /* Bring up TI menus if TI data is found */
     if ( analy->ti_data_found )
