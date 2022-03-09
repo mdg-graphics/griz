@@ -603,6 +603,7 @@ gl_get_x_visual_info( Analysis * analy )
         if ( visual_info == NULL )
             popup_fatal( "No RGB visual with depth buffer.\n" );
     }
+    return visual_info;
 }
 
 GLXContext
@@ -1110,7 +1111,7 @@ add_pulldown_submenu( Widget parent, char * label )
     XtSetArg( arg[3], XmNorientation, XmHORIZONTAL );
     XtSetArg( arg[4], XmNpacking, XmPACK_COLUMN );
     Widget pulldown = XmCreatePulldownMenu( parent, "pulldown", &arg[0], 5 );
-    XtVaCreateManagedWidget( label, xmCascadeButtonWidgetClass, parent, &arg, 2, XmNsubMenuId, pulldown );
+    XtVaCreateManagedWidget( label, xmCascadeButtonWidgetClass, parent, XmNsubMenuId, pulldown, NULL );
     return pulldown;
 }
 
