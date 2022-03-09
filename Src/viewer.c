@@ -326,7 +326,7 @@ main( int argc, char *argv[] )
          */
         if ( env.quiet_mode==FALSE)
         {
-            free( make_griz_name( analy ) ); 
+            free( make_griz_name( analy, griz_version ) );
             write_start_text();
         }
 
@@ -946,7 +946,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     manage_timer( 0, 1 );
     putc( (int) '\n', stdout );
 #endif
-    
+
     /* set state count in analysis struct */
     analy->state_count = num_states;
 
@@ -976,7 +976,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     /*analy->interp_mode = REG_INTERP;*/
     analy->interp_mode = NO_INTERP;
     analy->autoselect = FALSE;
-     
+
     analy->manual_backface_cull = TRUE;
     analy->float_frac_size = DEFAULT_FLOAT_FRACTION_SIZE;
     analy->auto_frac_size = TRUE;
@@ -1036,7 +1036,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     analy->show_deleted_elements      = FALSE;
     analy->show_only_deleted_elements = FALSE;
-    
+
 
     analy->echocmd     = TRUE;
 
@@ -1054,7 +1054,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
 
     /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
-    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on); 
+    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on);
     // If "particles_on" paramter does not exist, default to off.
     if(stat != OK)
         particles_on = 0;
@@ -1110,11 +1110,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         }
 
         analy->ti_data_found = TRUE;
-        
+
         htable_delete_wildcard_list( num_entries, wildcard_list ) ;
         free(wildcard_list);
         wildcard_list = NULL;
-        
+
         /* Get particle element names count */
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "particle_element", "NULL", "NULL",
@@ -1126,8 +1126,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             if(wildcard_list == NULL)
             {
                 return ALLOC_FAILED;
-            }              
-        
+            }
+
             /* Load particle element names from list if available */
             num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                           "particle_element", "NULL", "NULL",
@@ -1150,13 +1150,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 wildcard_list = NULL;
             }
         }
-        
-        
+
+
         /* Get Modal analysis variables if they exist */
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "analysis_type", "NULL", "NULL",
                       NULL );
-        
+
         if ( num_entries==1 )
         {
             char tmp_string[256];
@@ -1183,9 +1183,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             analy->ti_data_found = FALSE;
         }
 
-        
+
     }
-    
+
     /*
      * Loop over meshes to complete mesh-specific initializations.
      */
@@ -1292,7 +1292,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             if ( p_mocd->superclass == G_TET )
             {
                 p_md->tet_qty += p_mocd->qty;
-                tet_qty += p_md->tet_qty; 
+                tet_qty += p_md->tet_qty;
             }
         }
 
@@ -1838,16 +1838,16 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         free( class_array );
     }
-    
-    
+
+
     if ( env.ti_enable )
     {
         /* Shell Integration Point Labels */
-        
+
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "IntLabel", "NULL", "NULL",
                       NULL );
-        
+
         wildcard_list=(char**) malloc( num_entries*sizeof(char *));
 
         if(wildcard_list == NULL)
@@ -1858,7 +1858,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "IntLabel", "NULL", "NULL",
                       wildcard_list );
-        
+
         analy->es_cnt = 0;
 
         if ( num_entries>0 )
@@ -1874,23 +1874,23 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 printf("Out of memory in function open_analysis. terminating\n");
                 abort();
             }
-            
+
             analy->int_labels->labels = (int**)malloc(num_entries*sizeof(int*));
-           
+
 
             if(analy->int_labels->labels == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
                 abort();
             }
-                
-            analy->int_labels->labelSizes = (int *) malloc(num_entries*sizeof(int)); 
+
+            analy->int_labels->labelSizes = (int *) malloc(num_entries*sizeof(int));
             if(analy->int_labels->labels == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
                 abort();
             }
- 
+
             analy->int_labels->mats = (int *) calloc(num_entries, sizeof(int));
             if(analy->int_labels->mats == NULL)
             {
@@ -1911,24 +1911,24 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
                 abort();
             }
-            
+
             analy->int_labels->map = (int *) calloc(cur_mesh_mat_qty+1, sizeof(int));
             if(analy->int_labels->map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
                 abort();
             }
-            
+
             for(i=0; i<cur_mesh_mat_qty+1;i++)
             {
                 analy->int_labels->map[i] = -1;
             }
-            
+
             analy->int_labels->mapsize = cur_mesh_mat_qty + 1;
 
             int num_items_read=0;
             int highest_mat_num = 0;
- 
+
             for(i = 0; i < num_entries; i++)
             {
 
@@ -1944,13 +1944,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
                     (void**)& analy->int_labels->labels[i], &num_items_read );
                 analy->int_labels->labelSizes[i] = num_items_read;
-                analy->int_labels->valid[i] = 1; 
-                /*qsort(analy->int_labels->labels[i], num_items_read, sizeof(int), compints);*/ 
-                /* extract the material number from the Label Name and store it in the Label Data Struct */ 
+                analy->int_labels->valid[i] = 1;
+                /*qsort(analy->int_labels->labels[i], num_items_read, sizeof(int), compints);*/
+                /* extract the material number from the Label Name and store it in the Label Data Struct */
                 int m = 0;
                 char str;
                 int k = 0;
- 
+
                 for(j = strlen(analy->int_labels->LabelNames[i]) - 1; j >= 0; j--)
                 {
                     if(isdigit(analy->int_labels->LabelNames[i][j]))
@@ -1974,10 +1974,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                         popup_dialog(WARNING_POPUP, "ERROR: Integration points not written in the labels array in ascending order for some element sets. Aborting\n");
                         parse_command("quit", analy);
                     }
-                }    
-    
+                }
+
             }
-            
+
 
             {
                 int qty, rval, index;
@@ -1988,7 +1988,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 char p;
                 int srec_qty, subrec_qty;
                 Subrecord subrec;
-                
+
                 dbid = analy->db_ident;
                 srec_qty = 0;
                 analy->int_labels->num_es_sets = 0;
@@ -2002,8 +2002,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                     if(rval != OK)
                     {
                         continue;
-                    } 
-                    
+                    }
+
                     /* loop over subrecs looking for "es_" */
                     for(j = 0; j < subrec_qty; j++)
                     {
@@ -2029,10 +2029,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                     if(analy->int_labels->es_names == NULL || analy->int_labels->result_names == NULL)
                     {
                         popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
-                        parse_command("quit", analy); 
+                        parse_command("quit", analy);
                     }
 
-                 
+
                 }
 
                 for(i = 0; i < srec_qty; i++)
@@ -2042,8 +2042,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                     if(rval != OK)
                     {
                         continue;
-                    } 
-                    k = 0; 
+                    }
+                    k = 0;
                     /* loop over subrecs looking for "es_" */
                     for(j = 0; j < subrec_qty; j++)
                     {
@@ -2061,8 +2061,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                             if(analy->int_labels->es_names[k] == NULL || analy->int_labels->result_names[k] == NULL)
                             {
                                 popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
-                                parse_command("quit", analy); 
-                            } 
+                                parse_command("quit", analy);
+                            }
                             strcpy(analy->int_labels->es_names[k], svar_name);
                             strcpy(analy->int_labels->result_names[k], "\0");
                             k++;
@@ -2111,7 +2111,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 else
                 {
                     continue;
-                } 
+                }
                 set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
                                         analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
 
@@ -2151,7 +2151,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 //    }
 
     analy->mat_labels_active = TRUE;
-    
+
     analy->maxLabelLength = 0;
 
     if(analy->mat_labels_active && env.ti_enable){
@@ -2232,8 +2232,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
 						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);
 						analy->num_messages++;
-					}               
-				}				
+					}
+				}
 			}
 			else{
 				sprintf(test,"%s",str);
@@ -2577,16 +2577,16 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         {
             time(&curtime);
             timeinfo = localtime(&curtime);
-            
+
             sprintf(timestr, "_%d.%d.%d_%d:%d:%d", timeinfo->tm_mon
                                                 , timeinfo->tm_mday
                                                 , timeinfo->tm_year -100
                                                 , timeinfo->tm_hour
                                                 , timeinfo->tm_min
                                                 , timeinfo->tm_sec);
-            
+
             sprintf(timestamp, "%s", asctime(timeinfo));
-            
+
             strcpy (hist_fname, ".");
             strcat( hist_fname, analy->root_name );
             strcat( hist_fname, timestr);
@@ -2728,8 +2728,8 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     Bool_type status;
     Analysis temp_analy;
     char comment[512];
-    
-    /* We are either loading another plotfile or reloading the current one.  So if a current 
+
+    /* We are either loading another plotfile or reloading the current one.  So if a current
  *     grizhist file is open close and delete if before creating another one */
     if(analy->p_histfile)
     {
@@ -2771,7 +2771,7 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     model_history_log_clear( analy );
 
     check_for_free_nodes( analy );
-    
+
 #ifdef SERIAL_BATCH
 #else
     regenerate_result_menus();
@@ -3015,10 +3015,10 @@ model_history_log_update( char *command, Analysis *analy )
     comment = (char *)malloc((cmdlen+20)*sizeof(char));
     time_t curtime;
     struct tm *timeinfo=NULL;
-    
+
     if ( model_loading_phase ) /* We do not want to log commands from the log data */
         return;
-    
+
     strcpy( copy_command, command );
 
     /*first_token = strtok( copy_command, "\t " );*/
@@ -3229,8 +3229,8 @@ process_serial_batch_mode( char *batch_input_file_name, Analysis *analy )
 
         if ( command_string[0] != '#' && command_string[0] != '\0' )
         {
-            if ( ( 0 != strcmp( command_string, "quit" ) ) && 
-                    ( 0 != strcmp( command_string, "exit" ) ) && 
+            if ( ( 0 != strcmp( command_string, "quit" ) ) &&
+                    ( 0 != strcmp( command_string, "exit" ) ) &&
                     ( 0 != strcmp( command_string, "end"  ) ) )
                 parse_command( command_string, analy );
             else
