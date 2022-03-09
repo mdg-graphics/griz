@@ -2758,6 +2758,32 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
         }
     }
 
+    for ( i = 0; p_rc->short_names[i] != NULL; i++ )
+    {
+        rval = htable_search( p_ht, p_rc->short_names[i], ENTER_MERGE, &p_hte );
+        if ( rval == ENTRY_EXISTS )
+        {
+            p_dr = (Derived_result *) p_hte->data;
+            int srec_id = 0;
+            int srec_id_cnt = 0;
+            for ( srec_id = 0; srec_id < analy->qty_srec_fmts; srec_id++ )
+            {
+                if( p_dr->srec_map[srec_id].qty != 0 ) srec_id_cnt++;
+            }
+            p_dr->srec_ids = NEW_N(int,srec_id_cnt,"");
+            p_dr->srec_id_cnt = srec_id_cnt;
+            int ii = 0;
+            for ( srec_id = 0; srec_id < analy->qty_srec_fmts; srec_id++ )
+            {
+                if( p_dr->srec_map[srec_id].qty != 0 )
+                p_dr->srec_ids[ii] = srec_id;
+                ii++;
+            }
+
+        }
+    }
+
+
     return OK;
 }
 

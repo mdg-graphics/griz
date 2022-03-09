@@ -326,7 +326,6 @@ main( int argc, char *argv[] )
          */
         if ( env.quiet_mode==FALSE)
         {
-            free( make_griz_name( analy, griz_version ) );
             write_start_text();
         }
 

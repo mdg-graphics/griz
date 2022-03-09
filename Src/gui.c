@@ -102,10 +102,6 @@ static unsigned char GrizStop_bits[] = {
 Bool_type include_util_panel    = FALSE;
 Bool_type include_mtl_panel     = FALSE;
 
-// /* Griz name & version for window titles. */
-// static char *griz_name=NULL;
-// static char path_string[MAXPATHLENGTH];
-
 /* Set to TRUE if the material Color-Mode is active */
 Bool_type mtl_color_active=FALSE;
 
@@ -679,8 +675,6 @@ gui_start( int argc, char **argv , Analysis * analy )
     int status;
     int i;
 
-    // char * griz_name = make_griz_name( analy, griz_version );
-
     /* Read in the session initialization data */
 
     /*
@@ -1037,9 +1031,7 @@ move_bottom( int new_offset )
 void
 init_app_context_serial_batch( int argc, char *argv[] )
 {
-    ctl_shell_widg = XtAppInitialize(
-                         &app_context, "GRIZ", (XrmOptionDescList) NULL, 0, &argc, (String*) argv, fallback_resources, (ArgList) NULL, 0
-                     );
+    ctl_shell_widg = XtAppInitialize( &app_context, "GRIZ", (XrmOptionDescList) NULL, 0, &argc, (String*) argv, fallback_resources, (ArgList) NULL, 0 );
 }
 #endif
 
@@ -1225,10 +1217,12 @@ create_menu_bar( Analysis * analy, Widget parent )
 
     static int pick_btn_ids_2[] =
     {
-        -1, BTN_CENTERON, BTN_CENTEROFF, };
+        -1, BTN_CENTERON, BTN_CENTEROFF
+    };
     char * pick_btn_labels_2[] =
     {
-        "---", "Center Hilite On", "Center Hilite Off", };
+        "---", "Center Hilite On", "Center Hilite Off"
+     };
     add_menu_buttons( menu_pane, sizeof(pick_btn_ids_2) / sizeof(pick_btn_ids_2[0]), pick_btn_labels_2, menu_CB, pick_btn_ids_2 );
 
     /* Build db-sensitive result menus. */
@@ -1249,7 +1243,8 @@ create_menu_bar( Analysis * analy, Widget parent )
     };
     char * time_btn_labels[] =
     {
-        "Next State", "Prev State", "First State", "Last State", "Animate States", "Stop Animate", "Continue Animate", };
+        "Next State", "Prev State", "First State", "Last State", "Animate States", "Stop Animate", "Continue Animate"
+    };
     add_menu_buttons( menu_pane, sizeof(time_btn_ids) / sizeof(time_btn_ids[0]), time_btn_labels, menu_CB, time_btn_ids );
 
     /* Plot menu. */
@@ -1451,11 +1446,8 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
     else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
-    int i = 0;
-    for ( i = 0; i < analy->qty_srec_fmts && p_dr->srec_map[i].qty == 0; i++ );
-    Subrecord_result * p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
+    Subrecord_result * p_subr_res = (Subrecord_result *) p_dr->srec_map[p_dr->srec_ids[0]].list;
     int idx = p_subr_res->index;
-
     sprintf( label_buffer, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
     add_show_button( submenu, label_buffer, p_subr_res->candidate->short_names[idx] );
 }
@@ -1482,16 +1474,28 @@ create_derived_res_menu( Analysis * analy, Widget parent )
     int rval = htable_get_data( p_dr_ht, &p_dr_data, &qty_dr );
     if( rval == OK )
     {
+        const char ** snames = NEW_N(const char*,qty_dr,"pointers to the names to use to order the derived results");
+        int * permutation = NEW_N(int,qty_dr,"reorder the derived results to get better grouping");
         int ii = 0;
         for( ii = 0; ii < qty_dr; ++ii )
         {
+            permutation[ii] = ii;
             Derived_result * p_dr = (Derived_result*) p_dr_data[ii];
+            Subrecord_result * p_subr_res = (Subrecord_result *) p_dr->srec_map[p_dr->srec_ids[0]].list;
+            snames[ii] = p_subr_res->candidate->short_names[p_subr_res->index];
+        }
+        str_heapsort(snames,permutation,qty_dr);
+        free(snames);
+        for( ii = 0; ii < qty_dr; ++ii )
+        {
+            Derived_result * p_dr = (Derived_result*) p_dr_data[permutation[ii]];
             if ( !p_dr->in_menu )
             {
                 add_derived_result_button( analy, derived_menu_widg, p_dr );
                 p_dr->in_menu = TRUE;
             }
         }
+        free(permutation);
     }
     free( p_dr_data );
 }
@@ -9166,8 +9170,6 @@ reset_window_titles( void )
 {
     char title[100];
     Analysis *p_analy = get_analy_ptr();
-    // char * griz_name = make_griz_name( p_analy, griz_version );
-    // free( griz_name );
     char * path_string = make_path_str( p_analy );
 
     if ( env.bname )

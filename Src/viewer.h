@@ -923,7 +923,7 @@ typedef struct _Integration_points
 /*****************************************************************
  * TAG( combined_names )
  *
- *   Struct which contains the result names making up the combined 
+ *   Struct which contains the result names making up the combined
  *   result.
  ****************************************************************/
 typedef struct _combined_names
@@ -947,7 +947,7 @@ typedef struct _IntLabels
     int *labelSizes;  /* the length of the ith label array*/
     int ** labels;
     int * mats;  /* The materials associated with the LabelNames, size is numLabels */
-    int * int_pts_selected;  /* For each material, which integration point is selected,  0 
+    int * int_pts_selected;  /* For each material, which integration point is selected,  0
                                 means none is selected for that material.  The size of
                                 this array is also numLabels */
     int * map;               /* When accessing the materal array and in case the material numbers
@@ -970,7 +970,7 @@ typedef struct _intPtMessages
     struct _intPtMessages * next;
     struct _intPtMessages * prev;
     char messages[256];
-    
+
 } intPtMessages;
 
 
@@ -1014,7 +1014,7 @@ typedef struct _Analysis
                                      int, int );
 
     Bool_type autoselect;
-    void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */ 
+    void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */
     int db_ident;
     char root_name[MAXPATHLENGTH];
     char path_name[MAXPATHLENGTH];
@@ -1842,7 +1842,7 @@ typedef struct
      * This is basically checking if we are running on VNC, VNC uses direct rendering
      * while Xwin32 uses indirect rendering.
      */
-    Bool_type direct_rendering; 
+    Bool_type direct_rendering;
 
     /*
      * Added January 5, 2005: IRC - Variable used for selecting a beta
