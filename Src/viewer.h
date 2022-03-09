@@ -500,6 +500,7 @@ typedef struct _ElementSet
   int size;                 /* Size of the integration_points in the array */
   int * integration_points;  /* The actual integration point put out by the code the int at
                                size is the simulation actual integration points processed*/
+  int ipt_count;                // This is the size of the array.
   int current_index;        /* The selected integration point by the user. Default is zero? */
   int tempIndex;
   int middle_index;
@@ -983,6 +984,7 @@ typedef struct _mmHisEnt
 	char *global_mm_class_long_name[2];
 }mmHistEnt;
 
+
 /*****************************************************************
  * TAG( Analysis )
  *
@@ -1069,6 +1071,7 @@ typedef struct _Analysis
     int num_banned_names;
     char **conflict_messages;
     int num_messages;
+    Hash_table *intPoints;
     Hash_table *es_components_table;
     Result_table_type result_source;
     char **component_menu_specs;
@@ -1496,6 +1499,8 @@ typedef struct _Analysis
     int                 es_cnt; /* Number of element sets */
     Integration_points *es_intpoints;
     IntLabels * int_labels;
+    Hash_table * Element_sets;
+    char **Element_set_names;
 
     /*
  *   Added February , 2014:  WBO Switch to turn off auto gray

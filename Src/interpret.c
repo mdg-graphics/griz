@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * interpret.c - Command line interpreter for graphics viewer.
  *

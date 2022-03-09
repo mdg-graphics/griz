@@ -255,6 +255,7 @@ void defineBorderColor( Display* dpy );
 static Widget create_colormap_menu( Widget parent, Util_panel_button_type btn_type, char *cascade_name );
 static Widget create_colormap_submenu( Widget parent, colormap_type btn_type, Widget *p_initial_button );
 
+
 /*
  * This resource list provides defaults for settable values in the
  * interface widgets.
@@ -1342,7 +1343,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                     sprintf( label_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
                     griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
                     sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                    add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty] );
+                    add_show_button( result_menu, label_buffer, comp_svar->short_name );
                     analy->component_spec_qty++;
                 }
             }

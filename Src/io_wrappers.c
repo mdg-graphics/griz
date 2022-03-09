@@ -110,6 +110,10 @@ determine_naming( char *p_name , State_variable *p_sv)
    {
        return NULL;
    }
+   if(strncmp(p_name,"es_",3)!=0)
+   {
+       return NULL;
+   }
    /*lets check stresses first*/
    for(i=0;i<6;i++)
    {
@@ -174,6 +178,46 @@ determine_naming( char *p_name , State_variable *p_sv)
 
    return NULL;
 }
+
+int
+attach_element_set(Analysis *analy,Subrec_obj *subrec_obj,char *name)
+{
+   if(strncmp(name,"es_",3))
+   {
+       return OK;
+   }
+   int i,k=0;
+   char c;
+   int mat_id=0;
+   char SetName[32];
+   SetName[0] = '\0';
+   Htable_entry *p_hte;
+   int status; 
+   
+   for(i= strlen(name)-1;i>=0; i--)
+   {
+       if(isdigit(name[i]))
+       {
+           c = name[i];
+           mat_id =  atoi(&c)*pow(10,k);
+           k++;
+       }
+   }
+   
+   sprintf(SetName,"IntLabel_es_%d", mat_id);
+   
+   status = htable_search( analy->Element_sets, SetName, FIND_ENTRY, &p_hte );
+   
+   if(status != OK)
+   {
+      return 1;
+   }
+   
+   subrec_obj->element_set = (ElementSet*) p_hte->data; 
+   
+   return OK;
+}
+
 
 /************************************************************
  * TAG( mili_db_open )
@@ -1610,6 +1654,125 @@ check_degen_tris( MO_class_data *p_tri_class )
     }
 }
 
+
+/************************************************************
+ * TAG( load_element_sets)
+ *
+ * Load the lement sets if there are any.
+ */
+int
+load_element_sets(Analysis *analy)
+{
+    
+    analy->Element_sets = NULL;
+    analy->Element_set_names = NULL;
+    analy->es_cnt       = 0;
+    int label_length = strlen("IntLabel_es_");
+    if ( env.ti_enable )
+    {
+        int num_entries;
+        ElementSet *element_set;
+        int num_items_read,
+            middle,
+            i,j,
+            status;
+        Htable_entry *p_hte;
+        char **wildcard_list;
+    
+        /* Shell Integration Point Labels */
+        
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                      "IntLabel", "NULL", "NULL",
+                      NULL );
+        
+        wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+
+        if(wildcard_list == NULL)
+        {
+            return ALLOC_FAILED;
+        }
+
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                      "IntLabel", "NULL", "NULL",
+                      wildcard_list );
+        
+        analy->es_cnt = 0;
+        
+        if ( num_entries>0 )
+        {
+            analy->Element_set_names = (char**) malloc(num_entries*sizeof(char*));
+            analy->Element_sets = htable_create( 151 );
+            analy->es_cnt       = num_entries ;
+            
+            
+            for(i = 0; i < num_entries; i++)
+            {
+                num_items_read=0;
+                element_set = malloc(sizeof(ElementSet));
+                
+                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
+                                          (void**)& element_set->integration_points, 
+                                          &num_items_read );
+                    
+                analy->Element_set_names[i] = (char *) malloc(strlen(wildcard_list[i]) + 1);
+                analy->Element_set_names[i][0] = '\0';
+                strcpy(analy->Element_set_names[i],wildcard_list[i]);
+                element_set->size = num_items_read-1;
+                element_set->material_number = atoi(wildcard_list[i]+label_length);
+                status = htable_search( analy->Element_sets, wildcard_list[i], ENTER_UNIQUE, &p_hte );
+                
+                if(status != OK)
+                {
+                    popup_dialog(WARNING_POPUP, "ERROR: Unable to add item to Element set hash taable\n");
+                    parse_command("quit", analy);
+                }
+                
+                p_hte->data = element_set;
+                
+                /* We need to determine the middle integration point for the default.*/
+                /* Take the actual number of point used in the simulation to find the middle*/
+                middle = element_set->integration_points[element_set->size]/2.0 + 
+                         element_set->integration_points[element_set->size]%2;
+                
+                for(j=0;j<element_set->size;j++)
+                {
+                   if(middle < element_set->integration_points[j])
+                   {break;}
+                }
+                if(j >0 && j<element_set->size)
+                {
+                    if(j>1)
+                    {
+                        j--;
+                    }
+                    if(abs(element_set->integration_points[j]-middle)< abs(element_set->integration_points[j-1]-middle))
+                    {
+                        element_set->middle_index = j;
+                    }else
+                    {
+                        element_set->middle_index = j-1;
+                    }
+                }else if(j==element_set->size)
+                {
+                    element_set->middle_index = j-1;
+                }else
+                {
+                    element_set->middle_index = j;
+                }
+                element_set->current_index = element_set->middle_index;
+                element_set->tempIndex = -1;
+                
+            }
+        }
+        
+        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+        free(wildcard_list);
+        wildcard_list = NULL;
+    }
+    
+    return OK;
+}
+
 /************************************************************
  * TAG( mili_db_get_st_descriptors )
  *
@@ -1684,6 +1847,8 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     else
         return OK;
 
+    rval = load_element_sets(analy);
+    
     /* Loop over srecs */
     for ( i = 0; i < srec_qty; i++ )
     {
@@ -2109,6 +2274,13 @@ create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
             if ( rval != 0 )
                 return rval;
         }
+    }else if(pp_svar)
+    {
+        rval = htable_search( p_sv_ht, p_name, FIND_ENTRY, &p_hte);
+        if(rval == OK)
+        {
+            *pp_svar = (State_variable*)p_hte->data;
+        }
     }
 
     return OK;
@@ -2125,7 +2297,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                       Subrec_obj *p_subr_obj, Hash_table *p_primal_ht,
                       int qty_srec_fmts, char *p_name, Hash_table *p_sv_ht, Analysis * analy )
 {
-    int rval, rval2;
+    int rval, rval2,rval3;
     Htable_entry *p_hte, *p_hte2, *p_hte3=NULL, *p_hte4;
     State_variable *p_sv;
     Primal_result *p_pr;
@@ -2182,6 +2354,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         }
         else{
             /* Is an element set, check for stress/strain */
+            rval3 = attach_element_set(analy,p_subr_obj,p_name);
             p_pr->short_name = (char*)calloc(sizeof(char),strlen(es_short_name)+1);
             strcpy(p_pr->short_name, es_short_name);
             p_pr->long_name = calloc(sizeof(char),7);
@@ -2284,6 +2457,31 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 strcpy(  p_pr->original_names_per_subrec[i], p_name);
             }
 
+        }
+
+        /* Also update list of Subrec_objs and check if primal_result is "shared" */
+        p_subrec = (Subrec_obj **) p_pr->subrecs;
+
+        /* Loop over all subrecords currently associated with this primal_result */
+        for(i = 0; i < p_pr->qty_subrecs; i++){
+            /* Check if subrecord already in list */
+            if(strcmp(p_subrec[i]->subrec.name, p_subr_obj->subrec.name) == 0)
+                break;
+
+            /* Check if "shared" */
+            if(strcmp(p_subrec[i]->subrec.class_name, p_subr_obj->subrec.class_name) != 0){
+                // If new element class name, this result is shared
+                p_pr->is_shared = TRUE;
+            }
+        }
+
+        /* if not in list... */
+        if(i == p_pr->qty_subrecs){
+            p_subrec = RENEW_N(Subrec_obj*, p_subrec, i, 1, "Extend Subrec_obj list");
+            p_subrec[i] = p_subr_obj;
+            /* Assign back in case realloc moved the array */
+            p_pr->subrecs = p_subrec;
+            p_pr->qty_subrecs++;
         }
 
         /* Also update list of Subrec_objs and check if primal_result is "shared" */
@@ -5157,7 +5355,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
                         rval );
         return GRIZ_FAIL;
     }
-
+   
     if ( svar_qty > 0 )
     {
         if ( svar_qty < 100 )
