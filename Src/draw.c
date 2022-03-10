@@ -4680,7 +4680,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_hex_class->qty);
             results_map = NEW_N(char, p_hex_class->qty, "result map for draw_hexs");
             if( results_map == NULL)
             {
@@ -5011,8 +5010,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_tet_class->qty);
-            results_map = NEW_N(char, p_tet_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_tet_class->qty, "result map for draw_tets");
             if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
@@ -5282,11 +5280,10 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_quad_class->qty);
-            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_quads_3d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_quads. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_quads_3d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -5543,11 +5540,10 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_tri_class->qty);
-            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_tris_3d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tris. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tris_3d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -5792,11 +5788,10 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_beam_class->qty);
-            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_beams_3d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beams_3d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -5989,11 +5984,10 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_truss_class->qty+1);
-            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_truss_3d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_truss_3d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -6207,8 +6201,7 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_pyramid_class->qty);
-            results_map = NEW_N(char, p_pyramid_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_pyramid_class->qty, "result map for draw_pyramids");
             if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_pyramids. Terminating!!\n");
@@ -6531,11 +6524,10 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_quad_class->qty);
-            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_quads_2d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_quads_2d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -6857,11 +6849,10 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_tri_class->qty);
-            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_tris_2d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tris_2d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -7178,11 +7169,10 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_beam_class->qty);
-            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_beams_2d");
             if( results_map == NULL)
             {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_2d. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
@@ -7378,8 +7368,7 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     { 
         if(results_map == NULL)
         {
-            //results_map = (char *) malloc(p_truss_class->qty);
-            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_hexs");
+            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_truss_2d");
             if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_truss_2d. Terminating!!\n");
