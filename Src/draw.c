@@ -174,7 +174,7 @@ time_t tm;
 int  label_compare( const void *key, const void *label );
 int  get_class_label_index( MO_class_data *class, int label_num );
 void dump_class_labels( MO_class_data *class );
-void populate_result(int superclass, char map[], int size, Analysis * analy);
+void populate_result(int superclass, char map[], MO_class_data* class, Analysis * analy);
 
 int grayel = 0;
 const float grayval = 0.7;
@@ -1949,14 +1949,14 @@ static void draw_tris_3d( Bool_type, Bool_type, Bool_type, MO_class_data *,
 static void draw_beams_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
 static void draw_beams_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
 
-static void draw_truss_2d( Bool_type, Bool_type, MO_class_data *, Analysis * );
-static void draw_truss_3d( Bool_type, Bool_type, MO_class_data *, Analysis * );
+static void draw_truss_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
+static void draw_truss_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
 
 static void draw_surfaces_2d( Color_property *, Bool_type, Bool_type, Bool_type,MO_class_data *, Analysis * );
 static void draw_surfaces_3d( Color_property *, Bool_type, Bool_type, Bool_type,MO_class_data *, Analysis * );
 
-static void draw_particles_2d( MO_class_data *, Analysis * );
-static void draw_particles_3d( MO_class_data *, Analysis * );
+static void draw_particles_2d( Bool_type, MO_class_data *, Analysis * );
+static void draw_particles_3d( Bool_type, MO_class_data *, Analysis * );
 
 static void draw_edges_2d( Analysis * );
 static void draw_edges_3d( Analysis * );
@@ -4184,7 +4184,7 @@ draw_grid( Analysis *analy )
     qty_classes = p_mesh->classes_by_sclass[G_TRUSS].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRUSS].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_truss_3d( show_mat_result, show_mesh_result, mo_classes[i],
+        draw_truss_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
                        analy );
 
 
@@ -4226,20 +4226,12 @@ draw_grid( Analysis *analy )
 
     qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
-    //if(qty_classes > 0)
-    //{
-        /*analy->show_particle_class = FALSE; */
-    //    analy->show_particle_class = TRUE;
-        
-    //} 
-
-    /*  Set glMaterial to draw from the correct color property data base */
-    if ( analy->show_particle_class )
+    if ( analy->particle_nodes_enabled )
     {
         strcpy(particle_name, "DBC1");
         for(i=0; i < qty_classes; i++)
         {
-            draw_particles_3d( mo_classes[i], analy);
+            draw_particles_3d( show_node_result, mo_classes[i], analy);
         } 
     }
 
@@ -4420,7 +4412,7 @@ draw_grid_2d( Analysis *analy )
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_truss_2d( show_mat_result, show_mesh_result, mo_classes[i],
+        draw_truss_2d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
                        analy );
 
     /* Surface element classes. */
@@ -4445,19 +4437,15 @@ draw_grid_2d( Analysis *analy )
     /*
      * Draw particle data.
      */
-    if ( analy->show_particle_class )
+    qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
+    if ( analy->particle_nodes_enabled )
     {
-        rval = htable_search( p_mesh->class_table, particle_cname, FIND_ENTRY,
-                              &p_hte );
-        if ( rval == OK )
+        strcpy(particle_name, "DBC1");
+        for(i=0; i < qty_classes; i++)
         {
-            p_mo_class = (MO_class_data *) p_hte->data;
-
-            rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
-                                  &p_hte );
-            if ( rval == OK )
-                draw_particles_2d( p_mo_class, analy );
-        }
+            draw_particles_2d( show_node_result, mo_classes[i], analy);
+        } 
     }
 
     /*
@@ -4671,19 +4659,15 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     unsigned char *hide_mtl;
     int *p_mats;
     Bool_type result_exists_for_hex = FALSE;
+    Bool_type disable_gray;
+    char * results_map = NULL;
 
-/* Adding code to determine if a subrecord for these objects has the appropriate variable and if
- * not it sets that element to a gray scale prior to calling draw poly */
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
-    mesh_id = p_hex_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
+        return; 
 
     result_exists_for_hex = result_has_class( analy->cur_result, p_hex_class, analy );
 
@@ -4692,88 +4676,23 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0){
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(!strcmp(short_name, p_hex_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_hex_class->qty+1);
-            if( results_map[mesh_id] == NULL)
+            //results_map = (char *) malloc(p_hex_class->qty);
+            results_map = NEW_N(char, p_hex_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_hex_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_hex_class->short_name, strlen(p_hex_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty+1, analy);
+        populate_result(G_HEX, results_map, p_hex_class, analy);
     }
  
     Bool_type hidden_poly=FALSE,
@@ -4782,13 +4701,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
               hidden_poly_mat=FALSE,
               disable_flag=FALSE;
     Bool_type showgs=TRUE;
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
-
-    if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
-        return; 
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -4982,15 +4894,24 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                 hidden_poly = TRUE;
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for hexes
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND brick element is not disabled
-                    if((results_map[mesh_id][el] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[el] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -5035,6 +4956,9 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -5067,19 +4991,14 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_index_source;
     Interp_mode_type save_interp_mode;
     Bool_type hidden_poly;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    char * results_map = NULL;
     Bool_type result_exists_for_tet = FALSE;
 
-    mesh_id = p_tet_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_tet = result_has_class( analy->cur_result, p_tet_class, analy);
 
@@ -5088,93 +5007,24 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result; 
 
-    if(first == 0){
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_tet_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_tet_class->qty+1);
-            if( results_map[mesh_id] == NULL)
+            //results_map = (char *) malloc(p_tet_class->qty);
+            results_map = NEW_N(char, p_tet_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_tet_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_tet_class->short_name, strlen(p_tet_class->short_name) + 1);
-        }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_TET, results_map[mesh_id], p_tet_class->qty+1, analy);
+        populate_result(G_TET, results_map, p_tet_class, analy);
     }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
@@ -5320,15 +5170,24 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
 
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for tets
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND tet element is not disabled
-                    if((results_map[mesh_id][el] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[el] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 3; j++)
@@ -5341,8 +5200,8 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for tets
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND tet element is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -5366,6 +5225,9 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -5400,19 +5262,15 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     Bool_type hidden_poly;
     Bool_type inactive_element=FALSE;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
     Result * p_result;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Bool_type same_as_last = FALSE;
+    char * results_map = NULL;
     Bool_type result_exists_for_quad;
 
-    p_result = analy->cur_result;
-    mesh_id = p_quad_class->mesh_id;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_quad = result_has_class( analy->cur_result, p_quad_class, analy );
     show_result = show_node_result
@@ -5420,94 +5278,24 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
+            //results_map = (char *) malloc(p_quad_class->qty);
+            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_quad_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_quad_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_quads. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_quad_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_quad_class->short_name, strlen(p_quad_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_QUAD, results_map[mesh_id], p_quad_class->qty+1, analy);
+        populate_result(G_QUAD, results_map, p_quad_class, analy);
     }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_quad_class->elem_class_index]
@@ -5635,15 +5423,24 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
             cnt = 3;
       
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for quads
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND quad element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -5656,8 +5453,8 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for quads
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND quad element is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -5691,6 +5488,9 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
     glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 0 );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -5725,18 +5525,13 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
 /* Adding code to determine if a subrecord for these objects has the appropriate variable and if
  * not it sets that element to a gray scale prior to calling draw poly */
     Bool_type hidden_poly;
-    Bool_type disable_flag=FALSE;
-    int mesh_id;
-    static int first = 0;
-    static char **results_map;
-    static char *result_name = NULL;
-    static char *short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
+    char *results_map = NULL;
     Bool_type result_exists_for_tri;
 
-    mesh_id = p_tri_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_tri = result_has_class( analy->cur_result, p_tri_class, analy );
     show_result = show_node_result
@@ -5744,94 +5539,24 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
+            //results_map = (char *) malloc(p_tri_class->qty);
+            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_tri_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_tri_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tris. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_tri_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_tri_class->short_name, strlen(p_tri_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_TRI, results_map[mesh_id], p_tri_class->qty+1, analy);
+        populate_result(G_TRI, results_map, p_tri_class, analy);
     }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_tri_class->elem_class_index]
@@ -5955,15 +5680,24 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
         }
 
         /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
         // If auto_gray is enabled
-        if(analy->auto_gray){
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for tris
             if(show_result){
                 if(!analy->material_greyscale){
-                    grayel = 0;
                     // If result does not exist for this element AND material is not disabled
                     // AND tri element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -5977,7 +5711,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 }
             }
             // No result being show for tris
-            else{
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND tri element is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -6001,6 +5735,9 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 0 );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 /*****************************************************************
@@ -6035,20 +5772,15 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int *p_index_source;
     int beam_qty;
     unsigned char *disable_mtl, *hide_mtl;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
     Mesh_data *p_mesh;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    char * results_map = NULL;
     Bool_type result_exists_for_beam;
 
-    mesh_id = p_beam_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_beam = result_has_class( analy->cur_result, p_beam_class, analy );
     show_result = result_exists_for_beam
@@ -6056,95 +5788,24 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
+            //results_map = (char *) malloc(p_beam_class->qty);
+            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
         }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
     }
-   
-    if(show_result)
+
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_beam_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_beam_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_beam_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_beam_class->short_name, strlen(p_beam_class->short_name) + 1);
-        }
+        populate_result(G_BEAM, results_map, p_beam_class, analy);
     }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_BEAM, results_map[mesh_id], p_beam_class->qty+1, analy);
-    }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     activity = analy->state_p->sand_present
                ?  analy->state_p->elem_class_sand[p_beam_class->elem_class_index]
@@ -6226,15 +5887,24 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                       matl, analy->logscale, showgs );
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for beams
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND beam element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -6244,8 +5914,8 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for beams
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -6271,9 +5941,11 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     /* Remove depth bias. */
     if ( analy->zbias_beams )
         glDepthRange( nearfar[0], nearfar[1] );
-
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 /************************************************************
@@ -6282,7 +5954,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
  * Draw the truss elements in the model.
  */
 static void
-draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
                MO_class_data *p_truss_class, Analysis *analy )
 {
     Bool_type verts_ok, show_result, showgs=FALSE;
@@ -6299,108 +5971,37 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     int truss_qty;
     unsigned char *disable_mtl, *hide_mtl;
     Mesh_data *p_mesh;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
    
-    Result * p_result;
-    int mesh_id;
-    static int first = 0;
-    static char **results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Bool_type same_as_last = FALSE;
+    char *results_map = NULL;
     Bool_type result_exists_for_truss;
 
-    mesh_id = p_truss_class->mesh_id;
-    p_result = analy->cur_result; 
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
     show_result = result_exists_for_truss
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_truss_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_truss_class->qty+1);
-            if( results_map[mesh_id] == NULL)
+            //results_map = (char *) malloc(p_truss_class->qty+1);
+            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_truss_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_truss_class->short_name, strlen(p_truss_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_TRUSS, results_map[mesh_id], p_truss_class->qty+1, analy);
+        populate_result(G_TRUSS, results_map, p_truss_class, analy);
     }
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -6488,15 +6089,24 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                       matl, analy->logscale, showgs );
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for Truss
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND truss element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -6506,8 +6116,8 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for Truss
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND truss element is not disabled.
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -6533,9 +6143,11 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     /* Remove depth bias. */
     if ( analy->zbias_beams )
         glDepthRange( nearfar[0], nearfar[1] );
-
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -6573,20 +6185,17 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     Interp_mode_type save_interp_mode;
     unsigned char *hide_mtl;
     int *p_mats;
+
+    char * results_map = NULL;
+    Bool_type disable_gray;
     Bool_type result_exists_for_pyramid = FALSE;
 
-/* Adding code to determine if a subrecord for these objects has the appropriate variable and if
- * not it sets that element to a gray scale prior to calling draw poly */
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
-    mesh_id = p_pyramid_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( is_particle_class(analy, p_pyramid_class->superclass, p_pyramid_class->short_name) )
+        return;
 
     result_exists_for_pyramid = result_has_class( analy->cur_result, p_pyramid_class, analy );
     show_result = show_node_result
@@ -6594,88 +6203,23 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0){
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(!strcmp(short_name, p_pyramid_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_pyramid_class->qty+1);
-            if( results_map[mesh_id] == NULL)
+            //results_map = (char *) malloc(p_pyramid_class->qty);
+            results_map = NEW_N(char, p_pyramid_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_pyramids. Terminating!!\n");
                 parse_command("quit", analy);
             }
         }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_pyramidss. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_pyramid_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_pyramids. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_pyramid_class->short_name, strlen(p_pyramid_class->short_name) + 1);
-        }
     }
 
-    if(show_result && analy->cur_result != NULL) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_PYRAMID, results_map[mesh_id], p_pyramid_class->qty+1, analy);
+        populate_result(G_PYRAMID, results_map, p_pyramid_class, analy);
     }
 
     Bool_type hidden_poly=FALSE,
@@ -6684,13 +6228,6 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
               hidden_poly_mat=FALSE,
               disable_flag=FALSE;
     Bool_type showgs=TRUE;
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
-
-    if ( is_particle_class(analy, p_pyramid_class->superclass, p_pyramid_class->short_name) )
-        return;
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
@@ -6886,15 +6423,24 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
         }
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for pyramids
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND pyramid element is not disabled
-                    if((results_map[mesh_id][el] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[el] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -6907,8 +6453,8 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for pyramids
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND pyramid element is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -6931,6 +6477,9 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -6964,18 +6513,13 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
     int mesh_idx;
     Interp_mode_type save_interp_mode;
 
-    Result* p_result;
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Bool_type same_as_last = FALSE;
-    Bool_type disable_flag;
+    char * results_map = NULL;
+    Bool_type disable_gray, disable_flag;
     Bool_type result_exists_for_quad;
 
-    p_result = analy->cur_result;
-    mesh_id = p_quad_class->mesh_id;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_quad = result_has_class( analy->cur_result, p_quad_class, analy );
     show_result = show_node_result
@@ -6983,94 +6527,24 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_quad_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_quad_class->qty+1);
-            if( results_map[mesh_id] == NULL)
+            //results_map = (char *) malloc(p_quad_class->qty);
+            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_quad_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_quad_class->short_name, strlen(p_quad_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_QUAD, results_map[mesh_id], p_quad_class->qty+1, analy);
+        populate_result(G_QUAD, results_map, p_quad_class, analy);
     }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     p_mesh = analy->mesh_table + p_quad_class->mesh_id;
     hide_mtl = p_mesh->hide_material;
@@ -7222,15 +6696,24 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
         }
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for quads
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND quad element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -7243,8 +6726,8 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for quads
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND quad element is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -7318,6 +6801,9 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
     }
 
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7353,18 +6839,13 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
 /* Adding code to determine if a subrecord for these objects has the appropriate variable and if
  * not it sets that element to a gray scale prior to calling draw poly */
-    Bool_type disable_flag=FALSE;
-    int mesh_id;
-    static int first = 0;
-    static char **results_map;
-    static char *result_name = NULL;
-    static char *short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
+    char *results_map = NULL;
     Bool_type result_exists_for_tri;
 
-    mesh_id = p_tri_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_tri = result_has_class( analy->cur_result, p_tri_class, analy );
     show_result = show_node_result
@@ -7372,89 +6853,23 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_tri_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_tri_class->qty+1);
-            if( results_map[mesh_id] == NULL)
+            //results_map = (char *) malloc(p_tri_class->qty);
+            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_tri_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_tri_class->short_name, strlen(p_tri_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_TRI, results_map[mesh_id], p_tri_class->qty+1, analy);
+        populate_result(G_TRI, results_map, p_tri_class, analy);
     }
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -7610,15 +7025,24 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
         }
 
         /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
         // If auto_gray is enabled
-        if(analy->auto_gray){
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for tris
             if(show_result){
                 if(!analy->material_greyscale){
-                    grayel = 0;
                     // If result does not exist for this element AND material is not disabled
                     // AND tri element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -7632,7 +7056,7 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 }
             }
             // No result being show for tris
-            else{
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND tri element is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -7706,6 +7130,9 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
     }
 
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7733,18 +7160,13 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int *mtls;
     int beam_qty;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
+    char * results_map = NULL;
     Bool_type result_exists_for_beam;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray, disable_flag=FALSE;
 
-    mesh_id = p_beam_class->mesh_id;
-    p_result = analy->cur_result;
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_beam = result_has_class( analy->cur_result, p_beam_class, analy );
     show_result = result_exists_for_beam
@@ -7752,95 +7174,24 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
+            //results_map = (char *) malloc(p_beam_class->qty);
+            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
         }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
     }
-   
-    if(show_result)
+
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_beam_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_beam_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_beam_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_beam_class->short_name, strlen(p_beam_class->short_name) + 1);
-        }
+        populate_result(G_BEAM, results_map, p_beam_class, analy);
     }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_BEAM, results_map[mesh_id], p_beam_class->qty+1, analy);
-    }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     p_mesh = analy->mesh_table + p_beam_class->mesh_id;
     connects = (int (*)[3]) p_beam_class->objects.elems->nodes;
@@ -7912,15 +7263,24 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                       matl, analy->logscale, showgs );
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for beams
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND beam element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -7930,8 +7290,8 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for beams
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -7971,6 +7331,9 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7980,7 +7343,7 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
  * Draw the beam elements in the model.
  */
 static void
-draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
                MO_class_data *p_truss_class, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
@@ -7997,113 +7360,38 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
     unsigned char *hide_mtl, *disable_mtl;
     int *mtls;
     int truss_qty;
-    Bool_type disable_flag=FALSE;
-   
-    Result * p_result;
-    int mesh_id;
-    static int first = 0;
-    static char **results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Bool_type same_as_last = FALSE;
+
+    char *results_map = NULL;
+    Bool_type disable_gray, disable_flag=FALSE;
     Bool_type result_exists_for_truss;
 
-    mesh_id = p_truss_class->mesh_id;
-    p_result = analy->cur_result; 
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
 
     result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
     show_result = result_exists_for_truss
                   || show_mat_result
                   || show_mesh_result;
 
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+    if(analy->auto_gray && show_result)
+    { 
         if(results_map == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
+            //results_map = (char *) malloc(p_truss_class->qty);
+            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
             {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_truss_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_truss_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_truss_2d. Terminating!!\n");
                 parse_command("quit", analy);
             }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_truss_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_truss_class->short_name, strlen(p_truss_class->short_name) + 1);
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
     { 
-        populate_result(G_TRUSS, results_map[mesh_id], p_truss_class->qty+1, analy);
+        populate_result(G_TRUSS, results_map, p_truss_class, analy);
     }
-
-    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
-            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
-        return;
 
     p_mesh = analy->mesh_table + p_truss_class->mesh_id;
     connects = (int (*)[3]) p_truss_class->objects.elems->nodes;
@@ -8175,15 +7463,24 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
                       matl, analy->logscale, showgs );
 
         /* Handle automatically graying out elements without a result */
-        // If auto_gray is enabled
         grayel = 0;
-        if(analy->auto_gray){
+
+        /* Disable gray out if this is an interpolated node result */
+        disable_gray = FALSE;
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
             // If we are showing a result for Truss
             if(show_result){
                 if(!analy->material_greyscale){
                     // If result does not exist for this element AND material is not disabled
                     // AND truss element is not disabled
-                    if((results_map[mesh_id][i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
                         for(j = 0; j < 4; j++)
@@ -8193,8 +7490,8 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
                     }
                 }
             }
-            // No result being show for hexes
-            else{
+            // No result being show for truss
+            else if(!show_result){
                 // If not "show mat" AND material is not disabled AND truss element is not disabled.
                 if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
                     grayel = 1;
@@ -8235,6 +7532,9 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
 
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -8703,39 +8003,55 @@ particle_error( GLenum err_code )
  * Render particles from a particle unit class as spheres.
  */
 static void
-draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
+draw_particles_3d( Bool_type show_node_result, MO_class_data *p_particle_class, Analysis *analy )
 {
-    GVec3D *coords3;
-    float *el_state_mm, *part_res;
+    Mesh_data* p_mesh;
+    int* mtls;
+    unsigned char *disable_mtl, *hide_mtl;
+    float *data_array;
     float col[4];
-    int i;
+    int i, j;
     int part_qty;
     GLUquadricObj *sphere;
     GLuint display_list;
-    int index, node, matl;
+    int node, matl;
     float x, y, z, rmin, rmax;
     Bool_type show_result = FALSE;
-
+    Bool_type showgs;
+    Bool_type disable_gray = FALSE,
+              disable_flag = FALSE;
+    char *results_map = NULL;
     MO_class_data * p_node_class = NULL;
+    Bool_type result_exists_for_particles;
 
-    p_node_class = MESH(analy).node_geom;
+    result_exists_for_particles = result_has_class(analy->cur_result, p_particle_class, analy);
+    show_result = show_node_result || result_exists_for_particles;
 
-    part_qty = p_particle_class->qty;
-    part_res = p_particle_class->data_buffer;
-    el_state_mm = analy->elem_state_mm.object_minmax;
-
-    index = 0;
-
-    colorflag = analy->cur_result != NULL;
-
-    /*coords3 = analy->state_p->particles.particles3d;*/
-    coords3 = analy->state_p->nodes.particles3d;
-
-    if(analy->cur_result != NULL)
-    {
-        show_result = result_has_class(analy->cur_result, p_particle_class, analy);
+    if(analy->auto_gray && show_result){
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_particle_class->qty, "result map for draw_particles_3d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_particles_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
     }
-  
+
+    if(analy->auto_gray && show_result && analy->cur_result != NULL)
+    {
+        populate_result(G_PARTICLE, results_map, p_particle_class, analy);
+    }
+
+    p_mesh = analy->mesh_table + p_particle_class->mesh_id;
+    p_node_class = MESH(analy).node_geom;
+    part_qty = p_particle_class->qty;
+    data_array = p_particle_class->data_buffer;
+    mtls = p_particle_class->objects.elems->mat;
+    hide_mtl = p_mesh->hide_material;
+    disable_mtl = p_mesh->disable_material;
+
     get_min_max(analy, FALSE, &rmin, &rmax);
 
     display_list = glGenLists( 1 );
@@ -8744,19 +8060,15 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     if ( sphere == NULL )
     {
-        popup_dialog( WARNING_POPUP,
-                      "Unable to create sphere quadric for particle rendering."
-                    );
+        popup_dialog( WARNING_POPUP, "Unable to create sphere quadric for particle rendering.");
         return;
     }
 
     gluQuadricCallback( sphere, (GLenum) GLU_ERROR, (GLvoid(*)() )particle_error );
-
     gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
     gluQuadricTexture(sphere, (GLboolean) GLU_TRUE );
     glNewList( display_list, GL_COMPILE );
-    /*gluSphere( sphere, particle_radius, 16, 8 ); */
     gluSphere( sphere, particle_radius, 32, 16 );
     glEndList();
 
@@ -8767,25 +8079,70 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     for ( i = 0; i < part_qty; i++ )
     {
+        /* Skip if particle is invisible */
         if(p_particle_class->p_vis_data->visib[i] == FALSE)
-        {
             continue;
-        }
- 
-        matl = p_particle_class->objects.elems->mat[i];
+
+        /* Skip if material is invisible */
+        matl = mtls[i];
+        if( hide_mtl[matl] || hide_by_object_type(p_particle_class, matl, i, analy, data_array))
+            continue;
+
+        disable_flag = disable_by_object_type( p_particle_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_flag;
 
         if(v_win->mesh_materials.current_index != matl)
         {
             change_current_color_property(&v_win->mesh_materials, matl);
         }
 
-        /*color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
-                      analy->zero_result, index, analy->logscale,
-                      analy->material_greyscale ); */
+        if( analy->material_greyscale && disable_mtl[matl])
+            showgs = TRUE;
+        else
+            showgs = FALSE;
 
-        color_lookup( col, part_res[i], rmin, rmax,
+        color_lookup( col, data_array[i], rmin, rmax,
                       analy->zero_result, matl, analy->logscale,
-                      analy->material_greyscale );
+                      showgs );
+
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        /* Disable gray out if this is an interpolated node result */
+        if(show_node_result){
+            disable_gray = TRUE;
+            if(analy->interp_mode == NO_INTERP){
+                disable_gray = FALSE;
+            }
+        }
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for particles
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            col[j] = grayval;
+                        }
+                    }
+                }
+            }
+            // No result being show for particle
+            else if(!show_result){
+                // If not "show mat"
+                if(!analy->showmat && !disable_mtl[matl] && !disable_flag){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        col[j] = grayval;
+                    }
+                }
+            }
+        }
 
         glColor3fv( col );
 
@@ -8795,7 +8152,6 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
         y = p_node_class->objects.nodes3d[node][1]; 
         z = p_node_class->objects.nodes3d[node][2];
   
-        /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
         glTranslatef( x, y, z );
 
         glCallList( display_list );
@@ -8811,6 +8167,9 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluDeleteQuadric( sphere );
 
     glDeleteLists( display_list, 1 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -8820,7 +8179,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
  * Render particles from a particle unit class as circles.
  */
 static void
-draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
+draw_particles_2d( Bool_type show_node_result, MO_class_data *p_particle_class, Analysis *analy )
 {
     GVec2D *coords2;
     float *el_state_mm, *part_res;
@@ -18156,14 +17515,10 @@ get_class_label_index( MO_class_data *class, int label_num )
  * Assumptions:
  * By the time this function is called the current result has already been processed
  */
-void populate_result(int superclass, char map[], int size, Analysis * analy)
+void populate_result(int superclass, char map[], MO_class_data* class, Analysis * analy)
 {
-    int qty_blocks = 0;
-    int total_blocks = 0;
-    int i, j, k, mtl;
+    int i, j, k;
     int start, end;
-    int qty_classes;
-    int *range = NULL;
     Result *p_result;
     Subrec_obj *p_subrec;
 
@@ -18177,7 +17532,7 @@ void populate_result(int superclass, char map[], int size, Analysis * analy)
     }
 
     /* initialize the map array */
-    for(i = 0; i < size; i++)
+    for(i = 0; i < class->qty; i++)
     {
         map[i] = '0';
     }
@@ -18185,20 +17540,32 @@ void populate_result(int superclass, char map[], int size, Analysis * analy)
     /* loop over all subrecords associated with this result*/ 
     for(i = 0; i < p_result->qty; i++)
     {
-        // Get the subrecord
-        p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
-        // If the correct superclass
-        if(p_subrec->p_object_class->superclass == superclass){
-            /* loop over element blocks */
-            for(j = 0; j < p_subrec->subrec.qty_blocks; j++){
-                // Get start and end element id for range
-                start = p_subrec->subrec.mo_blocks[j*2];
-                end = p_subrec->subrec.mo_blocks[j*2+1];
-                // shift to zero based indexing
-                start -= 1;
-                end -= 1;
-                // Loop over elements and update map
-                for(k = start; k <= end; k++){
+        // If result superclass matches
+        if(p_result->superclasses[i] == superclass){
+            // Get the subrecord
+            p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
+
+            // If the correct class in subrecord
+            if(p_subrec->p_object_class == class){
+                /* loop over element blocks */
+                for(j = 0; j < p_subrec->subrec.qty_blocks; j++){
+                    // Get start and end element id for range
+                    start = p_subrec->subrec.mo_blocks[j*2];
+                    end = p_subrec->subrec.mo_blocks[j*2+1];
+                    // shift to zero based indexing
+                    start -= 1;
+                    end -= 1;
+                    // Loop over elements and update map
+                    for(k = start; k <= end; k++){
+                        map[k] = '1';
+                    }
+                }
+            }
+            // Check for Derived result where primal superclass does not match
+            // derived result superclass
+            else if(p_result->origin.is_derived){
+                // For now, assume result can be calculated for all elements
+                for(k = 0; k < class->qty; k++){
                     map[k] = '1';
                 }
             }
