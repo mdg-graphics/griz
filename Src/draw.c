@@ -1956,7 +1956,7 @@ static void draw_surfaces_2d( Color_property *, Bool_type, Bool_type, Bool_type,
 static void draw_surfaces_3d( Color_property *, Bool_type, Bool_type, Bool_type,MO_class_data *, Analysis * );
 
 static void draw_particles_2d( Bool_type, MO_class_data *, Analysis * );
-static void draw_particles_3d( Bool_type, MO_class_data *, Analysis * );
+static void draw_particles_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
 
 static void draw_edges_2d( Analysis * );
 static void draw_edges_3d( Analysis * );
@@ -4106,10 +4106,6 @@ draw_grid( Analysis *analy )
      */
     if ( analy->free_nodes_enabled || analy->particle_nodes_enabled )
         draw_free_nodes( analy ); 
-      /*if(analy->free_nodes_enabled)
-      {
-          draw_free_nodes(analy);
-      } */
 
     /*
      * Draw the elements.
@@ -4231,7 +4227,8 @@ draw_grid( Analysis *analy )
         strcpy(particle_name, "DBC1");
         for(i=0; i < qty_classes; i++)
         {
-            draw_particles_3d( show_node_result, mo_classes[i], analy);
+            draw_particles_3d( show_node_result, show_mat_result, show_mesh_result,
+                               mo_classes[i], analy );
         } 
     }
 
@@ -4659,7 +4656,8 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     unsigned char *hide_mtl;
     int *p_mats;
     Bool_type result_exists_for_hex = FALSE;
-    Bool_type disable_gray;
+    Bool_type disable_gray = FALSE;
+    Bool_type is_unit_result;
     char * results_map = NULL;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -4676,7 +4674,19 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -4687,10 +4697,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_HEX, results_map, p_hex_class, analy);
     }
  
@@ -4895,14 +4901,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for hexes
@@ -4990,7 +4988,9 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_index_source;
     Interp_mode_type save_interp_mode;
     Bool_type hidden_poly;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
 
     char * results_map = NULL;
     Bool_type result_exists_for_tet = FALSE;
@@ -5006,7 +5006,19 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result; 
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -5017,12 +5029,9 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_TET, results_map, p_tet_class, analy);
     }
+
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
@@ -5170,14 +5179,6 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for tets
@@ -5260,7 +5261,9 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     Bool_type hidden_poly;
     Bool_type inactive_element=FALSE;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
     Result * p_result;
 
     char * results_map = NULL;
@@ -5276,7 +5279,19 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -5287,10 +5302,6 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_QUAD, results_map, p_quad_class, analy);
     }
 
@@ -5422,14 +5433,6 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for quads
@@ -5525,6 +5528,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     Bool_type disable_gray, disable_flag=FALSE;
     char *results_map = NULL;
     Bool_type result_exists_for_tri;
+    Bool_type is_unit_result;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -5536,7 +5540,19 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -5547,10 +5563,6 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_TRI, results_map, p_tri_class, analy);
     }
 
@@ -5678,14 +5690,6 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for tris
@@ -5773,6 +5777,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     char * results_map = NULL;
     Bool_type result_exists_for_beam;
+    Bool_type is_unit_result;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -5784,7 +5789,19 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -5795,10 +5812,6 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_BEAM, results_map, p_beam_class, analy);
     }
 
@@ -5884,14 +5897,6 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for beams
@@ -5967,6 +5972,7 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     unsigned char *disable_mtl, *hide_mtl;
     Mesh_data *p_mesh;
     Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type is_unit_result;
    
     char *results_map = NULL;
     Bool_type result_exists_for_truss;
@@ -5976,11 +5982,24 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         return;
 
     result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
-    show_result = result_exists_for_truss
+    show_result = show_node_result
+                  || result_exists_for_truss
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -5991,10 +6010,6 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_TRUSS, results_map, p_truss_class, analy);
     }
 
@@ -6085,14 +6100,6 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for Truss
@@ -6183,6 +6190,7 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     char * results_map = NULL;
     Bool_type disable_gray;
     Bool_type result_exists_for_pyramid = FALSE;
+    Bool_type is_unit_result;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -6197,7 +6205,19 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -6208,10 +6228,6 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_PYRAMID, results_map, p_pyramid_class, analy);
     }
 
@@ -6418,14 +6434,6 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for pyramids
@@ -6508,6 +6516,7 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
     char * results_map = NULL;
     Bool_type disable_gray, disable_flag;
+    Bool_type is_unit_result;
     Bool_type result_exists_for_quad;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -6520,7 +6529,19 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -6531,10 +6552,6 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_QUAD, results_map, p_quad_class, analy);
     }
 
@@ -6690,14 +6707,6 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for quads
@@ -6832,6 +6841,7 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
 /* Adding code to determine if a subrecord for these objects has the appropriate variable and if
  * not it sets that element to a gray scale prior to calling draw poly */
     Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type is_unit_result;
     char *results_map = NULL;
     Bool_type result_exists_for_tri;
 
@@ -6845,7 +6855,19 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -6856,10 +6878,6 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_TRI, results_map, p_tri_class, analy);
     }
 
@@ -7018,14 +7036,6 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for tris
@@ -7153,6 +7163,7 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     char * results_map = NULL;
     Bool_type result_exists_for_beam;
+    Bool_type is_unit_result;
     Bool_type disable_gray, disable_flag=FALSE;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -7165,7 +7176,19 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -7176,10 +7199,6 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_BEAM, results_map, p_beam_class, analy);
     }
 
@@ -7255,14 +7274,6 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for beams
@@ -7353,6 +7364,7 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     char *results_map = NULL;
     Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type is_unit_result;
     Bool_type result_exists_for_truss;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -7364,7 +7376,19 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                   || show_mat_result
                   || show_mesh_result;
 
-    if(analy->auto_gray && show_result)
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(show_node_result && analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
     { 
         if(results_map == NULL)
         {
@@ -7375,10 +7399,6 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL) 
-    { 
         populate_result(G_TRUSS, results_map, p_truss_class, analy);
     }
 
@@ -7454,14 +7474,6 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        disable_gray = FALSE;
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for Truss
@@ -7992,7 +8004,8 @@ particle_error( GLenum err_code )
  * Render particles from a particle unit class as spheres.
  */
 static void
-draw_particles_3d( Bool_type show_node_result, MO_class_data *p_particle_class, Analysis *analy )
+draw_particles_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+                   MO_class_data *p_particle_class, Analysis *analy )
 {
     Mesh_data* p_mesh;
     int* mtls;
@@ -8009,14 +8022,30 @@ draw_particles_3d( Bool_type show_node_result, MO_class_data *p_particle_class, 
     Bool_type showgs;
     Bool_type disable_gray = FALSE,
               disable_flag = FALSE;
+    Bool_type is_unit_result;
     char *results_map = NULL;
     MO_class_data * p_node_class = NULL;
     Bool_type result_exists_for_particles;
 
     result_exists_for_particles = result_has_class(analy->cur_result, p_particle_class, analy);
-    show_result = show_node_result || result_exists_for_particles;
+    show_result = show_node_result
+                    || result_exists_for_particles
+                    || show_mat_result
+                    || show_mesh_result;
 
-    if(analy->auto_gray && show_result){
+    /* Check if gray out feature should be disabled. Should be disabled for:
+     *  1. interpolated node result
+     *  2. Global, Mat, or M_UNIT results
+     */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray){
         if(results_map == NULL)
         {
             results_map = NEW_N(char, p_particle_class->qty, "result map for draw_particles_3d");
@@ -8026,10 +8055,6 @@ draw_particles_3d( Bool_type show_node_result, MO_class_data *p_particle_class, 
                 parse_command("quit", analy);
             }
         }
-    }
-
-    if(analy->auto_gray && show_result && analy->cur_result != NULL)
-    {
         populate_result(G_PARTICLE, results_map, p_particle_class, analy);
     }
 
@@ -8097,13 +8122,6 @@ draw_particles_3d( Bool_type show_node_result, MO_class_data *p_particle_class, 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        /* Disable gray out if this is an interpolated node result */
-        if(show_node_result){
-            disable_gray = TRUE;
-            if(analy->interp_mode == NO_INTERP){
-                disable_gray = FALSE;
-            }
-        }
         // If auto_gray is enabled
         if(analy->auto_gray && !disable_gray){
             // If we are showing a result for particles
@@ -15664,41 +15682,6 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         val = nodal_data[node_num];
         *result_defined = TRUE;
     }
-    /*if(analy->show_deleted_elements || analy->show_only_deleted_elements)
-    {
-        val = p_mo_class->data_buffer[elem_num];
-        *result_defined = TRUE;
-    }*/
-    /*if(analy->state_p->sand_present)
-    {
-        sand_arrays = analy->state_p->elem_class_sand;
-        if(sand_arrays[p_mo_class->elem_class_index] != NULL)
-        {
-            activity = sand_arrays[p_mo_class->elem_class_index];
-        } else
-        {
-            activity = NULL;
-            *result_defined = TRUE;
-            return val;
-        }
-
-        if(analy->show_deleted_elements)
-        {
-            val = activity[elem_num];
-            *result_defined = TRUE;
-        } else if(analy->show_only_deleted_elements)
-        {
-            if(activity[elem_num] == 0.0)
-            {
-                val = 0.0;
-                *result_defined = TRUE;
-            } else
-            {
-                *result_defined = TRUE;
-            }
-             
-        }
-    } */ 
     return ( val );
 }
 
@@ -15819,27 +15802,25 @@ check_for_free_nodes( Analysis *analy )
 static void
 draw_free_nodes( Analysis *analy )
 {
-    MO_class_data   *p_element_class=NULL,
-                     *p_node_class=NULL,
-                      *p_mo_class=NULL,
-                       *p_ml_class=NULL,
-                        **p_ml_classes=NULL,
-                         **mo_classes;
+    MO_class_data *p_element_class=NULL,
+                  *p_node_class=NULL,
+                  *p_mo_class=NULL,
+                  *p_ml_class=NULL,
+                  **p_ml_classes=NULL,
+                  **mo_classes;
 
-    Mesh_data     *p_mesh;
-
-    List_head     *p_lh;
-
+    Mesh_data *p_mesh;
+    List_head *p_lh;
     Visibility_data *p_vd;
     unsigned char *part_visib;
-
     char *cname;
 
-    int   *free_nodes_list=NULL, *free_nodes_elem_list=NULL;
-    int   *part_nodes_list=NULL;
-    int   *part_nodes_result=NULL;
+    int *free_nodes_list=NULL;
+    int *free_nodes_elem_list=NULL;
+    int *part_nodes_list=NULL;
+    int *part_nodes_result=NULL;
 
-    int   nd;
+    int nd;
 
     float *activity, activity_flag=0.0, temp_activity_flag=0.0;
     float *data_array;
@@ -15852,8 +15833,9 @@ draw_free_nodes( Analysis *analy )
     float  mass_scale_factor, mass_scale_factor_max = 0, mass_scale_factor_min = MAXFLOAT;
 
     float rmin, rmax;
-    float poly_pts[4][3],
-    poly_norms[6][3] = {{-1., 0., 0},  {0., 1., 0.}, {1., 0., 0.},
+    float poly_pts[4][3];
+    float poly_norms[6][3] = {
+        {-1., 0., 0},  {0., 1., 0.}, {1., 0., 0.},
         {0., -1., 0.}, {0., 0., 1.}, {0., 0., -1}
     };
 
@@ -15874,36 +15856,34 @@ draw_free_nodes( Analysis *analy )
     int  dbc_nodes_found  = FALSE;
     int  mass_scaling     = FALSE;
     int  vol_scaling      = FALSE;
-    int  free_node_data_index=0;
-    Bool_type skip_node=False;
+    int  free_node_data_index = 0;
+    Bool_type skip_node = False;
 
     int  status;
 
     float *nodal_data;
 
-    Bool particle_class       = FALSE, particle_class_found = FALSE,
-         showgs=FALSE,
-         particle_node_found  = FALSE, free_node_found=FALSE;
-    int  particle_count;
-    int  *particle_nodes;
-    int  particle_hide=0;
+    Bool_type particle_class = FALSE,
+              particle_class_found = FALSE,
+              showgs = FALSE,
+              particle_node_found = FALSE,
+              free_node_found = FALSE;
+    int particle_count;
+    int *particle_nodes;
+    int particle_hide = 0;
 
     /* Variables related to materials */
     unsigned char *disable_mtl,  *hide_mtl, hide_one_mat;
     unsigned char *disable_part, *hide_part;
 
-    int  *mat, mat_num, elem_id, ode_cnt = 0;
+    int  *mat, mat_num, elem_id;
 
-    Bool_type result_defined=FALSE;
+    Bool_type result_defined = FALSE;
 
     /* Used for fast sphere drawing */
     GLUquadricObj *sphere;
     GLuint display_list;
-    Bool_type fastSpheres=TRUE;
-    GLuint texMaps[1];
-    static char * texNames[1] = { "maps/earth-seas-small.rgb"};
-    IMAGE *img;
-    GLint gluerr;
+    Bool_type fastSpheres = TRUE;
 
     Refl_plane_obj *plane;
     float refl_verts[3];
@@ -15941,9 +15921,7 @@ draw_free_nodes( Analysis *analy )
         analy->free_nodes_vals = NEW_N( float,     num_nodes, "free_nodes_vals" );
     }
 
-    for (i=0;
-            i<num_nodes;
-            i++)
+    for (i=0; i<num_nodes; i++)
     {
         free_nodes_list[i]      = 0;
         free_nodes_elem_list[i] = 0;
@@ -15955,20 +15933,17 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* If mass scaling option is enabled, then look for the nodal masses */
-
     if (analy->free_nodes_mass_scaling)
     {
-        status = mili_db_get_param_array(analy->db_ident,     "Nodal Mass",   (void *) &free_nodes_mass);
+        status = mili_db_get_param_array(analy->db_ident, "Nodal Mass", (void *) &free_nodes_mass);
         if (status==0)
         {
             mass_scaling = TRUE;
             vol_scaling  = FALSE;
-            status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
         }
     }
 
     /* Read the nodal volumes if volume scaling is enabled */
-
     if (analy->free_nodes_vol_scaling)
     {
         status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
@@ -15980,8 +15955,7 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* Set up for polygon drawing. */
-
-    if ( analy->free_nodes_sphere_res_factor<=2 && ! fastSpheres )
+    if ( analy->free_nodes_sphere_res_factor <= 2 && !fastSpheres )
     {
         begin_draw_poly( analy );
     }
@@ -16006,9 +15980,7 @@ draw_free_nodes( Analysis *analy )
             conn_qty    = ( i == G_BEAM ) ? node_qty - 1 : node_qty;
 
             /* Loop over each class. */
-            for ( j = 0;
-                    j < p_lh->qty;
-                    j++ )
+            for ( j = 0; j < p_lh->qty; j++ )
             {
                 p_mo_class = mo_classes[j];
                 if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
@@ -16034,63 +16006,46 @@ draw_free_nodes( Analysis *analy )
                 else
                     particle_class = FALSE;
 
-                connects   = p_mo_class->objects.elems->nodes;
-                mat        = p_mo_class->objects.elems->mat;
+                connects = p_mo_class->objects.elems->nodes;
+                mat = p_mo_class->objects.elems->mat;
 
-                if ( analy->state_p->sand_present && sand_arrays[p_mo_class->elem_class_index]!=NULL )
-                    activity = sand_arrays[p_mo_class->elem_class_index];
-                else
-                    activity = NULL;
+                activity = analy->state_p->sand_present
+                        ? analy->state_p->elem_class_sand[p_mo_class->elem_class_index]
+                        : NULL;
 
                 if ( particle_class && is_dbc_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
                 {
                     dbc_nodes_found = TRUE;
                     show_result = result_has_class( analy->cur_result, p_mo_class, analy );
                 }
-                else show_result = TRUE;
+                else {
+                    show_result = TRUE;
+                }
 
                 /* Loop over each element */
-                for ( k = 0;
-                        k < p_mo_class->qty;
-                        k++ )
+                for ( k = 0; k < p_mo_class->qty; k++ )
                 {
                     if( activity )
                     {
                         activity_flag = activity[k];
-                    } else
+                    }
+                    else
                     {
                         activity_flag = 1.0;
                     }
                     
-                    mat_num = mat[k];
+                    if ( analy->show_deleted_elements )
+                        activity_flag = 1.0;
 
-                     if ( !particle_class)
+                    if ( analy->show_only_deleted_elements )
                     {
-                        if ( analy->show_deleted_elements )
-                            activity_flag = 1.0;
-
-                        if ( analy->show_only_deleted_elements )
+                        if  ( activity_flag == 0.0 )
                         {
-                            if  ( activity_flag == 0.0 )
-                            {
-                                activity_flag = 1.0;
-                            }
+                            activity_flag = 1.0;
                         }
-                    } else
-                    {
-                        if ( analy->show_deleted_elements )
-                            activity_flag = 1.0;
-
-                        if ( analy->show_only_deleted_elements )
+                        else
                         {
-                            if  ( activity != NULL && activity[k] == 0.0 )
-                            {
-                                activity_flag = 1.0;
-                                ode_cnt++;
-                            } else
-                            {
-                                activity_flag = 0.0;
-                            }
+                            activity_flag = 0.0;
                         }
                     }
 
@@ -16100,18 +16055,23 @@ draw_free_nodes( Analysis *analy )
                             activity_flag = 0.0;
                     }
 
-                    free_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array ) && activity_flag == 0.0 && analy->free_nodes_enabled;
-                    if ( particle_class )
-                        particle_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array ) && activity_flag > 0.0 && analy->particle_nodes_enabled &&
-                                              part_visib[k];
-                    else particle_node_found = FALSE;
+                    mat_num = mat[k];
+                    Bool_type hide_element = hide_by_object_type(p_mo_class, mat_num, k, analy, data_array);
+                    free_node_found = !hide_element && activity_flag == 0.0 && analy->free_nodes_enabled;
+                    if ( particle_class ){
+                        particle_node_found = !hide_element
+                                                && activity_flag > 0.0
+                                                && analy->particle_nodes_enabled
+                                                && part_visib[k];
+                    }
+                    else{
+                        particle_node_found = FALSE;
+                    }
 
-                    if ( !particle_class )
+                    if ( !particle_class ){
                         if (free_node_found)
                         {
-                            for ( l = 0;
-                                    l < conn_qty;
-                                    l++ )
+                            for ( l = 0; l < conn_qty; l++ )
                             {
                                 nd = connects[k * node_qty + l];
                                 if (free_nodes_list[nd]<0 )
@@ -16145,21 +16105,17 @@ draw_free_nodes( Analysis *analy )
                         }
                         else
                         {
-                            for ( l = 0;
-                                    l < conn_qty;
-                                    l++ )
+                            for ( l = 0; l < conn_qty; l++ )
                             {
                                 nd = connects[k * node_qty + l];
                                 free_nodes_list[nd] = -1;
                             }
                         }
-
+                    }
                     if (particle_node_found)
                     {
                         part_nodes_found = TRUE;
-                        for ( l = 0;
-                                l < conn_qty;
-                                l++ )
+                        for ( l = 0; l < conn_qty; l++ )
                         {
                             nd = connects[k * node_qty + l];
                             part_nodes_list[nd]      = mat_num;
@@ -16173,19 +16129,11 @@ draw_free_nodes( Analysis *analy )
         }
     }
 
-    /* Make a quick exit if no free nodes are to
-     * be displayed.
-     */
-
+    /* Make a quick exit if no free nodes are to be displayed. */
     if (!free_nodes_found && !part_nodes_found)
-    {
         return;
-    }
 
-    /* If we are viewing a nodal result then map the nodal
-      * result onto the particles.
-      *
-      */
+    /* If we are viewing a nodal result then map the nodal result onto the particles. */
     if ( analy->pn_nodal_result )
     {
         particle_count = analy->pn_ref_node_count[0];
@@ -16194,30 +16142,23 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* Determine a scaling range factor for the Mass/Vol data */
-
     mass_scale_factor = 0.5;
-
     if (mass_scaling || vol_scaling)
     {
-        mass_scale_factor = 0.5/mass_scale_factor_max;
+        mass_scale_factor = 0.5 / mass_scale_factor_max;
     }
 
-    for ( i = 0; i < dim; i++ )
+    for ( i = 0; i < dim; i++ ){
         leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
+    }
 
     node_base_radius  = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
-    if ( node_base_radius==0 )
-        node_base_radius=1.;
-
-    /* Modified: Nov 3, 2006: IRC - Do not scale particles with window */
-    /* node_base_radius *= 1.0 / v_win->scale[0]; */
-
-    /*    if ( v_win->lighting )
-      glEnable( GL_LIGHTING ); */
+    if ( node_base_radius == 0 )
+        node_base_radius = 1.0;
 
     glEnable( GL_COLOR_MATERIAL );
 
-    if ( fastSpheres)
+    if ( fastSpheres )
     {
         display_list = glGenLists( 1 );
         sphere       = gluNewQuadric();
@@ -16226,30 +16167,13 @@ draw_free_nodes( Analysis *analy )
         gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
         gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
 
-        /*******************************/
-        /* Future texture mapping code */
-        /* glGenTextures(1,&(texMaps[0]));
-        gluQuadricTexture(sphere, GL_TRUE);
-               glBindTexture(GL_TEXTURE_2D,texMaps[0]);
-
-         img=ImageLoad(texNames[0]);
-               glPixelStorei(GL_UNPACK_ALIGNMENT,4);
-               gluerr=gluBuild2DMipmaps(GL_TEXTURE_2D, 4, 100, 100,
-                       GL_RGBA, GL_UNSIGNED_BYTE,
-                          (GLvoid *)(img->data)); */
-
-        /*******************************/
-
         glNewList( display_list, GL_COMPILE );
         gluSphere( sphere, node_base_radius*rfac, analy->free_nodes_sphere_res_factor*2, analy->free_nodes_sphere_res_factor );
         glEndList();
     }
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
-
         skip_node = TRUE;
         if (free_nodes_found && free_nodes_list[node_index] >= 0)
             skip_node = FALSE;
@@ -16274,6 +16198,7 @@ draw_free_nodes( Analysis *analy )
             colorflag = FALSE;
         if ( dbc_nodes_found && part_nodes_result[node_index] == FALSE )
             colorflag = FALSE;
+
         if ( analy->material_greyscale && disable_part[mat_num] )
             showgs = TRUE;
         else
@@ -16285,17 +16210,11 @@ draw_free_nodes( Analysis *analy )
 
         /* Scale node to mass and volume */
         if (mass_scaling)
-        {
-            node_radius = node_radius * free_nodes_mass[node_index] *
-                          mass_scale_factor;
-        }
+            node_radius = node_radius * free_nodes_mass[node_index] * mass_scale_factor;
 
         /* Scale node to volume only */
         if (vol_scaling)
-        {
-            node_radius = node_radius * fabs((double)free_nodes_vol[node_index]) *
-                          mass_scale_factor;
-        }
+            node_radius = node_radius * fabs((double)free_nodes_vol[node_index]) * mass_scale_factor;
 
         /* Scale node radius by user selected scale factor */
         node_radius *= rfac;
@@ -16303,11 +16222,8 @@ draw_free_nodes( Analysis *analy )
         /* Scale node radius by user selected scale factor */
         node_radius *= rfac;
 
-        /* If a result is available, then color node by the current
-         * result.
-         */
-
-        if (data_array!=NULL && colorflag)
+        /* If a result is available, then color node by the current result. */
+        if (data_array != NULL && colorflag)
         {
             if ( p_ml_classes[node_index] )
             {
@@ -16316,25 +16232,23 @@ draw_free_nodes( Analysis *analy )
                 for(i = 0; i < MESH(analy).qty_class_selections; i++)
                 {
                     if(!strcmp(p_ml_class->short_name, MESH(analy).by_class_select[i].p_class->short_name))
-                    {
                         break;
-                    }
                 }
+
                 /* if any of the elements are disabled show the material color */
                 if(MESH(analy).by_class_select[i].disable_class_elem[elem_id] == TRUE)
                 {
                     col[3] = v_win->mesh_materials.diffuse[mat_num][3];
 
                     VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
-                    for (j=0;
-                            j<4;
-                            j++)
-                        col[j] = col[j]- col[j]*.5;
-                } else
+                    for (j = 0; j < 4; j++)
+                        col[j] = col[j] - col[j] * .5;
+                }
+                else
                 {
                     color_lookup( col, val,
                                   rmin, rmax, analy->zero_result, mat_num,
-                                  analy->logscale, analy->material_greyscale );
+                                  analy->logscale, showgs );
                 }
             }
             else
@@ -16342,7 +16256,7 @@ draw_free_nodes( Analysis *analy )
                 val = data_array[free_node_data_index];
                 color_lookup( col, val,
                               rmin, rmax, analy->zero_result, mat_num,
-                              analy->logscale, analy->material_greyscale );
+                              analy->logscale, showgs );
             }
         }
         else
@@ -16351,10 +16265,8 @@ draw_free_nodes( Analysis *analy )
             col[3] = v_win->mesh_materials.diffuse[mat_num][3];
 
             VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
-            for (i=0;
-                    i<4;
-                    i++)
-                col[i] = col[i]- col[i]*.5;
+            for (i = 0; i < 4; i++)
+                col[i] = col[i] - col[i] * .5;
         }
 
         analy->free_nodes_vals[node_index] = val;
@@ -16362,37 +16274,29 @@ draw_free_nodes( Analysis *analy )
         /* Draw spheres at the nodes of the element. If the res for the sphere is
          * <=2, then draw a box instead.
          */
-        if ( analy->dimension == 3 )
-            if (analy->free_nodes_sphere_res_factor>2)
+        if ( analy->dimension == 3 ){
+            if (analy->free_nodes_sphere_res_factor > 2)
             {
                 glColor3fv( col );
                 if ( !fastSpheres )
                     draw_sphere_GL( verts, node_radius, analy->free_nodes_sphere_res_factor);
                 else
                 {
-                    /* gluSphere( sphere, node_base_radius*rfac, analy->free_nodes_sphere_res_factor*2, analy->free_nodes_sphere_res_factor ); */
-
                     glPushMatrix();
                     glTranslatef( verts[0], verts[1], verts[2] );
                     glCallList( display_list );
                     glPopMatrix();
                 }
 
-                /*
-                 * If reflection planes are active, then reflect free nodes.
-                 */
+                /* If reflection planes are active, then reflect free nodes. */
                 if ( analy->reflect )
-                    for ( plane = analy->refl_planes;
-                            plane != NULL;
-                            plane = plane->next )
+                    for ( plane = analy->refl_planes; plane != NULL; plane = plane->next )
                     {
                         point_transform( refl_verts, verts, &plane->pt_transf );
                         draw_sphere_GL( refl_verts, node_radius, analy->free_nodes_sphere_res_factor);
                     }
             }
-
-        /* Draw a hex for the free node */
-
+            /* Draw a hex for the free node */
             else
             {
                 glBegin( GL_QUADS );
@@ -16400,7 +16304,6 @@ draw_free_nodes( Analysis *analy )
 
                 for (j=0; j<6; j++)
                 {
-
                     switch ( j )
                     {
                     case 0:  /* +z */
@@ -16511,18 +16414,16 @@ draw_free_nodes( Analysis *analy )
                         poly_pts[3][2] = verts[2]+node_radius;
                         break;
                     }
+
                     glNormal3fv( poly_norms[j] );
-                    for (k=0; k<4; k++)
+                    for (k = 0; k < 4; k++)
                         glVertex3fv( poly_pts[k] );
                 }
                 glEnd();
             }
+        }
         free_node_data_index++;
     }
-
-
-    /*if ( v_win->lighting )
-      glDisable( GL_LIGHTING ); */
 
     glDisable( GL_COLOR_MATERIAL );
 
