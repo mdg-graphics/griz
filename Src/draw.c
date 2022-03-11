@@ -174,6 +174,7 @@ time_t tm;
 int  label_compare( const void *key, const void *label );
 int  get_class_label_index( MO_class_data *class, int label_num );
 void dump_class_labels( MO_class_data *class );
+void populate_mat_result(int superclass, char map[], MO_class_data* class, Analysis* analy);
 void populate_result(int superclass, char map[], MO_class_data* class, Analysis * analy);
 
 int grayel = 0;
@@ -4676,10 +4677,10 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -4697,7 +4698,10 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_HEX, results_map, p_hex_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_HEX, results_map, p_hex_class, analy);
+        else
+            populate_result(G_HEX, results_map, p_hex_class, analy);
     }
  
     Bool_type hidden_poly=FALSE,
@@ -5008,10 +5012,10 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -5029,7 +5033,10 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_TET, results_map, p_tet_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_TET, results_map, p_tet_class, analy);
+        else
+            populate_result(G_TET, results_map, p_tet_class, analy);
     }
 
 
@@ -5281,10 +5288,10 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -5302,7 +5309,10 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_QUAD, results_map, p_quad_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_QUAD, results_map, p_quad_class, analy);
+        else
+            populate_result(G_QUAD, results_map, p_quad_class, analy);
     }
 
     activity = analy->state_p->sand_present
@@ -5525,7 +5535,8 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
 /* Adding code to determine if a subrecord for these objects has the appropriate variable and if
  * not it sets that element to a gray scale prior to calling draw poly */
     Bool_type hidden_poly;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag=FALSE;
     char *results_map = NULL;
     Bool_type result_exists_for_tri;
     Bool_type is_unit_result;
@@ -5542,10 +5553,10 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -5563,7 +5574,10 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_TRI, results_map, p_tri_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_TRI, results_map, p_tri_class, analy);
+        else
+            populate_result(G_TRI, results_map, p_tri_class, analy);
     }
 
     activity = analy->state_p->sand_present
@@ -5772,7 +5786,8 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int *p_index_source;
     int beam_qty;
     unsigned char *disable_mtl, *hide_mtl;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
     Mesh_data *p_mesh;
 
     char * results_map = NULL;
@@ -5791,10 +5806,10 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -5812,7 +5827,10 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_BEAM, results_map, p_beam_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_BEAM, results_map, p_beam_class, analy);
+        else
+            populate_result(G_BEAM, results_map, p_beam_class, analy);
     }
 
     activity = analy->state_p->sand_present
@@ -5971,7 +5989,8 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int truss_qty;
     unsigned char *disable_mtl, *hide_mtl;
     Mesh_data *p_mesh;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag=FALSE;
     Bool_type is_unit_result;
    
     char *results_map = NULL;
@@ -5989,10 +6008,10 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -6010,7 +6029,10 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_TRUSS, results_map, p_truss_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_TRUSS, results_map, p_truss_class, analy);
+        else
+            populate_result(G_TRUSS, results_map, p_truss_class, analy);
     }
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -6188,7 +6210,7 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_mats;
 
     char * results_map = NULL;
-    Bool_type disable_gray;
+    Bool_type disable_gray = FALSE;
     Bool_type result_exists_for_pyramid = FALSE;
     Bool_type is_unit_result;
 
@@ -6207,10 +6229,10 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -6228,7 +6250,10 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_PYRAMID, results_map, p_pyramid_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_PYRAMID, results_map, p_pyramid_class, analy);
+        else
+            populate_result(G_PYRAMID, results_map, p_pyramid_class, analy);
     }
 
     Bool_type hidden_poly=FALSE,
@@ -6515,7 +6540,8 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
     Interp_mode_type save_interp_mode;
 
     char * results_map = NULL;
-    Bool_type disable_gray, disable_flag;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
     Bool_type is_unit_result;
     Bool_type result_exists_for_quad;
 
@@ -6531,10 +6557,10 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -6552,7 +6578,10 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_QUAD, results_map, p_quad_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_QUAD, results_map, p_quad_class, analy);
+        else
+            populate_result(G_QUAD, results_map, p_quad_class, analy);
     }
 
     p_mesh = analy->mesh_table + p_quad_class->mesh_id;
@@ -6840,7 +6869,8 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
 /* Adding code to determine if a subrecord for these objects has the appropriate variable and if
  * not it sets that element to a gray scale prior to calling draw poly */
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
     Bool_type is_unit_result;
     char *results_map = NULL;
     Bool_type result_exists_for_tri;
@@ -6857,10 +6887,10 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -6878,7 +6908,10 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_TRI, results_map, p_tri_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_TRI, results_map, p_tri_class, analy);
+        else
+            populate_result(G_TRI, results_map, p_tri_class, analy);
     }
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
@@ -7164,7 +7197,8 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     char * results_map = NULL;
     Bool_type result_exists_for_beam;
     Bool_type is_unit_result;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -7178,10 +7212,10 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -7199,7 +7233,10 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_BEAM, results_map, p_beam_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_BEAM, results_map, p_beam_class, analy);
+        else
+            populate_result(G_BEAM, results_map, p_beam_class, analy);
     }
 
     p_mesh = analy->mesh_table + p_beam_class->mesh_id;
@@ -7363,7 +7400,8 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int truss_qty;
 
     char *results_map = NULL;
-    Bool_type disable_gray, disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
     Bool_type is_unit_result;
     Bool_type result_exists_for_truss;
 
@@ -7372,16 +7410,17 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         return;
 
     result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
-    show_result = result_exists_for_truss
+    show_result = show_node_result
+                  || result_exists_for_truss
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(show_node_result && analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -7399,7 +7438,10 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_TRUSS, results_map, p_truss_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_TRUSS, results_map, p_truss_class, analy);
+        else
+            populate_result(G_TRUSS, results_map, p_truss_class, analy);
     }
 
     p_mesh = analy->mesh_table + p_truss_class->mesh_id;
@@ -8035,10 +8077,10 @@ draw_particles_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_t
 
     /* Check if gray out feature should be disabled. Should be disabled for:
      *  1. interpolated node result
-     *  2. Global, Mat, or M_UNIT results
+     *  2. Global or M_UNIT results
      */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mat_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
         if(analy->interp_mode == NO_INTERP){
             disable_gray = FALSE;
@@ -8055,7 +8097,10 @@ draw_particles_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_t
                 parse_command("quit", analy);
             }
         }
-        populate_result(G_PARTICLE, results_map, p_particle_class, analy);
+        if(show_mat_result)
+            populate_mat_result(G_PARTICLE, results_map, p_particle_class, analy);
+        else
+            populate_result(G_PARTICLE, results_map, p_particle_class, analy);
     }
 
     p_mesh = analy->mesh_table + p_particle_class->mesh_id;
@@ -17394,6 +17439,62 @@ get_class_label_index( MO_class_data *class, int label_num )
 
 }
 
+
+/************************************************************
+ * TAG( populate_mat_result )
+ *
+ * For the current result (Must be for M_MAT) determine for which materials this result exist
+ * and mark the associated elements as having the result.
+ */
+void populate_mat_result(int superclass, char map[], MO_class_data* class, Analysis* analy){
+    int i, j, k;
+    int mtl;
+    int start, end;
+    Result *p_result;
+    Subrec_obj *p_subrec;
+
+    /* Get the current result */
+    p_result = analy->cur_result;
+
+    /* Sanity Check */
+    if(p_result == NULL || map == NULL || !result_has_superclass(p_result, G_MAT, analy))
+    {
+        return;
+    }
+
+    /* initialize the map array */
+    for(i = 0; i < class->qty; i++)
+    {
+        map[i] = '0';
+    }
+
+    for(i = 0; i < p_result->qty; i++){
+        if(p_result->superclasses[i] == G_MAT){
+            // Get the subrecord
+            p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
+            // Check for M_MAT
+            if(p_subrec->p_object_class->superclass == G_MAT){
+                /* loop over material id blocks */
+                for(j = 0; j < p_subrec->subrec.qty_blocks; j++){
+                    // Get start and end material id for range
+                    start = p_subrec->subrec.mo_blocks[j*2];
+                    end = p_subrec->subrec.mo_blocks[j*2+1];
+                    // shift to zero based indexing
+                    start -= 1;
+                    end -= 1;
+
+                    // loop over elements and mark if associated material result exists
+                    for(k = 0; k < class->qty; k++){
+                        mtl = class->objects.elems->mat[k];
+                        if(mtl >= start && mtl <= end){
+                            map[k] = '1';
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 /************************************************************
  * TAG( populate_result )
