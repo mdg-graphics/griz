@@ -958,7 +958,7 @@ static int particle_prin_primal_sclasses[] =
 };
 
 
-es_Result_candidate possible_es_results[] =
+Result_candidate possible_es_results[] =
 {
     {
         G_TRI,
@@ -5090,7 +5090,7 @@ Result * create_result_list( char * token, Analysis *analy)
     Result * p2;
     Result result;
     Result_candidate *p_rc;
-    es_Result_candidate *p_es_rc;
+    Result_candidate *p_es_rc;
     Bool_type raw = TRUE;
     Bool_type match = FALSE;
 

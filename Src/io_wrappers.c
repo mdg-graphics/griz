@@ -2150,7 +2150,7 @@ extern int
 mili_db_set_results( Analysis *analy )
 {
     Result_candidate *p_rc;
-    es_Result_candidate *p_es_rc;
+    Result_candidate *p_es_rc;
     int i, j, k, m;
     int num_entries = 0;
     int qty_candidates, qty_es_candidates;
