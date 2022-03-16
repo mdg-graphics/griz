@@ -1968,14 +1968,14 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->show_bbox = setval;
 				else if ( strcmp( tokens[i], "echocmd" ) == 0 )
 					analy->echocmd = setval;
-				else if ( !strcmp( tokens[i], "fringe_all"))
+				else if ( !strcmp( tokens[i], "autogray"))
 				{
 					if(setval)
 					{
-						analy->auto_gray = FALSE;
+						analy->auto_gray = TRUE;
 					}else
 					{
-						analy->auto_gray = TRUE;
+						analy->auto_gray = FALSE;
 					}
 					if(analy->dimension == 3)
 					{
@@ -2430,12 +2430,6 @@ parse_single_command( char *buf, Analysis *analy )
 				{
 					analy->material_greyscale = setval;
 					update_util_panel( VIEW_GS, NULL );
-					/* if(setval == TRUE)
-					{
-			   gray_colormap(TRUE);
-					} else {
-					   restore_colormap();
-					} */
 				}
 				else if ( strcmp( tokens[i], "damage_hide" ) == 0 )
 				{

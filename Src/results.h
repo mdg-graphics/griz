@@ -107,6 +107,7 @@ typedef struct _result_candidate
 } Result_candidate;
 
 
+<<<<<<< HEAD
 typedef struct _es_result_candidate
 {
     int superclass;
@@ -122,6 +123,8 @@ typedef struct _es_result_candidate
     int *primal_superclasses;
 } es_Result_candidate;
 
+=======
+>>>>>>> 15-fix-auto-gray-feature
 typedef struct _list_head
 {
     int qty;

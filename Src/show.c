@@ -91,7 +91,7 @@ parse_show_command( char *token, Analysis *analy )
     int *map;
     char ipt[125];
     char c_ptr = '\0';
-    es_Result_candidate *p_es_rc;
+    Result_candidate *p_es_rc;
     Hash_table * p_es_components_ht;
     Hash_table * p_sv_ht;
     Htable_entry *p_hte;
