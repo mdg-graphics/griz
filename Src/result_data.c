@@ -157,9 +157,9 @@ update_min_max( Analysis *analy )
 
     /* Update the state min/max for nodal/interpolated data. */
     state_mm[0] = result[0];
-    mm_nodes[0] = 1;
+    mm_nodes[0] = 0;
     state_mm[1] = result[0];
-    mm_nodes[1] = 1;
+    mm_nodes[1] = 0;
 
     for ( i = 1; i < cnt; i++ )
     {
@@ -510,7 +510,7 @@ update_nodal_min_max( Analysis *analy )
 
             ref_node_qty = MESH_P( analy )->node_geom->qty;
 
-            for ( i = 1; i < ref_node_qty; i++ )
+            for ( i = 0; i < ref_node_qty; i++ )
             {
                 val = result[i];
 
@@ -560,7 +560,7 @@ update_nodal_min_max( Analysis *analy )
     }
 
     /* Traverse through appropriate nodal values to update min/max. */
-    for ( i = 1; i < ref_node_qty; i++ )
+    for ( i = 0; i < ref_node_qty; i++ )
     {
         ident = ref_nodes[i];
         val   = result[ident];
@@ -601,7 +601,7 @@ update_nodal_min_max( Analysis *analy )
          * Multiple classes support this indirect result - must
          * traverse the rest to ascertain true min/max.
          */
-        for ( i = 1; i < class_qty; i++ )
+        for ( i = 0; i < class_qty; i++ )
         {
             p_mo_class = mo_classes[i];
             class_name = p_mo_class->long_name;
@@ -618,7 +618,7 @@ update_nodal_min_max( Analysis *analy )
             ref_nodes = p_mo_class->referenced_nodes;
             ref_node_qty = p_mo_class->referenced_node_qty;
 
-            for ( i = 1; i < ref_node_qty; i++ )
+            for ( i = 0; i < ref_node_qty; i++ )
             {
                 ident = ref_nodes[i];
                 val   = result[ident];
@@ -1568,7 +1568,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
         if ( val_part[part_id] > mm_val[1] )
         {
             mm_val[1]   = val_part[part_id];
-            el_id[1]    = part_id + 1;
+            el_id[1]    = part_id;
             classes[1]  = p_part_class->long_name;
             sclasses[1] = p_part_class->superclass;
         }
@@ -3099,9 +3099,7 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
 
         for ( i = 0; i < qty; i++ )
         {
-            for ( j = 0;
-                    j < p_r->qty;
-                    j++ )
+            for ( j = 0; j < p_r->qty; j++ )
             {
                 /**/
                 /* Set the subrecord references in the Derived_result in the appropriate
