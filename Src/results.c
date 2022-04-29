@@ -1030,8 +1030,8 @@ Result_candidate possible_results[] =
     },
 
     {
-        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
@@ -1046,8 +1046,8 @@ Result_candidate possible_results[] =
     },
 
     {
-        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
@@ -1062,8 +1062,8 @@ Result_candidate possible_results[] =
     },
 
     {
-        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
