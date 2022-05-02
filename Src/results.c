@@ -2522,7 +2522,6 @@ char * construct_result_query_string(Analysis* analy){
         /* Find matching subrecord. Additionally if target is not an empty string match result short name. */
         for( i = 0; i < primal_result->owning_vec_count; i++){
             if( target[0] == '\0' || !strcmp(target, primal_result->owning_vector_result[i]->short_name) ){
-                int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
                 j = find_matching_subrec_index(subrec, primal_result->owning_vector_result[i]);
                 if(j != primal_result->owning_vector_result[i]->qty_subrecs){
                     found = TRUE;
@@ -2536,7 +2535,6 @@ char * construct_result_query_string(Analysis* analy){
             found = FALSE;
             if( primal_result->owning_vector_result[i]->in_vector_array ){
                 for( k = 0; k < primal_result->owning_vector_result[i]->owning_vec_count; k++ ){
-                    int *list = (int*) primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->list;
                     l = find_matching_subrec_index(subrec, primal_result->owning_vector_result[i]->owning_vector_result[k]);
                     if(l != primal_result->owning_vector_result[i]->owning_vector_result[k]->qty_subrecs){
                         found = TRUE;
