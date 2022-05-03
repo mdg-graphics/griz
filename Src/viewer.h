@@ -2355,20 +2355,20 @@ extern void      rotate_quad_result( Analysis *analy, char *primal, int result_c
 /* stress.c */
 extern void compute_hex_stress( Analysis *, float *, Bool_type );
 
+extern void compute_pressure( Analysis *, float *, Bool_type );
 extern void compute_press( Analysis *, float *, Bool_type );
-extern void compute_hex_press( Analysis *, float *, Bool_type );
-extern void compute_shell_press( Analysis *, float *, Bool_type );
 extern void compute_es_press( Analysis *, float *, Bool_type );
+extern void compute_shell_press( Analysis *, float *, Bool_type );
 
+extern void compute_effective_stress( Analysis *, float *, Bool_type );
 extern void compute_effstress( Analysis *, float *, Bool_type );
-extern void compute_hex_effstress( Analysis *, float *, Bool_type );
-extern void compute_shell_effstress( Analysis *, float *, Bool_type );
 extern void compute_es_effstress( Analysis *, float *, Bool_type );
+extern void compute_shell_effstress( Analysis *, float *, Bool_type );
 
 extern void compute_principal_stress( Analysis *, float *, Bool_type );
-extern void compute_hex_principal_stress( Analysis *, float *, Bool_type );
+extern void compute_prin_stress( Analysis *, float *, Bool_type );
+extern void compute_es_prin_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_principal_stress( Analysis *, float *, Bool_type );
-extern void compute_es_principal_stress( Analysis *, float *, Bool_type );
 
 extern void compute_shell_surface_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_stress( Analysis *, float *, Bool_type );

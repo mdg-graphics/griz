@@ -163,12 +163,12 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 }
 
 /************************************************************
- * TAG( compute_press )
+ * TAG( compute_pressure )
  *
  * Determine which function should be used to compute the
  * pressure and call it.
  */
-void compute_press( Analysis *analy, float *resultArr, Bool_type interpolate )
+void compute_pressure( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     Result* p_result;
     int index;
@@ -185,14 +185,14 @@ void compute_press( Analysis *analy, float *resultArr, Bool_type interpolate )
         compute_es_press(analy, resultArr, interpolate);
     }
     else{
-        compute_hex_press(analy, resultArr, interpolate);
+        compute_press(analy, resultArr, interpolate);
     }
 
 }
 
 
 /************************************************************
- * TAG( compute_hex_press )
+ * TAG( compute_press )
  *
  * Computes the pressure at nodes given the current stress
  * tensor for an element.
@@ -201,7 +201,7 @@ void compute_press( Analysis *analy, float *resultArr, Bool_type interpolate )
  * but only uses the first three components.
  */
 void
-compute_hex_press( Analysis *analy, float *resultArr, Bool_type interpolate )
+compute_press( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
     float (*stress)[6];
@@ -280,12 +280,12 @@ compute_hex_press( Analysis *analy, float *resultArr, Bool_type interpolate )
 }
 
 /************************************************************
- * TAG( compute_effstress )
+ * TAG( compute_effective_stress )
  *
  * Determine which function should be used to compute the
  * Effective stress and call it.
  */
-void compute_effstress( Analysis *analy, float *resultArr, Bool_type interpolate )
+void compute_effective_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     Result* p_result;
     int index;
@@ -302,18 +302,18 @@ void compute_effstress( Analysis *analy, float *resultArr, Bool_type interpolate
         compute_es_effstress(analy, resultArr, interpolate);
     }
     else{
-        compute_hex_effstress(analy, resultArr, interpolate);
+        compute_effstress(analy, resultArr, interpolate);
     }
 }
 
 
 /************************************************************
- * TAG( compute_hex_effstress )
+ * TAG( compute_effstress )
  *
  * Computes the effective stress at nodes.
  */
 void
-compute_hex_effstress( Analysis *analy, float *resultArr, Bool_type interpolate )
+compute_effstress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
     float *stress;
@@ -430,22 +430,22 @@ void compute_principal_stress( Analysis *analy, float *resultArr, Bool_type inte
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
 
     if( p_subrec->element_set != NULL ){
-        compute_es_principal_stress(analy, resultArr, interpolate);
+        compute_es_prin_stress(analy, resultArr, interpolate);
     }
     else{
-        compute_hex_principal_stress(analy, resultArr, interpolate);
+        compute_prin_stress(analy, resultArr, interpolate);
     }
 }
 
 
 /************************************************************
- * TAG( compute_hex_principal_stress )
+ * TAG( compute_prin_stress )
  *
  * Computes the principal deviatoric stresses and principal
  * stresses.
  */
 void
-compute_hex_principal_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
+compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;               /* Element results vector. */
     float  *hexStressFlt;            /* Ptr to element stresses. */
@@ -848,8 +848,9 @@ void
 compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
     float *resultElem;
-    int i, rval;
+    int i, j, k, rval;
     int ipt_index;
+    Bool_type found;
     Result *p_result;
     char **primals;
     int subrec, srec;
@@ -912,7 +913,25 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         // and get the element set name.
         for( i = 0; i < primal_result->qty_subrecs; i++ ){
             if( primal_result->subrecs[i] == p_subrec){
-                strcpy(es_name, primal_result->original_names_per_subrec[i]);
+                if(primal_result->in_vector_array){
+                    // New Format for vector array stress
+                    found = FALSE;
+                    for( j = 0; j < primal_result->owning_vec_count; j++ ){
+                        for( k = 0; k < primal_result->owning_vector_result[j]->qty_subrecs; k++ ){
+                            if(p_subrec == primal_result->owning_vector_result[j]->subrecs[k]){
+                                strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
+                                found = TRUE;
+                                break;
+                            }
+                        }
+                        if(found)
+                            break;
+                    }
+                }
+                else{
+                    // Old Format for vector array stress
+                    strcpy(es_name, primal_result->original_names_per_subrec[i]);
+                }
                 break;
             }
         }
@@ -922,16 +941,23 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         for( i = 0; i < 3; i++ ){
             strcpy(es_primal, es_name);
             strcat(es_primal, "[");
-            //stress componenet name here
-            strcat(es_primal, stress_components[i] );
-            strcat(es_primal, ",");
             sprintf(ipt, "%d", ipt_index);
             strcat(es_primal, ipt);
-            strcat(es_primal, "]");
+            strcat(es_primal, ",");
+            if(primal_result->in_vector_array){
+                strcat(es_primal, "stress[");
+                strcat(es_primal, stress_components[i] );
+                strcat(es_primal, "]]");
+            }
+            else{
+                //stress componenet name here
+                strcat(es_primal, stress_components[i] );
+                strcat(es_primal, "]");
+            }
             es_primals[0] = es_primal;
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
-                                   es_primals, (void *) stresses[i] );
+                                    es_primals, (void *) stresses[i] );
         }
     }
 
@@ -1102,7 +1128,9 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     float devStress[3];
     float pressure;
     int obj_qty;
-    int i, j, rval, ipt_index;
+    int i, j, k, l;
+    int rval, ipt_index;
+    Bool_type found;
     Result *p_result;
     char **primals;
     int subrec, srec;
@@ -1164,7 +1192,25 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
         // and get the element set name.
         for( i = 0; i < primal_result->qty_subrecs; i++ ){
             if( primal_result->subrecs[i] == p_subrec){
-                strcpy(es_name, primal_result->original_names_per_subrec[i]);
+                if(primal_result->in_vector_array){
+                    // New Format for vector array stress
+                    found = FALSE;
+                    for( j = 0; j < primal_result->owning_vec_count; j++ ){
+                        for( k = 0; k < primal_result->owning_vector_result[j]->qty_subrecs; k++ ){
+                            if(p_subrec == primal_result->owning_vector_result[j]->subrecs[k]){
+                                strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
+                                found = TRUE;
+                                break;
+                            }
+                        }
+                        if(found)
+                            break;
+                    }
+                }
+                else{
+                    // Old Format for vector array stress
+                    strcpy(es_name, primal_result->original_names_per_subrec[i]);
+                }
                 break;
             }
         }
@@ -1174,16 +1220,23 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
         for( i = 0; i < 6; i++ ){
             strcpy(es_primal, es_name);
             strcat(es_primal, "[");
-            //stress componenet name here
-            strcat(es_primal, stress_components[i] );
-            strcat(es_primal, ",");
             sprintf(ipt, "%d", ipt_index);
             strcat(es_primal, ipt);
-            strcat(es_primal, "]");
+            strcat(es_primal, ",");
+            if(primal_result->in_vector_array){
+                strcat(es_primal, "stress[");
+                strcat(es_primal, stress_components[i] );
+                strcat(es_primal, "]]");
+            }
+            else{
+                //stress componenet name here
+                strcat(es_primal, stress_components[i] );
+                strcat(es_primal, "]");
+            }
             es_primals[0] = es_primal;
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
-                                   es_primals, (void *) stresses[i] );
+                                    es_primals, (void *) stresses[i] );
         }
     }
 
@@ -1362,7 +1415,7 @@ compute_shell_effstress( Analysis *analy, float *resultArr,
 
 *************************************************************/
 void
-compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interpolate)
+compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
     float *resultElem;
     float pressure, interm_result;
@@ -1370,8 +1423,9 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
     float princStress[3];            /* Principal values. */
     float alpha, angle, value;
     float devStress[3];
-    int i, j, out_idx;
+    int i, j, k, l, out_idx;
     int rval, ipt_index;
+    Bool_type found;
     Result *p_result;
     char ** primals;
     int subrec, srec;
@@ -1435,7 +1489,25 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
         // and get the element set name.
         for( i = 0; i < primal_result->qty_subrecs; i++ ){
             if( primal_result->subrecs[i] == p_subrec){
-                strcpy(es_name, primal_result->original_names_per_subrec[i]);
+                if(primal_result->in_vector_array){
+                    // New Format for vector array stress
+                    found = FALSE;
+                    for( j = 0; j < primal_result->owning_vec_count; j++ ){
+                        for( k = 0; k < primal_result->owning_vector_result[j]->qty_subrecs; k++ ){
+                            if(p_subrec == primal_result->owning_vector_result[j]->subrecs[k]){
+                                strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
+                                found = TRUE;
+                                break;
+                            }
+                        }
+                        if(found)
+                            break;
+                    }
+                }
+                else{
+                    // Old Format for vector array stress
+                    strcpy(es_name, primal_result->original_names_per_subrec[i]);
+                }
                 break;
             }
         }
@@ -1445,16 +1517,23 @@ compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interp
         for( i = 0; i < 6; i++ ){
             strcpy(es_primal, es_name);
             strcat(es_primal, "[");
-            //stress componenet name here
-            strcat(es_primal, stress_components[i] );
-            strcat(es_primal, ",");
             sprintf(ipt, "%d", ipt_index);
             strcat(es_primal, ipt);
-            strcat(es_primal, "]");
+            strcat(es_primal, ",");
+            if(primal_result->in_vector_array){
+                strcat(es_primal, "stress[");
+                strcat(es_primal, stress_components[i] );
+                strcat(es_primal, "]]");
+            }
+            else{
+                //stress componenet name here
+                strcat(es_primal, stress_components[i] );
+                strcat(es_primal, "]");
+            }
             es_primals[0] = es_primal;
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
-                                   es_primals, (void *) stresses[i] );
+                                    es_primals, (void *) stresses[i] );
         }
     }
  
