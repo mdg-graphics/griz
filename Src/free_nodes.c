@@ -58,6 +58,7 @@
 ************************************************************************
  */
 
+#include <ctype.h>
 #include <stdlib.h>
 #include "viewer.h"
 
@@ -66,6 +67,340 @@
 #define VOL      1
 #define MOMENTUM 2
 
+
+
+/*************************************************************
+ * TAG( gather_free_nodes )
+ *
+ * This function will gather and return the free node mass and
+ * volume data.
+ *************************************************************/
+int
+gather_free_nodes( Analysis *analy,  int *num_fn, int mass_flag,
+                   int   all_nodes,
+                   int   **fn_list_ptr,
+                   float **free_nodes_data)
+{
+    MO_class_data *p_element_class,
+                  *p_node_class,
+                  *p_mo_class,
+                  **mo_classes;
+
+    Mesh_data     *p_mesh;
+
+    List_head     *p_lh;
+
+    char *cname;
+
+    int   nd;
+
+    float *activity, *temp_activity;
+    float *data_array;
+    float **sand_arrays;
+
+    int  elem_qty;
+    int  node_index, node_num, num_nodes, node_qty;
+    int  class_index, class_qty;
+    int  conn_qty;
+    int  vert_cnt;
+
+    int i, j, k, l;
+    int dim, obj_qty;
+
+    int  *connects;
+
+    int  free_nodes_found   = FALSE;
+    int  fn_flag;
+    int  *fn_list, fn_count = 0, fn_data_found=TRUE;
+
+    float *fn_mass_ptr = NULL;
+    float *fn_mass_tmp = NULL;
+    float *fn_vol_ptr  = NULL;
+    float *fn_vol_tmp  = NULL;
+
+    int  status;
+
+    /* Variables related to materials */
+    unsigned char *disable_mtl, *hide_mtl;
+    int  *mat, mat_num;
+
+    p_mesh      = MESH_P( analy );
+    disable_mtl = p_mesh->disable_material;
+    hide_mtl    = p_mesh->hide_material;
+
+    dim        = analy->dimension;
+    data_array = NODAL_RESULT_BUFFER( analy );
+
+    p_node_class = MESH_P( analy )->node_geom;
+    num_nodes    = p_node_class->qty;
+
+    /* Free node list is an array of node length used to identify
+     * the free nodes - free_nodes_list[i] is set to 1 if node is free.
+     */
+    fn_list = NEW_N( int , num_nodes, "fn_list" );
+    memset( fn_list, 0, num_nodes );
+
+    temp_activity = NEW_N( float , num_nodes, "temp_activity_list" );
+    memset( temp_activity, 1, num_nodes );
+
+    fn_mass_ptr = *free_nodes_data;
+    fn_vol_ptr  = *free_nodes_data;
+
+    /* If mass scaling option is enabled, then look for the nodal masses */
+    if (mass_flag==MASS)
+    {
+        status = mili_db_get_param_array(analy->db_ident,  "Nodal Mass",   (void *) &fn_mass_tmp);
+    }
+
+    /* Read the nodal volumes if volume scaling is enabled */
+    if (mass_flag==VOL)
+        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &fn_vol_tmp);
+
+
+    /* Make sure that this database has free node mass or volume data */
+    if (fn_mass_tmp==NULL && fn_vol_tmp==NULL)
+        fn_data_found = FALSE;
+
+    fn_count = 0;
+    *num_fn  = 0;
+
+    /* Loop over each element superclass. */
+    for ( i = 0; i < QTY_SCLASS; i++ )
+    {
+        if ( !IS_ELEMENT_SCLASS( i ) )
+            continue;
+
+        p_lh = p_mesh->classes_by_sclass + i;
+
+        /* If classes exist from current superclass... */
+        if ( p_lh->qty > 0 )
+        {
+            mo_classes = (MO_class_data **)
+                         p_mesh->classes_by_sclass[i].list;
+
+            sand_arrays = analy->state_p->elem_class_sand;
+            node_qty    = qty_connects[i];
+            conn_qty    = ( i == G_BEAM ) ? node_qty - 1 : node_qty;
+
+            /* Loop over each class. */
+            for ( j = 0;
+                    j < p_lh->qty;
+                    j++ )
+            {
+                p_mo_class = mo_classes[j];
+                connects   = p_mo_class->objects.elems->nodes;
+                mat        = p_mo_class->objects.elems->mat;
+
+                if ( analy->state_p->sand_present )
+                    activity = sand_arrays[p_mo_class->elem_class_index];
+                else
+                    activity = temp_activity;
+
+                /* Loop over each element */
+                for ( k = 0;
+                        k < p_mo_class->qty;
+                        k++ )
+                {
+                    mat_num = mat[k];
+                    fn_flag = activity[k];
+                    if ( all_nodes )
+                        fn_flag = 0;
+
+                    if (!disable_mtl[mat_num] && !hide_mtl[mat_num]
+                            && fn_flag == 0)
+                        for ( l = 0;
+                                l < conn_qty;
+                                l++ )
+                        {
+                            nd = connects[k * node_qty + l];
+                            free_nodes_found = TRUE;
+                            fn_list[nd]      = mat_num+1;
+                            fn_count++;
+                        }
+                }
+
+                for ( k = 0;
+                        k < p_mo_class->qty;
+                        k++ )
+                {
+                    mat_num = mat[k];
+                    fn_flag = activity[k];
+                    if ( all_nodes )
+                        fn_flag = 0;
+
+                    if ( !disable_mtl[mat_num] && !hide_mtl[mat_num] &&
+                            fn_flag != 0 )
+                        for ( l = 0;
+                                l < conn_qty;
+                                l++ )
+                        {
+                            nd = connects[k * node_qty + l];
+                            fn_list[nd] = -(mat_num+1);
+                        }
+                }
+            }
+        }
+    }
+
+    *fn_list_ptr = fn_list;
+    *num_fn      = fn_count;
+
+    for ( i = 0;
+            i < num_nodes;
+            i++ )
+        fn_mass_ptr[i] = 0.0;
+
+    if (fn_data_found)
+        if (fn_count>0)
+            for ( i = 0;
+                    i < num_nodes;
+                    i++ )
+            {
+                if (mass_flag==MASS)
+                {
+                    fn_mass_ptr[i] = fn_mass_tmp[i];
+                }
+                else
+                    fn_vol_ptr[i]  = fn_vol_tmp[i];
+            }
+
+
+    if (fn_mass_tmp!=NULL)
+        free(fn_mass_tmp);
+
+    if (fn_vol_tmp!=NULL)
+        free(fn_vol_tmp);
+
+    free(temp_activity);
+
+    return(num_nodes);
+}
+
+/*************************************************************
+ * TAG( gather_nodal_velocity )
+ *
+ * This function will gather and return the nodal velocity
+ * components for all nodes.
+ *************************************************************/
+int
+gather_nodal_velocity( Analysis *analy,
+                       float *velx, float *vely,
+                       float *velz, float *velmag)
+
+{
+    Result *p_result, *res_velx = NULL, *res_vely = NULL, *res_velz = NULL;
+    Bool_type single_prec_vel;
+
+    int i;
+    int num_nodes;
+    int x_rval, y_rval, z_rval;
+
+    float  *vel_1p = NULL;
+    double *vel_2p = NULL;
+
+    p_result = analy->cur_result;
+
+    /* Initialize velocity Result structs. */
+    res_velx = NEW_N( Result, 3, "Vel Results for free nodes" );
+    res_vely = res_velx + 1;
+    res_velz = res_velx + 2;
+
+    x_rval = find_result( analy, ALL, TRUE, res_velx, "nodvel[vx]" );
+    y_rval = find_result( analy, ALL, TRUE, res_vely, "nodvel[vy]" );
+    z_rval = find_result( analy, ALL, TRUE, res_velz, "nodvel[vz]" );
+
+    update_result( analy, res_velx );
+    update_result( analy, res_vely );
+    update_result( analy, res_velz );
+
+    analy->cur_result = res_velx;
+    num_nodes = MESH_P( analy )->node_geom->qty;
+    vel_1p = analy->tmp_result[0];
+    vel_2p = NEW_N( double, num_nodes, "Temp node vel buffers" );
+
+    /* Capture velocity precision. */
+    single_prec_vel = ( ((Primal_result *)
+                         res_velx->original_result)->var->num_type
+                        == G_FLOAT4
+                        ||
+                        ((Primal_result *)
+                         res_velx->original_result)->var->num_type
+                        == G_FLOAT );
+
+    /* Vel[x] */
+    analy->cur_result = res_velx;
+    if ( single_prec_vel )
+    {
+        NODAL_RESULT_BUFFER( analy ) = vel_1p;
+        load_result( analy, FALSE, FALSE, FALSE );
+
+    }
+    else
+    {
+        NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
+        load_result( analy, FALSE, FALSE, FALSE );
+    }
+    for (i=0;
+            i<num_nodes;
+            i++)
+        if ( single_prec_vel )
+            velx[i] = vel_1p[i];
+        else
+            velx[i] = vel_2p[i];
+
+    /* Vel[y] */
+    analy->cur_result = res_vely;
+    if ( single_prec_vel )
+    {
+        NODAL_RESULT_BUFFER( analy ) = vel_1p;
+        load_result( analy, FALSE, FALSE, FALSE );
+
+    }
+    else
+    {
+        NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
+        load_result( analy, FALSE, FALSE, FALSE );
+    }
+    for (i=0;
+            i<num_nodes;
+            i++)
+        if ( single_prec_vel )
+            vely[i] = vel_1p[i];
+        else
+            vely[i] = vel_2p[i];
+
+    /* Vel[z] */
+    analy->cur_result = res_velz;
+    if ( single_prec_vel )
+    {
+        NODAL_RESULT_BUFFER( analy ) = vel_1p;
+        load_result( analy, FALSE, FALSE, FALSE );
+
+    }
+    else
+    {
+        NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
+        load_result( analy, FALSE, FALSE, FALSE );
+    }
+    for (i=0;
+            i<num_nodes;
+            i++)
+    {
+        if ( single_prec_vel )
+            velz[i] = vel_1p[i];
+        else
+            velz[i] = vel_2p[i];
+
+        /* We have the x,y,z components, so computer the mag */
+        velmag[i] = sqrt((double)((velx[i]*velx[i]) +
+                                  (vely[i]*vely[i]) +
+                                  (velz[i]*velz[i])));
+    }
+
+    analy->cur_result = p_result;
+
+    return(num_nodes);
+}
 
 /*****************************************************************
  * TAG( compute_fnmass )
@@ -431,337 +766,5 @@ compute_fnvol( Analysis *analy, float *resultArr,
 }
 
 
-/*************************************************************
- * TAG( gather_free_nodes )
- *
- * This function will gather and return the free node mass and
- * volume data.
- *************************************************************/
-int
-gather_free_nodes( Analysis *analy,  int *num_fn, int mass_flag,
-                   int   all_nodes,
-                   int   **fn_list_ptr,
-                   float **free_nodes_data)
-{
-    MO_class_data *p_element_class,
-                  *p_node_class,
-                  *p_mo_class,
-                  **mo_classes;
 
-    Mesh_data     *p_mesh;
-
-    List_head     *p_lh;
-
-    char *cname;
-
-    int   nd;
-
-    float *activity, *temp_activity;
-    float *data_array;
-    float **sand_arrays;
-
-    int  elem_qty;
-    int  node_index, node_num, num_nodes, node_qty;
-    int  class_index, class_qty;
-    int  conn_qty;
-    int  vert_cnt;
-
-    int i, j, k, l;
-    int dim, obj_qty;
-
-    int  *connects;
-
-    int  free_nodes_found   = FALSE;
-    int  fn_flag;
-    int  *fn_list, fn_count = 0, fn_data_found=TRUE;
-
-    float *fn_mass_ptr = NULL;
-    float *fn_mass_tmp = NULL;
-    float *fn_vol_ptr  = NULL;
-    float *fn_vol_tmp  = NULL;
-
-    int  status;
-
-    /* Variables related to materials */
-    unsigned char *disable_mtl, *hide_mtl;
-    int  *mat, mat_num;
-
-    p_mesh      = MESH_P( analy );
-    disable_mtl = p_mesh->disable_material;
-    hide_mtl    = p_mesh->hide_material;
-
-    dim        = analy->dimension;
-    data_array = NODAL_RESULT_BUFFER( analy );
-
-    p_node_class = MESH_P( analy )->node_geom;
-    num_nodes    = p_node_class->qty;
-
-    /* Free node list is an array of node length used to identify
-     * the free nodes - free_nodes_list[i] is set to 1 if node is free.
-     */
-    fn_list = NEW_N( int , num_nodes, "fn_list" );
-    memset( fn_list, 0, num_nodes );
-
-    temp_activity = NEW_N( float , num_nodes, "temp_activity_list" );
-    memset( temp_activity, 1, num_nodes );
-
-    fn_mass_ptr = *free_nodes_data;
-    fn_vol_ptr  = *free_nodes_data;
-
-    /* If mass scaling option is enabled, then look for the nodal masses */
-    if (mass_flag==MASS)
-    {
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Mass",   (void *) &fn_mass_tmp);
-    }
-
-    /* Read the nodal volumes if volume scaling is enabled */
-    if (mass_flag==VOL)
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &fn_vol_tmp);
-
-
-    /* Make sure that this database has free node mass or volume data */
-    if (fn_mass_tmp==NULL && fn_vol_tmp==NULL)
-        fn_data_found = FALSE;
-
-    fn_count = 0;
-    *num_fn  = 0;
-
-    /* Loop over each element superclass. */
-    for ( i = 0; i < QTY_SCLASS; i++ )
-    {
-        if ( !IS_ELEMENT_SCLASS( i ) )
-            continue;
-
-        p_lh = p_mesh->classes_by_sclass + i;
-
-        /* If classes exist from current superclass... */
-        if ( p_lh->qty > 0 )
-        {
-            mo_classes = (MO_class_data **)
-                         p_mesh->classes_by_sclass[i].list;
-
-            sand_arrays = analy->state_p->elem_class_sand;
-            node_qty    = qty_connects[i];
-            conn_qty    = ( i == G_BEAM ) ? node_qty - 1 : node_qty;
-
-            /* Loop over each class. */
-            for ( j = 0;
-                    j < p_lh->qty;
-                    j++ )
-            {
-                p_mo_class = mo_classes[j];
-                connects   = p_mo_class->objects.elems->nodes;
-                mat        = p_mo_class->objects.elems->mat;
-
-                if ( analy->state_p->sand_present )
-                    activity = sand_arrays[p_mo_class->elem_class_index];
-                else
-                    activity = temp_activity;
-
-                /* Loop over each element */
-                for ( k = 0;
-                        k < p_mo_class->qty;
-                        k++ )
-                {
-                    mat_num = mat[k];
-                    fn_flag = activity[k];
-                    if ( all_nodes )
-                        fn_flag = 0;
-
-                    if (!disable_mtl[mat_num] && !hide_mtl[mat_num]
-                            && fn_flag == 0)
-                        for ( l = 0;
-                                l < conn_qty;
-                                l++ )
-                        {
-                            nd = connects[k * node_qty + l];
-                            free_nodes_found = TRUE;
-                            fn_list[nd]      = mat_num+1;
-                            fn_count++;
-                        }
-                }
-
-                for ( k = 0;
-                        k < p_mo_class->qty;
-                        k++ )
-                {
-                    mat_num = mat[k];
-                    fn_flag = activity[k];
-                    if ( all_nodes )
-                        fn_flag = 0;
-
-                    if ( !disable_mtl[mat_num] && !hide_mtl[mat_num] &&
-                            fn_flag != 0 )
-                        for ( l = 0;
-                                l < conn_qty;
-                                l++ )
-                        {
-                            nd = connects[k * node_qty + l];
-                            fn_list[nd] = -(mat_num+1);
-                        }
-                }
-            }
-        }
-    }
-
-    *fn_list_ptr = fn_list;
-    *num_fn      = fn_count;
-
-    for ( i = 0;
-            i < num_nodes;
-            i++ )
-        fn_mass_ptr[i] = 0.0;
-
-    if (fn_data_found)
-        if (fn_count>0)
-            for ( i = 0;
-                    i < num_nodes;
-                    i++ )
-            {
-                if (mass_flag==MASS)
-                {
-                    fn_mass_ptr[i] = fn_mass_tmp[i];
-                }
-                else
-                    fn_vol_ptr[i]  = fn_vol_tmp[i];
-            }
-
-
-    if (fn_mass_tmp!=NULL)
-        free(fn_mass_tmp);
-
-    if (fn_vol_tmp!=NULL)
-        free(fn_vol_tmp);
-
-    free(temp_activity);
-
-    return(num_nodes);
-}
-
-
-/*************************************************************
- * TAG( gather_nodal_velocity )
- *
- * This function will gather and return the nodal velocity
- * components for all nodes.
- *************************************************************/
-int
-gather_nodal_velocity( Analysis *analy,
-                       float *velx, float *vely,
-                       float *velz, float *velmag)
-
-{
-    Result *p_result, *res_velx = NULL, *res_vely = NULL, *res_velz = NULL;
-    Bool_type single_prec_vel;
-
-    int i;
-    int num_nodes;
-    int x_rval, y_rval, z_rval;
-
-    float  *vel_1p = NULL;
-    double *vel_2p = NULL;
-
-    p_result = analy->cur_result;
-
-    /* Initialize velocity Result structs. */
-    res_velx = NEW_N( Result, 3, "Vel Results for free nodes" );
-    res_vely = res_velx + 1;
-    res_velz = res_velx + 2;
-
-    x_rval = find_result( analy, ALL, TRUE, res_velx, "nodvel[vx]" );
-    y_rval = find_result( analy, ALL, TRUE, res_vely, "nodvel[vy]" );
-    z_rval = find_result( analy, ALL, TRUE, res_velz, "nodvel[vz]" );
-
-    update_result( analy, res_velx );
-    update_result( analy, res_vely );
-    update_result( analy, res_velz );
-
-    analy->cur_result = res_velx;
-    num_nodes = MESH_P( analy )->node_geom->qty;
-    vel_1p = analy->tmp_result[0];
-    vel_2p = NEW_N( double, num_nodes, "Temp node vel buffers" );
-
-    /* Capture velocity precision. */
-    single_prec_vel = ( ((Primal_result *)
-                         res_velx->original_result)->var->num_type
-                        == G_FLOAT4
-                        ||
-                        ((Primal_result *)
-                         res_velx->original_result)->var->num_type
-                        == G_FLOAT );
-
-    /* Vel[x] */
-    analy->cur_result = res_velx;
-    if ( single_prec_vel )
-    {
-        NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE, FALSE );
-
-    }
-    else
-    {
-        NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE, FALSE );
-    }
-    for (i=0;
-            i<num_nodes;
-            i++)
-        if ( single_prec_vel )
-            velx[i] = vel_1p[i];
-        else
-            velx[i] = vel_2p[i];
-
-    /* Vel[y] */
-    analy->cur_result = res_vely;
-    if ( single_prec_vel )
-    {
-        NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE, FALSE );
-
-    }
-    else
-    {
-        NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE, FALSE );
-    }
-    for (i=0;
-            i<num_nodes;
-            i++)
-        if ( single_prec_vel )
-            vely[i] = vel_1p[i];
-        else
-            vely[i] = vel_2p[i];
-
-    /* Vel[z] */
-    analy->cur_result = res_velz;
-    if ( single_prec_vel )
-    {
-        NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE, FALSE );
-
-    }
-    else
-    {
-        NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE, FALSE );
-    }
-    for (i=0;
-            i<num_nodes;
-            i++)
-    {
-        if ( single_prec_vel )
-            velz[i] = vel_1p[i];
-        else
-            velz[i] = vel_2p[i];
-
-        /* We have the x,y,z components, so computer the mag */
-        velmag[i] = sqrt((double)((velx[i]*velx[i]) +
-                                  (vely[i]*vely[i]) +
-                                  (velz[i]*velz[i])));
-    }
-
-    analy->cur_result = p_result;
-
-    return(num_nodes);
-}
 

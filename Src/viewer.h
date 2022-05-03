@@ -2273,6 +2273,9 @@ extern float hex_vol( float [8], float [8], float [8] );
 extern float hex_vol_exact( float [8], float [8], float [8] );
 extern void hex_to_nodal( float *, float *, MO_class_data *, int, int *,
                           Analysis * );
+extern void hex_to_nodal_by_mat( float *, float *, MO_class_data *, int , int *, Material_data *, Analysis * );
+extern void update_min_max( Analysis * );
+extern void update_nodal_min_max( Analysis *);
 extern void init_nodal_min_max( Analysis * );
 extern float tet_vol( float [4][3] );
 extern void tet_to_nodal( float *, float *, MO_class_data *, int, int *,

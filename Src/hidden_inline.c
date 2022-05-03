@@ -21,6 +21,7 @@
  ***************************************************************
  */
 
+#include <ctype.h>
 #include <time.h>
 #include <stdlib.h>
 #include "misc.h"
