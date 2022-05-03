@@ -76,4 +76,22 @@ outth plate71_th.jansw cur
 show normal[nxy];    plot
 outth plate71_th.jansw cur
 
+# Plot for variable press from stress_in
+sw inner
+show press; plot
+outth plate71_th.jansw cur
+
+# Plot for variable seff from stress_in
+show seff; plot
+outth plate71_th.jansw cur
+
+# Plot for variable press from stress_out
+sw outer
+show press; plot
+outth plate71_th.jansw cur
+
+# Plot for variable seff from stress_out
+show seff; plot
+outth plate71_th.jansw cur
+
 # EndCase 

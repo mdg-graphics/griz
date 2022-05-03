@@ -1030,13 +1030,13 @@ Result_candidate possible_results[] =
     },
 
     {
-        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
-        compute_effstress,
+        compute_effective_stress,
         NULL,
         NULL,
         hex_effs_shorts,
@@ -1046,13 +1046,13 @@ Result_candidate possible_results[] =
     },
 
     {
-        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
-        compute_press,
+        compute_pressure,
         NULL,
         NULL,
         hex_press_shorts,
@@ -1062,8 +1062,8 @@ Result_candidate possible_results[] =
     },
 
     {
-        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
@@ -2427,48 +2427,49 @@ mod_required( Result *p_res, Result_modifier_type modifier, int old, int new )
     return FALSE;
 }
 
+/*****************************************************************
+ * TAG( find_matching_subrec_index )
+ *
+ * Given a subrecord id and a primal result find the index of that subrecord
+ * in the primal result.
+ */
+int find_matching_subrec_index(int subrec, Primal_result *primal_result){
+    int i;
+    int *list = (int*)primal_result->srec_map->list;
+    for(i = 0; i < primal_result->srec_map->qty; i++)
+    {
+        if(list[i] == subrec)
+            break;
+    }
+    return i;
+}
 
 /*****************************************************************
- * TAG( load_primal_result )
+ * TAG( construct_result_query_string )
  *
- * Load a scalar result from a subrecord without performing any
- * derivation.  This function can be used to provide "derived"
- * result entries from what is actually a _scalar_ primal result,
- * but as configured will load a non-scalar primal into
- * analy->tmp_result[0] (which could overflow).
+ * Construct the query string for the result that we are looking up in the mili
+ * database. Handle array and vector array naming formats.
  */
-void
-load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
-{
-    float *resultElem;
-    int i, rval;
-    float *result_buf;
-    Result *p_result;
-    Result test_result;
-    int subrec, srec;
-    int obj_qty, len;
-    int es_qty;
-    int index, j, k, l;
-    int ipt_index;
-    int *object_ids;
-    Subrec_obj *p_subrec;
-    char *primals[2];
-    char primal_spec[32];
-    char name[64];
+char * construct_result_query_string(Analysis* analy){
+    int i, j, k, l;
+    int rval, ipt_index;
     char target[15];
+    Result* p_result;
+    int index, subrec, srec;
+    Subrec_obj* p_subrec;
+    Bool_type found = FALSE;
+    Bool_type is_old_shell_stress_result = FALSE;
+    Primal_result* primal_result;
+    Htable_entry *table_result;
+
+    char * query_string;
+    query_string = NEW_N(char, 64, "Result query string");
+
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
     srec = p_result->srec_id;
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
-    object_ids = p_subrec->object_ids;
-    obj_qty = p_subrec->subrec.qty_objects;
-    float * activity;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
-    Bool_type use_original_name = FALSE;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
 
     rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
 
@@ -2487,6 +2488,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         }
     }
 
+    target[0] = '\0';
     if( primal_result->owning_vec_count > 0){
         found = FALSE;
         if( is_old_shell_stress_result ){
@@ -2515,34 +2517,16 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
                 p_result->modifiers.use_flags.use_ref_frame = 1;
                 p_result->modifiers.ref_frame = analy->ref_frame;
             }
-
-            for( i = 0; i < primal_result->owning_vec_count; i++){
-                if( !strcmp(target, primal_result->owning_vector_result[i]->short_name) ){
-                    int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
-                    for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
-                    {
-                        if( list[j] == subrec ){
-                            found = TRUE;
-                            break;
-                        }
-                    }
-                    if(found)
-                        break;
-                }
-            }
         }
-        else{
-            for( i = 0; i < primal_result->owning_vec_count; i++){
-                int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
-                for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
-                {
-                    if( list[j] == subrec ){
-                        found = TRUE;
-                        break;
-                    }
-                }
-                if(found)
+
+        /* Find matching subrecord. Additionally if target is not an empty string match result short name. */
+        for( i = 0; i < primal_result->owning_vec_count; i++){
+            if( target[0] == '\0' || !strcmp(target, primal_result->owning_vector_result[i]->short_name) ){
+                j = find_matching_subrec_index(subrec, primal_result->owning_vector_result[i]);
+                if(j != primal_result->owning_vector_result[i]->qty_subrecs){
+                    found = TRUE;
                     break;
+                }
             }
         }
 
@@ -2551,59 +2535,90 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             found = FALSE;
             if( primal_result->owning_vector_result[i]->in_vector_array ){
                 for( k = 0; k < primal_result->owning_vector_result[i]->owning_vec_count; k++ ){
-                    int *list = (int*) primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->list;
-                    for( l = 0; l < primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->qty; l++ ){
-                        if( list[l] == subrec ){
-                            found = TRUE;
-                            break;
-                        }
-                    }
-                    if(found)
+                    l = find_matching_subrec_index(subrec, primal_result->owning_vector_result[i]->owning_vector_result[k]);
+                    if(l != primal_result->owning_vector_result[i]->owning_vector_result[k]->qty_subrecs){
+                        found = TRUE;
                         break;
+                    }
                 }
-                strcpy(primal_spec, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[l]);
+                strcpy(query_string, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[l]);
                 if(p_subrec->element_set->tempIndex < 0)
                     ipt_index = p_subrec->element_set->current_index+1;
                 else
                     ipt_index = p_subrec->element_set->tempIndex+1;
-                sprintf(primal_spec,"%s[%d,%s[%s]]" , primal_spec, ipt_index,
+                sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
                         primal_result->owning_vector_result[i]->original_names_per_subrec[j], primal_result->short_name);
             }
             else if(p_subrec->element_set){
-                strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
                 if(p_subrec->element_set->tempIndex < 0)
                     ipt_index = p_subrec->element_set->current_index+1;
                 else
                     ipt_index = p_subrec->element_set->tempIndex+1;
-                sprintf(primal_spec,"%s[%d,%s]" , primal_spec, ipt_index, p_result->name);
+                sprintf(query_string,"%s[%d,%s]" , query_string, ipt_index, p_result->name);
             }
             /* If this is not an element set, we need to add in result name */
             else
             {
-                strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
-                sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+                strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                sprintf(query_string, "%s[%s]" , query_string, p_result->name);
             }
         }
         else{
-            sprintf(primal_spec, "%s", p_result->name);
+            sprintf(query_string, "%s", p_result->name);
         }
-        primals[0] = primal_spec;
     }
     else if(primal_result->var->agg_type == ARRAY)
     {
-        primals[0] = analy->cur_result->name;
+        strcpy(query_string, analy->cur_result->name);
     }
     else
     {
-        int *list = (int*)primal_result->srec_map->list;
-        for(i = 0; i < primal_result->srec_map->qty; i++)
-        {
-            if(list[i] == subrec)
-                break;
-        }
-        primals[0] = primal_result->original_names_per_subrec[i];
+        i = find_matching_subrec_index(subrec, primal_result);
+        strcpy(query_string, primal_result->original_names_per_subrec[i]);
     }
 
+    return query_string;
+}
+
+
+/*****************************************************************
+ * TAG( load_primal_result )
+ *
+ * Load a scalar result from a subrecord without performing any
+ * derivation.  This function can be used to provide "derived"
+ * result entries from what is actually a _scalar_ primal result,
+ * but as configured will load a non-scalar primal into
+ * analy->tmp_result[0] (which could overflow).
+ */
+void
+load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    int i, rval;
+    float *result_buf;
+    Result *p_result;
+    Result test_result;
+    int subrec, srec;
+    int obj_qty, len;
+    int es_qty;
+    int index, j, k, l;
+    int ipt_index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primals[2];
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    float * activity;
+
+    /* Get the name to search for in the Mili database */
+    primals[0] = construct_result_query_string(analy);
     primals[1] = NULL;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
@@ -2624,24 +2639,24 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         analy->ref_frame == LOCAL)
     {
         /* we have a shell result in the LOCCAL coordinate system. Now check for a stress result */
-        len = strlen(primal_spec);
+        len = strlen(primals[0]);
         if(len == 2)
         {
-            if(!strcmp(primal_spec, "sx") || !strcmp(primal_spec, "sy") || !strcmp(primal_spec, "sz"))
+            if(!strcmp(primals[0], "sx") || !strcmp(primals[0], "sy") || !strcmp(primals[0], "sz"))
             {
                 load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                 return;
             }
         } else if(len == 3)
         {
-            if(!strcmp(primal_spec, "sxy") || !strcmp(primal_spec, "szy") || !strcmp(primal_spec, "szx"))
+            if(!strcmp(primals[0], "sxy") || !strcmp(primals[0], "szy") || !strcmp(primals[0], "szx"))
             {
                 load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                 return;
             }
         } else if(len > 6)
         { 
-                if(!strncmp(primal_spec, "stress", 6) || !strncmp(primal_spec, "es_", 3))
+                if(!strncmp(primals[0], "stress", 6) || !strncmp(primals[0], "es_", 3))
                 {
                     load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                     return;
@@ -2775,6 +2790,9 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             break;
         }
     }
+
+    // Free result query string
+    free(primals[0]);
 }
 
 /*****************************************************************
@@ -3008,7 +3026,7 @@ load_primal_result_double( Analysis *analy, float *resultArr,
                            Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, rval;
+    int i, j, k, l, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3017,10 +3035,13 @@ load_primal_result_double( Analysis *analy, float *resultArr,
     Subrec_obj *p_subrec;
     char *primals[2];
     char primal_spec[32];
+    char target[15];
     double *dbuffer;
     Primal_result* primal_result;
     Htable_entry *table_result;
-    Bool_type found;
+    int ipt_index;
+    Bool_type found = FALSE;
+    Bool_type is_old_shell_stress_result = FALSE;
 
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
@@ -3039,57 +3060,9 @@ load_primal_result_double( Analysis *analy, float *resultArr,
 
     dbuffer = NEW_N( double, obj_qty, "Double precision input buffer" );
 
-    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
-
-    if(rval == OK)
-    {
-        primal_result = (Primal_result*)table_result->data;
-    }
-
-    if( primal_result->owning_vec_count > 0){
-        found = FALSE;
-        for( i = 0; i < primal_result->owning_vec_count; i++){
-            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
-            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
-            {
-                if(list[j] == subrec){
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-                break;
-        }
-
-        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
-        if(p_subrec->element_set)
-        {
-            if(p_subrec->element_set->tempIndex < 0)
-            {
-                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
-                        p_subrec->element_set->current_index+1, p_result->name);
-            }else
-            {
-                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
-                        p_subrec->element_set->tempIndex+1, p_result->name);
-            }
-        }
-        else
-        {
-            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
-        }
-        primals[0] = primal_spec;
-    }
-    else
-    {
-        int *list = (int*)primal_result->srec_map->list;
-        for(i = 0; i < primal_result->srec_map->qty; i++)
-        {
-            if(list[i] == subrec)
-                break;
-        }
-        primals[0] = primal_result->original_names_per_subrec[i];
-    }
+    /* Get the name to search for in the Mili database */
+    primals[0] = construct_result_query_string(analy);
+    primals[1] = NULL;
 
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
@@ -3186,6 +3159,9 @@ load_primal_result_double( Analysis *analy, float *resultArr,
             break;
         }
     }
+
+    /* Free result query string */
+    free(primals[0]);
 }
 
 
@@ -3200,7 +3176,7 @@ load_primal_result_int( Analysis *analy, float *resultArr,
                         Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, rval;
+    int i, j, k, l, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3209,10 +3185,13 @@ load_primal_result_int( Analysis *analy, float *resultArr,
     Subrec_obj *p_subrec;
     char *primals[2];
     char primal_spec[32];
+    char target[15];
     int *ibuffer;
     Primal_result* primal_result;
     Htable_entry *table_result;
-    Bool_type found;
+    int ipt_index;
+    Bool_type found = FALSE;
+    Bool_type is_old_shell_stress_result = FALSE;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -3230,57 +3209,9 @@ load_primal_result_int( Analysis *analy, float *resultArr,
 
     ibuffer = NEW_N( int, obj_qty, "integer single precision input buffer" );
 
-    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
-
-    if(rval == OK)
-    {
-        primal_result = (Primal_result*)table_result->data;
-    }
-
-    if( primal_result->owning_vec_count > 0){
-        found = FALSE;
-        for( i = 0; i < primal_result->owning_vec_count; i++){
-            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
-            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
-            {
-                if(list[j] == subrec){
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-                break;
-        }
-
-        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
-        if(p_subrec->element_set)
-        {
-            if(p_subrec->element_set->tempIndex < 0)
-            {
-                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
-                        p_subrec->element_set->current_index+1, p_result->name);
-            }else
-            {
-                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
-                        p_subrec->element_set->tempIndex+1, p_result->name);
-            }
-        }
-        else
-        {
-            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
-        }
-        primals[0] = primal_spec;
-    }
-    else
-    {
-        int *list = (int*)primal_result->srec_map->list;
-        for(i = 0; i < primal_result->srec_map->qty; i++)
-        {
-            if(list[i] == subrec)
-                break;
-        }
-        primals[0] = primal_result->original_names_per_subrec[i];
-    }
+    /* Get the name to search for in the Mili database */
+    primals[0] = construct_result_query_string(analy);
+    primals[1] = NULL;
 
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
@@ -3377,6 +3308,9 @@ load_primal_result_int( Analysis *analy, float *resultArr,
             break;
         }
     }
+
+    /* Free result query string */
+    free(primals[0]);
 }
 
 
@@ -3391,7 +3325,7 @@ load_primal_result_long( Analysis *analy, float *resultArr,
                          Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, rval;
+    int i, j, k, l, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3400,10 +3334,13 @@ load_primal_result_long( Analysis *analy, float *resultArr,
     Subrec_obj *p_subrec;
     char *primals[2];
     char primal_spec[32];
+    char target[15];
     long *ibuffer;
     Primal_result* primal_result;
     Htable_entry *table_result;
-    Bool_type found;
+    int ipt_index;
+    Bool_type found = FALSE;
+    Bool_type is_old_shell_stress_result = FALSE;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -3420,64 +3357,9 @@ load_primal_result_long( Analysis *analy, float *resultArr,
 
     ibuffer = NEW_N( long, obj_qty, "integer single precision input buffer" );
 
-    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
-
-    if(rval == OK)
-    {
-        primal_result = (Primal_result*)table_result->data;
-    }
-
-    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
-
-    if(rval == OK)
-    {
-        primal_result = (Primal_result*)table_result->data;
-    }
-
-    if( primal_result->owning_vec_count > 0){
-        found = FALSE;
-        for( i = 0; i < primal_result->owning_vec_count; i++){
-            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
-            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
-            {
-                if(list[j] == subrec){
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-                break;
-        }
-
-        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
-        if(p_subrec->element_set)
-        {
-            if(p_subrec->element_set->tempIndex < 0)
-            {
-                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
-                        p_subrec->element_set->current_index+1, p_result->name);
-            }else
-            {
-                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
-                        p_subrec->element_set->tempIndex+1, p_result->name);
-            }
-        }
-        else
-        {
-            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
-        }
-        primals[0] = primal_spec;
-    }
-    else
-    {
-        int *list = (int*)primal_result->srec_map->list;
-        for(i = 0; i < primal_result->srec_map->qty; i++)
-        {
-            if(list[i] == subrec)
-                break;
-        }
-        primals[0] = primal_result->original_names_per_subrec[i];
-    }
+    /* Get the name to search for in the Mili database */
+    primals[0] = construct_result_query_string(analy);
+    primals[1] = NULL;
 
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
@@ -3574,6 +3456,9 @@ load_primal_result_long( Analysis *analy, float *resultArr,
             break;
         }
     }
+
+    /* Free result query string */
+    free(primals[0]);
 }
 
 
