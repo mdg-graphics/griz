@@ -25,6 +25,31 @@
 #define ONETHIRD .333333333333333333333333333333333333333
 #define ONEHALF  .5
 
+/************************************************************
+ * TAG( compute_hex_stress_wrapper )
+ *
+ * Wrapper function that determines in normal or element set
+ * version of compute hex stress should be called
+ */
+void
+compute_hex_stress_wrapper( Analysis *analy, float *resultArr, Bool_type interpolate ){
+    Result *p_result;
+    int index, subrec, srec;
+    Subrec_obj *p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+
+    if(p_subrec->element_set != NULL){
+        compute_hex_es_stress(analy, resultArr, interpolate);
+    }
+    else{
+        compute_hex_stress(analy, resultArr, interpolate);
+    }
+}
 
 /************************************************************
  * TAG( compute_hex_stress )
@@ -80,8 +105,7 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
      * If re-ordering or frame transformation is necessary, read into
      * a temp result buffer.
      */
-    result_buf = ( ref_frame == LOCAL || object_ids )
-                 ? analy->tmp_result[0] : resultElem;
+    result_buf = ( ref_frame == LOCAL || object_ids ) ? analy->tmp_result[0] : resultElem;
 
     if ( ref_frame == GLOBAL )
     {
@@ -160,6 +184,158 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
     if ( interpolate )
         hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                       object_ids, analy );
+}
+
+/************************************************************
+ * TAG( compute_hex_es_stress )
+ *
+ * Computes the stress at nodes for hex elements with an associated
+ * element set.
+ */
+void
+compute_hex_es_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+    Ref_frame_type ref_frame;
+    float *resultElem;
+    float localMat[3][3];
+    float *(sigma)[6];
+    int idx, i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    char primal_spec[32];
+    char *primal_list[1];
+    char* es_name;
+    char *es_primals[2];
+    MO_class_data *p_mo_class;
+    Subrec_obj *p_subrec;
+    int elem_idx;
+    int *object_ids;
+    int rval, ipt_index;
+    Htable_entry* p_hte;
+    Primal_result* primal_result;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    p_mo_class = p_subrec->p_object_class;
+    primals = p_result->primals[index];
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Hack to get an index on [0,5] from name, which is one of (in order): sx sy sz sxy syz szx. */
+    idx = (int) p_result->name[1] - (int) 'x' + (( p_result->name[2] ) ? 3 : 0);
+
+    ref_frame = analy->ref_frame;
+
+    /* If re-ordering or frame transformation is necessary, read into a temp result buffer. */
+    result_buf = ( ref_frame == LOCAL || object_ids ) ? analy->tmp_result[0] : resultElem;
+
+    if ( ref_frame == GLOBAL && analy->do_tensor_transform )
+    {
+        if ( !transform_es_stress_strain( p_result->primals[index], 0, analy, analy->tensor_transform_matrix,
+                                          result_buf ) )
+        {
+            popup_dialog( WARNING_POPUP, "Stress/strain coord transformation failed." );
+            return;
+        }
+        p_result->modifiers.use_flags.coord_transform = 1;
+        /* Re-order data if subrecord is non-proper. */
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+                resultElem[object_ids[i]] = result_buf[i];
+        }
+    }
+    else if( ref_frame == GLOBAL && !analy->do_tensor_transform ){
+        /* Build up component specification of vector result. */
+        strcpy( primal_spec, p_result->primals[index][0] );
+        rval = htable_search(analy->primal_results, primal_spec, FIND_ENTRY, &p_hte);
+
+        if( rval == OK ){
+            primal_result = (Primal_result*) p_hte->data;
+            es_name = get_es_name(primal_result, subrec);
+            ipt_index = p_subrec->element_set->current_index + 1;
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, idx, FALSE);
+            es_primals[1] = NULL;
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) result_buf );
+
+            /* Re-order data if subrecord is non-proper. */
+            if ( object_ids )
+            {
+                for ( i = 0; i < obj_qty; i++ )
+                    resultElem[object_ids[i]] = result_buf[i];
+            }
+        }
+
+    }
+    else if ( ref_frame == LOCAL )
+    {
+        /* Need to transform global quantities to local quantities.
+         * The full tensor must be transformed. */
+
+        /* Allocate memory for the result_buf arrays to hold the six primals */
+        for(i = 0; i < 6; i++)
+        {
+            sigma[i] = calloc(obj_qty, sizeof(float));
+            if(sigma[i] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function compute_hex_es_stress, exiting\n");
+                parse_command("quit", analy);
+            }
+        }
+
+        /* Load the tensors for the elements. */
+        strcpy( primal_spec, p_result->primals[index][0] );
+        rval = htable_search(analy->primal_results, primal_spec, FIND_ENTRY, &p_hte);
+
+        if( rval == OK ){
+            primal_result = (Primal_result*) p_hte->data;
+            es_name = get_es_name(primal_result, subrec);
+            ipt_index = p_subrec->element_set->current_index + 1;
+            for( i = 0; i < 6; i ++ ){
+                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
+                es_primals[1] = NULL;
+                analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) sigma[i] );
+            }
+        }
+
+        float *sx, *sy, *sz, *sxy, *syz, *szx;
+        sx = sigma[0];  sy = sigma[1];  sz = sigma[2];
+        sxy = sigma[3]; syz = sigma[4]; szx = sigma[5];
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                elem_idx = object_ids[i];
+                hex_g2l_mtx( analy, p_mo_class, elem_idx, 0, 1, 3, localMat );
+                transform_es_tensors_1p( 1, sx+i, sy+i, sz+i, sxy+i, syz+i, szx+i, localMat );
+                resultElem[elem_idx] = sigma[idx][i];
+            }
+        }
+        else
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                hex_g2l_mtx( analy, p_mo_class, i, 0, 1, 3, localMat );
+                transform_es_tensors_1p( 1, sx+i, sy+i, sz+i, sxy+i, syz+i, szx+i, localMat );
+                resultElem[i] = sigma[idx][i];
+            }
+        }
+    }
+
+    /* Update modifiers to indicate pertinent ones for this result. */
+    p_result->modifiers.use_flags.use_ref_frame = 1;
+    p_result->modifiers.ref_frame = analy->ref_frame;
+
+    if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, object_ids, analy );
 }
 
 /************************************************************
@@ -839,6 +1015,84 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 }
 
 /************************************************************
+ * TAG( get_es_name )
+ *
+ * Get the element set name to query for the primal results
+ * for the given subrecord.
+ *
+*************************************************************/
+char* get_es_name(Primal_result* primal_result, int subrec){
+    int i, j, k;
+    char* es_name;
+    es_name = NEW_N(char, 32, "Element set name for result");
+
+    // Match primal result subrec to results subrecord
+    // and get the element set name.
+    i = find_matching_subrec_index(subrec, primal_result);
+    if(i != primal_result->qty_subrecs){
+        if(primal_result->in_vector_array){
+            // New Format for vector array stress
+            for( j = 0; j < primal_result->owning_vec_count; j++ ){
+                k = find_matching_subrec_index(subrec, primal_result->owning_vector_result[j]);
+                if(k != primal_result->owning_vector_result[j]->qty_subrecs){
+                    strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
+                    break;
+                }
+            }
+        }
+        else{
+            // Old Format for vector array stress
+            strcpy(es_name, primal_result->original_names_per_subrec[i]);
+        }
+    }
+
+    return es_name;
+}
+
+/************************************************************
+ * TAG( build_es_stress_strain_query_string )
+ *
+ * Build query string for the individual stress/strain components contained
+ * in an element set / vector array.
+ *
+*************************************************************/
+char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_vector_array_format, int component, Bool_type strain){
+    char* es_primal;
+    char ipt_str[5];
+    const char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
+    const char* strain_components[6] = {"ex", "ey", "ez", "exy", "eyz", "ezx"};
+
+    es_primal = NEW_N(char, 64, "Stress/Strain component query string");
+
+    strcpy(es_primal, es_name);
+    strcat(es_primal, "[");
+    sprintf(ipt_str, "%d", ipt);
+    strcat(es_primal, ipt_str);
+    strcat(es_primal, ",");
+    if(new_vector_array_format){
+        if(strain){
+            strcat(es_primal, "strain[");
+            strcat(es_primal, strain_components[component] );
+        }
+        else{
+            strcat(es_primal, "stress[");
+            strcat(es_primal, stress_components[component] );
+        }
+        strcat(es_primal, "]]");
+    }
+    else{
+        //stress/strain componenet name here
+        if(strain)
+            strcat(es_primal, strain_components[component] );
+        else
+            strcat(es_primal, stress_components[component] );
+        strcat(es_primal, "]");
+    }
+
+    return es_primal;
+}
+
+/************************************************************
  * TAG( compute_es_press )
  *
  * Computes the pressure at nodes.
@@ -850,7 +1104,6 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
     float *resultElem;
     int i, j, k, rval;
     int ipt_index;
-    Bool_type found;
     Result *p_result;
     char **primals;
     int subrec, srec;
@@ -861,11 +1114,8 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
     MO_class_data* p_mo_class;
     Primal_result* primal_result;
     Htable_entry* p_hte;
-    char ipt[5];
-    char es_name[32];
-    char es_primal[64];
-    char** es_primals;
-    char* stress_components[3] = {"sx", "sy", "sz"};
+    char* es_name;
+    char* es_primals[2];
     float *(stresses)[3];
 
     p_result = analy->cur_result;
@@ -891,73 +1141,19 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         }
     }
 
-    es_primals = (char **) malloc(2*sizeof(char *));
-    if(es_primals == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
-        parse_command("quit", analy);
-    }
-    es_primals[0] = (char *) malloc(32*sizeof(char));
-    if(es_primals[0] == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
-        parse_command("quit", analy);
-    }
-   
     // Look up element set and gather stress components
     rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
     if(rval == OK){
         primal_result = (Primal_result*) p_hte->data;
 
-        // Match primal result subrec to results subrecord
-        // and get the element set name.
-        for( i = 0; i < primal_result->qty_subrecs; i++ ){
-            if( primal_result->subrecs[i] == p_subrec){
-                if(primal_result->in_vector_array){
-                    // New Format for vector array stress
-                    found = FALSE;
-                    for( j = 0; j < primal_result->owning_vec_count; j++ ){
-                        for( k = 0; k < primal_result->owning_vector_result[j]->qty_subrecs; k++ ){
-                            if(p_subrec == primal_result->owning_vector_result[j]->subrecs[k]){
-                                strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
-                                found = TRUE;
-                                break;
-                            }
-                        }
-                        if(found)
-                            break;
-                    }
-                }
-                else{
-                    // Old Format for vector array stress
-                    strcpy(es_name, primal_result->original_names_per_subrec[i]);
-                }
-                break;
-            }
-        }
+        es_name = get_es_name(primal_result, subrec);
 
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 3; i++ ){
-            strcpy(es_primal, es_name);
-            strcat(es_primal, "[");
-            sprintf(ipt, "%d", ipt_index);
-            strcat(es_primal, ipt);
-            strcat(es_primal, ",");
-            if(primal_result->in_vector_array){
-                strcat(es_primal, "stress[");
-                strcat(es_primal, stress_components[i] );
-                strcat(es_primal, "]]");
-            }
-            else{
-                //stress componenet name here
-                strcat(es_primal, stress_components[i] );
-                strcat(es_primal, "]");
-            }
-            es_primals[0] = es_primal;
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
             es_primals[1] = NULL;
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
-                                    es_primals, (void *) stresses[i] );
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
         }
     }
 
@@ -1014,6 +1210,12 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
             break;
         }
     }
+
+    /* Free dynamically allocated strings */
+    if( es_primals[0] )
+        free(es_primals[0]);
+    if( es_name )
+        free(es_name);
 }
 
 /*******************************
@@ -1130,7 +1332,6 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     int obj_qty;
     int i, j, k, l;
     int rval, ipt_index;
-    Bool_type found;
     Result *p_result;
     char **primals;
     int subrec, srec;
@@ -1140,11 +1341,8 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     MO_class_data* p_mo_class;
     Primal_result* primal_result;
     Htable_entry* p_hte;
-    char ipt[5];
-    char es_name[32];
-    char es_primal[64];
-    char** es_primals;
-    char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
+    char* es_name;
+    char* es_primals[2];
     float *(stresses)[6];
 
     p_result = analy->cur_result;
@@ -1165,78 +1363,22 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
         stresses[i] = calloc(obj_qty, sizeof(float));
         if(stresses[i] == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_press, exiting\n");
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_effstress, exiting\n");
             parse_command("quit", analy);
         }
     }
 
-    es_primals = (char **) malloc(2*sizeof(char *));
-    if(es_primals == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
-        parse_command("quit", analy);
-    }
-    es_primals[0] = (char *) malloc(32*sizeof(char));
-    if(es_primals[0] == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
-        parse_command("quit", analy);
-    }
-   
     // Look up element set and gather stress components
     rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
     if(rval == OK){
         primal_result = (Primal_result*) p_hte->data;
-
-        // Match primal result subrec to results subrecord
-        // and get the element set name.
-        for( i = 0; i < primal_result->qty_subrecs; i++ ){
-            if( primal_result->subrecs[i] == p_subrec){
-                if(primal_result->in_vector_array){
-                    // New Format for vector array stress
-                    found = FALSE;
-                    for( j = 0; j < primal_result->owning_vec_count; j++ ){
-                        for( k = 0; k < primal_result->owning_vector_result[j]->qty_subrecs; k++ ){
-                            if(p_subrec == primal_result->owning_vector_result[j]->subrecs[k]){
-                                strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
-                                found = TRUE;
-                                break;
-                            }
-                        }
-                        if(found)
-                            break;
-                    }
-                }
-                else{
-                    // Old Format for vector array stress
-                    strcpy(es_name, primal_result->original_names_per_subrec[i]);
-                }
-                break;
-            }
-        }
-
+        es_name = get_es_name(primal_result, subrec);
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i++ ){
-            strcpy(es_primal, es_name);
-            strcat(es_primal, "[");
-            sprintf(ipt, "%d", ipt_index);
-            strcat(es_primal, ipt);
-            strcat(es_primal, ",");
-            if(primal_result->in_vector_array){
-                strcat(es_primal, "stress[");
-                strcat(es_primal, stress_components[i] );
-                strcat(es_primal, "]]");
-            }
-            else{
-                //stress componenet name here
-                strcat(es_primal, stress_components[i] );
-                strcat(es_primal, "]");
-            }
-            es_primals[0] = es_primal;
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
             es_primals[1] = NULL;
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
-                                    es_primals, (void *) stresses[i] );
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
         }
     }
 
@@ -1295,6 +1437,12 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
             break;
         }
     }
+
+    /* Free dynamically allocated strings */
+    if( es_primals[0] )
+        free(es_primals[0]);
+    if( es_name )
+        free(es_name);
 }
 
 /************************************************************
@@ -1425,7 +1573,6 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
     float devStress[3];
     int i, j, k, l, out_idx;
     int rval, ipt_index;
-    Bool_type found;
     Result *p_result;
     char ** primals;
     int subrec, srec;
@@ -1437,11 +1584,8 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
     MO_class_data* p_mo_class;
     Primal_result* primal_result;
     Htable_entry* p_hte;
-    char ipt[5];
-    char es_name[32];
-    char es_primal[64];
-    char** es_primals;
-    char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
+    char* es_name;
+    char* es_primals[2];
     float *(stresses)[6];
 
     p_result = analy->cur_result;
@@ -1467,73 +1611,19 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
         }
     }
 
-    es_primals = (char **) malloc(2*sizeof(char *));
-    if(es_primals == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
-        parse_command("quit", analy);
-    }
-    es_primals[0] = (char *) malloc(32*sizeof(char));
-    if(es_primals[0] == NULL)
-    {
-        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
-        parse_command("quit", analy);
-    }
-   
     // Look up element set and gather stress components
     rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
     if(rval == OK){
         primal_result = (Primal_result*) p_hte->data;
 
-        // Match primal result subrec to results subrecord
-        // and get the element set name.
-        for( i = 0; i < primal_result->qty_subrecs; i++ ){
-            if( primal_result->subrecs[i] == p_subrec){
-                if(primal_result->in_vector_array){
-                    // New Format for vector array stress
-                    found = FALSE;
-                    for( j = 0; j < primal_result->owning_vec_count; j++ ){
-                        for( k = 0; k < primal_result->owning_vector_result[j]->qty_subrecs; k++ ){
-                            if(p_subrec == primal_result->owning_vector_result[j]->subrecs[k]){
-                                strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
-                                found = TRUE;
-                                break;
-                            }
-                        }
-                        if(found)
-                            break;
-                    }
-                }
-                else{
-                    // Old Format for vector array stress
-                    strcpy(es_name, primal_result->original_names_per_subrec[i]);
-                }
-                break;
-            }
-        }
+        es_name = get_es_name(primal_result, subrec);
 
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i++ ){
-            strcpy(es_primal, es_name);
-            strcat(es_primal, "[");
-            sprintf(ipt, "%d", ipt_index);
-            strcat(es_primal, ipt);
-            strcat(es_primal, ",");
-            if(primal_result->in_vector_array){
-                strcat(es_primal, "stress[");
-                strcat(es_primal, stress_components[i] );
-                strcat(es_primal, "]]");
-            }
-            else{
-                //stress componenet name here
-                strcat(es_primal, stress_components[i] );
-                strcat(es_primal, "]");
-            }
-            es_primals[0] = es_primal;
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
             es_primals[1] = NULL;
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
-                                    es_primals, (void *) stresses[i] );
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
         }
     }
  
@@ -1669,6 +1759,12 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
             break;
         }
     }
+
+    /* Free dynamically allocated strings */
+    if( es_primals[0] )
+        free(es_primals[0]);
+    if( es_name )
+        free(es_name);
 }
 
 /************************************************************
