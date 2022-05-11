@@ -448,9 +448,9 @@ void
 compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;               /* Element results vector. */
-    float  *hexStressFlt;            /* Ptr to element stresses. */
+    float  *stressFlt;            /* Ptr to element stresses. */
 
-    double hexStress[6];
+    double stress[6];
     double devStress[3];             /* Deviatoric stresses,
                                         only need diagonal terms. */
     double Invariant[3];             /* Invariants of tensor. */
@@ -505,19 +505,19 @@ compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
                            primals, (void *) result_buf );
 
     /* Calculate deviatoric stresses. */
-    for ( i = 0, hexStressFlt = result_buf; i < obj_qty; i++, hexStressFlt += 6 )
+    for ( i = 0, stressFlt = result_buf; i < obj_qty; i++, stressFlt += 6 )
     {
         for ( j = 0; j < 6; j++ )
-            hexStress[j] = hexStressFlt[j];
+            stress[j] = stressFlt[j];
 
         /* Calculate pressure. */
-        pressure =  - ( hexStress[0] +
-                        hexStress[1] +
-                        hexStress[2] ) * ONETHIRD;
+        pressure =  - ( stress[0] +
+                        stress[1] +
+                        stress[2] ) * ONETHIRD;
 
-        devStress[0] = hexStress[0] + pressure;
-        devStress[1] = hexStress[1] + pressure;
-        devStress[2] = hexStress[2] + pressure;
+        devStress[0] = stress[0] + pressure;
+        devStress[1] = stress[1] + pressure;
+        devStress[2] = stress[2] + pressure;
 
         /* Calculate invariants of deviatoric tensor.
          * Invariant[0] = 0.0 */
@@ -525,15 +525,15 @@ compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
         Invariant[1] = 0.5 * ( devStress[0] * devStress[0]
                                + devStress[1] * devStress[1]
                                + devStress[2] * devStress[2] )
-                       + hexStress[3] * hexStress[3]
-                       + hexStress[4] * hexStress[4]
-                       + hexStress[5] * hexStress[5];
+                       + stress[3] * stress[3]
+                       + stress[4] * stress[4]
+                       + stress[5] * stress[5];
         Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
-                       - 2.0 * hexStress[3] * hexStress[4]
-                       * hexStress[5]
-                       + devStress[0] * hexStress[4] * hexStress[4]
-                       + devStress[1] * hexStress[5] * hexStress[5]
-                       + devStress[2] * hexStress[3] * hexStress[3];
+                       - 2.0 * stress[3] * stress[4]
+                       * stress[5]
+                       + devStress[0] * stress[4] * stress[4]
+                       + devStress[1] * stress[5] * stress[5]
+                       + devStress[2] * stress[3] * stress[3];
 
 
         /* Check to see if we can have non-zero divisor, if not

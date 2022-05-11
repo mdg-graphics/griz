@@ -2347,6 +2347,16 @@ extern void compute_beam_axial_strain( Analysis *, float *, Bool_type );
 extern void set_diameter( float );
 extern void set_youngs_mod( float );
 
+extern void compute_strain_invariant_one( Analysis*, float*, Bool_type );
+extern void compute_strain_inv_one( Analysis*, float*, Bool_type );
+extern void compute_es_strain_inv_one( Analysis*, float*, Bool_type );
+extern void compute_strain_invariant_two( Analysis*, float*, Bool_type );
+extern void compute_strain_inv_two( Analysis*, float*, Bool_type );
+extern void compute_es_strain_inv_two( Analysis*, float*, Bool_type );
+extern void compute_principal_strain( Analysis*, float*, Bool_type );
+extern void compute_prin_strain( Analysis*, float*, Bool_type );
+extern void compute_es_prin_strain( Analysis*, float*, Bool_type );
+
 extern Bool_type is_primal_quad_strain_result( char *result_name );
 extern void      rotate_quad_result( Analysis *analy, char *primal, int result_cnt,
                                      float *result );
