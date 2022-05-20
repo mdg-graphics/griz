@@ -931,9 +931,10 @@ static void element_set_popup_message(Analysis* analy)
     int i, j, status;
     Htable_entry* es_entry;
     ElementSet* element_set;
-    char element_set_message[1500];
-    char temp_str[100];
-    char ipts[30];
+    Bool_type first_line_for_es;
+    char element_set_message[2500];
+    char temp_str[250];
+    char ipts[60];
     char ipt[4];
 
     element_set_message[0] = '\0';
@@ -950,6 +951,9 @@ static void element_set_popup_message(Analysis* analy)
         status = htable_search(analy->Element_sets, analy->Element_set_names[i], FIND_ENTRY, &es_entry);
         if(status == OK){
             element_set = (ElementSet*) es_entry->data;
+            index = element_set->current_index;
+            material = element_set->material_number;
+            first_line_for_es = TRUE;
             ipts[0] = '\0';
             for(j = 0; j < element_set->size; j++){
                 if(j < element_set->size - 1)
@@ -957,10 +961,25 @@ static void element_set_popup_message(Analysis* analy)
                 else
                     sprintf(ipt, "%d", element_set->integration_points[j]);
                 strcat(ipts, ipt);
+
+                // Limit 10 ipts per line
+                if( j != 0 && j % 10 == 0 ){
+                    strcpy(temp_str, "");
+                    if( first_line_for_es )
+                        sprintf(temp_str, " %-20d|    %-6d  | %-30s\n", material, element_set->integration_points[index], ipts);
+                    else
+                        sprintf(temp_str, " %-20s|    %-6s  | %-30s\n", "", "", ipts);
+                    strcat(element_set_message, temp_str);
+                    // Clear current integration point list
+                    ipts[0] = '\0';
+                    first_line_for_es = FALSE;
+                }
             }
-            index = element_set->current_index;
-            material = element_set->material_number;
-            sprintf(temp_str, " %-20d|    %-6d  | %-30s\n", material, element_set->integration_points[index], ipts);
+            strcpy(temp_str, "");
+            if( first_line_for_es )
+                sprintf(temp_str, " %-20d|    %-6d  | %-30s\n", material, element_set->integration_points[index], ipts);
+            else
+                sprintf(temp_str, " %-20s|    %-6s  | %-30s\n", "", "", ipts);
             strcat(element_set_message, temp_str);
         }
     }
