@@ -1065,9 +1065,6 @@ static void element_set_popup_message(Analysis* analy)
     strcat(element_set_message, element_set_message_commands3);
     strcat(element_set_message, element_set_message_commands4);
 
-    int total = strlen(element_set_message) + 1;
-    printf("Expected total = %d\n", total);
-    
     popup_dialog( INFO_POPUP, element_set_message);
 }
 
