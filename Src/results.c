@@ -416,11 +416,11 @@ static char *stress_invariant_primals[] =
 
 static char *strain_invariant_one_shorts[] =
 {
-    "strinv1", NULL
+    "etrace", NULL
 };
 static char *strain_invariant_one_longs[] =
 {
-    "Str Inv 1", NULL
+    "Strain Trace - Volumetric Strain", NULL
 };
 
 static char *strain_invariant_two_shorts[] =
@@ -429,18 +429,19 @@ static char *strain_invariant_two_shorts[] =
 };
 static char *strain_invariant_two_longs[] =
 {
-    "Str Inv 2", NULL
+    "2nd Invariant of Strain", NULL
 };
 
 static char *principal_strain_shorts[] =
 {
-    "pdstrn1", "pdstrn2", "pdstrn3", "pshrstr", "pstrn1", "pstrn2", "pstrn", NULL
+    "pdstrn1", "pdstrn2", "pdstrn3", "pshrstr", "pstrn1", "pstrn2", "pstrn3",
+    "gamxy", "gamyz", "gamzx", NULL
 };
 static char *principal_strain_longs[] =
 {
     "Prin Dev Strain 1", "Prin Dev Strain 2", "Prin Dev Strain 3",
     "Max Tensor Shear Strain", "Principal Strain 1", "Principal Strain 2",
-    "Principal Strain 3", NULL
+    "Principal Strain 3", "XY Engr Strain", "YZ Engr Strain", "ZX Engr Strain", NULL
 };
 static char *strain_invariant_primals[] =
 {
@@ -505,7 +506,7 @@ static char *hex_vol_shorts[] =
 };
 static char *hex_vol_longs[] =
 {
-    "Relative Volume", "Volumetric Strain", NULL
+    "Relative Volume", "Logarithmic Volumetric Strain", NULL
 };
 static char *hex_vol_primals[] =
 {
@@ -1113,7 +1114,7 @@ Result_candidate possible_results[] =
         FALSE,
         compute_hex_strain,
         NULL,
-        "Strain",
+        NULL,
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_primals,
@@ -1129,7 +1130,7 @@ Result_candidate possible_results[] =
         FALSE,
         compute_hex_strain,
         NULL,
-        "Strain",
+        NULL,
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_th_primals,
