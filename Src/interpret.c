@@ -2917,9 +2917,19 @@ parse_single_command( char *buf, Analysis *analy )
 				{
 					set_glyph_alignment( GLYPH_STAGGERED );
 				}
+				else if ( strcmp( tokens[i], "derive_from_primals" ) == 0 )
+				{
+					analy->preferred_primal_source = PRIMAL;
+					analy->result_mod = refresh_shown_result( analy );
+				}
+				else if ( strcmp( tokens[i], "derive_from_derived" ) == 0 )
+				{
+					analy->preferred_primal_source = DERIVED;
+					analy->result_mod = refresh_shown_result( analy );
+				}
+
 				else
-					popup_dialog( INFO_POPUP,
-								  "Switch command unrecognized: %s\n", tokens[i] );
+					popup_dialog( INFO_POPUP, "Switch command unrecognized: %s\n", tokens[i] );
 			}
 
 			/* Reload the result vector. */
