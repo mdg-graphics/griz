@@ -925,6 +925,55 @@ gui_start( int argc, char **argv , Analysis * analy )
     XtAppMainLoop( app_context );
 }
 
+static int get_digits(int n){
+    int digits = 1;
+    if(n < 0) n = (n == INT_MIN) ? INT_MAX : -n;
+    while(n > 9){
+        n /= 10;
+        digits++;
+    }
+    return digits;
+}
+
+static int get_es_info_popup_character_count(Analysis *analy){
+    int i, j;
+    int status;
+    int num_digits, num_lines;
+    int character_count = 0;
+    int start = 0;
+    Htable_entry *es_entry;
+    ElementSet *element_set;
+
+    const int COMMA = 1;
+    const int SPACE = 1;
+    const int NEWLINE = 1;
+    const int BASE_LINE_LENGTH = 36;
+
+    for(i = 0; i < analy->es_cnt; i++){
+        status = htable_search(analy->Element_sets, analy->Element_set_names[i], FIND_ENTRY, &es_entry);
+        if(status == OK){
+            start = character_count;
+            element_set = (ElementSet*) es_entry->data;
+            for(j = 0; j < element_set->size; j++){
+                // Get number of characters taken up by list of integration points
+                num_digits = get_digits(element_set->integration_points[j]);
+                character_count += (num_digits + COMMA + SPACE);
+            }
+            // Subract one comma and space for last value in list
+            character_count -= COMMA;
+            character_count -= SPACE;
+            // Account for long list of int points being split into multiple lines
+            num_lines = 1;
+            if( element_set->size > 10 )
+                num_lines = (element_set->size / 10) + (element_set->size % 10 == 0 ? 0 : 1);
+            character_count += (BASE_LINE_LENGTH * num_lines);
+            character_count += (NEWLINE * num_lines);
+        }
+    }
+
+    return character_count;
+}
+
 static void element_set_popup_message(Analysis* analy)
 {
     int index, material;
@@ -932,21 +981,46 @@ static void element_set_popup_message(Analysis* analy)
     Htable_entry* es_entry;
     ElementSet* element_set;
     Bool_type first_line_for_es;
-    char element_set_message[2500];
+    char element_set_message_header[250];
+    char * element_set_message;
     char temp_str[250];
-    char ipts[60];
+    char ipts[65];
     char ipt[4];
+    int total_characters = 0;
 
-    element_set_message[0] = '\0';
-    strcat(element_set_message, "NOTE: This analysis contains integration points.\n\n");
-    strcat(element_set_message, "Available Integration Points in this plot file are as follows:\n\n");
+    const char * element_set_message_commands1 = "\n\nThe following griz commands are useful when working with integration points: \n";
+    const char * element_set_message_commands2 = "\n   show_ipts: List the integration points available/selected for the current Analysis.\n";
+    const char * element_set_message_commands3 = "\n   set_ipt <ipt> <mtl>: Select the desired integration point for the specified material\n";
+    const char * element_set_message_commands4 = "\n   set_ipt <ipt>: Select the desired integration point for all materials\n";
+
+    element_set_message_header[0] = '\0';
+    strcat(element_set_message_header, "NOTE: This analysis contains integration points.\n\n");
+    strcat(element_set_message_header, "Available Integration Points in this plot file are as follows:\n\n");
 
     sprintf(temp_str, " %-20s| %-10s | %-30s\n", "Material", "Int. Point", "Int. Point");
-    strcat(element_set_message, temp_str);
+    strcat(element_set_message_header, temp_str);
 
     sprintf(temp_str, " %-20s| %-10s | %-30s\n", "", "Selected", "Available");
-    strcat(element_set_message, temp_str);
+    strcat(element_set_message_header, temp_str);
 
+    // Compute Total number of characters needed
+    total_characters = strlen(element_set_message_header);
+    total_characters += get_es_info_popup_character_count(analy);
+    total_characters += strlen(element_set_message_commands1);
+    total_characters += strlen(element_set_message_commands2);
+    total_characters += strlen(element_set_message_commands3);
+    total_characters += strlen(element_set_message_commands4);
+
+    // Allocate character array for message
+    element_set_message = (char *) NEW_N(char, total_characters + 1, "Element set info popup message");
+    if(element_set_message == NULL){
+        return;
+    }
+
+    //Copy in Header
+    strcpy(element_set_message, element_set_message_header);
+
+    // Generate message
     for(i = 0; i < analy->es_cnt; i++){
         status = htable_search(analy->Element_sets, analy->Element_set_names[i], FIND_ENTRY, &es_entry);
         if(status == OK){
@@ -966,9 +1040,9 @@ static void element_set_popup_message(Analysis* analy)
                 if( j != 0 && j % 10 == 0 ){
                     strcpy(temp_str, "");
                     if( first_line_for_es )
-                        sprintf(temp_str, " %-20d|    %-6d  | %-30s\n", material, element_set->integration_points[index], ipts);
+                        sprintf(temp_str, " %-20d|    %-6d  | %-s\n", material, element_set->integration_points[index], ipts);
                     else
-                        sprintf(temp_str, " %-20s|    %-6s  | %-30s\n", "", "", ipts);
+                        sprintf(temp_str, " %-20c|    %-6c | %-s\n", ' ', ' ', ipts);
                     strcat(element_set_message, temp_str);
                     // Clear current integration point list
                     ipts[0] = '\0';
@@ -976,27 +1050,24 @@ static void element_set_popup_message(Analysis* analy)
                 }
             }
             strcpy(temp_str, "");
-            if( first_line_for_es )
-                sprintf(temp_str, " %-20d|    %-6d  | %-30s\n", material, element_set->integration_points[index], ipts);
+            if( first_line_for_es ){
+                sprintf(temp_str, " %-20d|    %-6d  | %-s\n", material, element_set->integration_points[index], ipts);
+            }
             else
-                sprintf(temp_str, " %-20s|    %-6s  | %-30s\n", "", "", ipts);
+                sprintf(temp_str, " %-20c|    %-6c  | %-s\n", ' ', ' ', ipts);
             strcat(element_set_message, temp_str);
         }
     }
 
     // Information about useful commands relating to integration points
-    sprintf(temp_str, "\n\nThe following griz commands are useful when working with integration points: \n");
-    strcat(element_set_message, temp_str);
+    strcat(element_set_message, element_set_message_commands1);
+    strcat(element_set_message, element_set_message_commands2);
+    strcat(element_set_message, element_set_message_commands3);
+    strcat(element_set_message, element_set_message_commands4);
 
-    sprintf(temp_str, "\n   show_ipts: List the integration points available/selected for the current Analysis.\n");
-    strcat(element_set_message, temp_str);
-
-    sprintf(temp_str, "\n   set_ipt <ipt> <mtl>: Select the desired integration point for the specified material\n");
-    strcat(element_set_message, temp_str);
-
-    sprintf(temp_str, "\n   set_ipt <ipt>: Select the desired integration point for all materials\n");
-    strcat(element_set_message, temp_str);
-
+    int total = strlen(element_set_message) + 1;
+    printf("Expected total = %d\n", total);
+    
     popup_dialog( INFO_POPUP, element_set_message);
 }
 
