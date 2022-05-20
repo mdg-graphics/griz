@@ -1524,6 +1524,12 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
                     }
                 }
             }
+            else
+            {
+                sprintf( label_buffer, "%s (%s)",
+                         p_dr->subrecs[0]->p_object_class->long_name,
+                         p_dr->subrecs[0]->p_object_class->short_name );
+            }
         }
         else
         {
