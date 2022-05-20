@@ -88,6 +88,9 @@ show eeff
 plot
 outth d3samp6_th.jansw
 
+# Derive evol and pshrstr from derived strains, not primal strain tensor
+sw derive_from_derived
+
 # Plots for variable evol
 show evol
 outth d3samp6_th.jansw

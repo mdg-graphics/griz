@@ -3,27 +3,27 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V21_01
-# 	Built: 	Wed Mar 30 12:58:30 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
+#	Griz4-V22_01
+# 	Built: 	Thu May 19 11:15:29 2022 on Linux #1 SMP Wed Apr 6 12:39:56 PDT 2022 3.10.0-1160.62.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
 # 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
 # 		Mili Library Version (Griz Linked): 	V21_02
 #		Mili Database-Library Version: 		V21_02
-#		Mili Database-Host: 			rzgenie46
-#		Mili Database-Arch: 			Linux + 3.10.0-1160.59.1.1chaos.ch6.x86_64rzgenie46
-#		Mili Database-Timestamp: 		Tue Mar 29 10:05:01 2022
+#		Mili Database-Host: 			rzgenie5
+#		Mili Database-Arch: 			Linux + 3.10.0-1160.59.1.1chaos.ch6.x86_64rzgenie5
+#		Mili Database-Timestamp: 		Thu Mar 31 11:58:21 2022
 #
 #---------------------------------------------------------------------
 # Database path/name: d3samp6.plt
 # Description: Beam element example (in,sec,lb-s^2/in)Quarter model INGDY6.dat
-# Output date: 03/30/22
+# Output date: 05/19/22
 #
 
 #
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 1: X Stress
@@ -133,7 +133,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 7: X Stress
@@ -243,7 +243,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 11: X Stress
@@ -353,7 +353,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 13: X Stress
@@ -463,7 +463,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 16: X Stress
@@ -573,7 +573,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 20: X Stress
@@ -683,7 +683,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 23: X Stress
@@ -793,7 +793,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 24: X Stress
@@ -903,7 +903,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Beams - 33: X Stress
@@ -1013,7 +1013,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 1: X Stress
@@ -1123,7 +1123,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 7: X Stress
@@ -1233,7 +1233,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 11: X Stress
@@ -1343,7 +1343,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 13: X Stress
@@ -1453,7 +1453,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 16: X Stress
@@ -1563,7 +1563,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 20: X Stress
@@ -1673,7 +1673,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 23: X Stress
@@ -1783,7 +1783,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 24: X Stress
@@ -1893,7 +1893,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Beams - 33: X Stress
@@ -2003,7 +2003,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 1: X Stress
@@ -2113,7 +2113,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 7: X Stress
@@ -2223,7 +2223,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 11: X Stress
@@ -2333,7 +2333,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 13: X Stress
@@ -2443,7 +2443,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 16: X Stress
@@ -2553,7 +2553,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 20: X Stress
@@ -2663,7 +2663,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 23: X Stress
@@ -2773,7 +2773,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 24: X Stress
@@ -2883,7 +2883,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      X Stress
 # Beams - 33: X Stress
@@ -2993,7 +2993,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 1: X Stress
@@ -3103,7 +3103,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 7: X Stress
@@ -3213,7 +3213,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 11: X Stress
@@ -3323,7 +3323,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 13: X Stress
@@ -3433,7 +3433,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 16: X Stress
@@ -3543,7 +3543,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 20: X Stress
@@ -3653,7 +3653,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 23: X Stress
@@ -3763,7 +3763,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 24: X Stress
@@ -3873,7 +3873,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      X Stress
 # Beams - 33: X Stress
@@ -3983,7 +3983,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 1: Y Stress
@@ -4093,7 +4093,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 7: Y Stress
@@ -4203,7 +4203,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 11: Y Stress
@@ -4313,7 +4313,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 13: Y Stress
@@ -4423,7 +4423,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 16: Y Stress
@@ -4533,7 +4533,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 20: Y Stress
@@ -4643,7 +4643,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 23: Y Stress
@@ -4753,7 +4753,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 24: Y Stress
@@ -4863,7 +4863,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Y Stress
 # Beams - 33: Y Stress
@@ -4973,7 +4973,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 1: Y Stress
@@ -5083,7 +5083,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 7: Y Stress
@@ -5193,7 +5193,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 11: Y Stress
@@ -5303,7 +5303,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 13: Y Stress
@@ -5413,7 +5413,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 16: Y Stress
@@ -5523,7 +5523,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 20: Y Stress
@@ -5633,7 +5633,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 23: Y Stress
@@ -5743,7 +5743,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 24: Y Stress
@@ -5853,7 +5853,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Y Stress
 # Beams - 33: Y Stress
@@ -5963,7 +5963,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 1: Y Stress
@@ -6073,7 +6073,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 7: Y Stress
@@ -6183,7 +6183,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 11: Y Stress
@@ -6293,7 +6293,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 13: Y Stress
@@ -6403,7 +6403,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 16: Y Stress
@@ -6513,7 +6513,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 20: Y Stress
@@ -6623,7 +6623,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 23: Y Stress
@@ -6733,7 +6733,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 24: Y Stress
@@ -6843,7 +6843,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Y Stress
 # Beams - 33: Y Stress
@@ -6953,7 +6953,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 1: Y Stress
@@ -7063,7 +7063,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 7: Y Stress
@@ -7173,7 +7173,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 11: Y Stress
@@ -7283,7 +7283,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 13: Y Stress
@@ -7393,7 +7393,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 16: Y Stress
@@ -7503,7 +7503,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 20: Y Stress
@@ -7613,7 +7613,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 23: Y Stress
@@ -7723,7 +7723,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 24: Y Stress
@@ -7833,7 +7833,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Y Stress
 # Beams - 33: Y Stress
@@ -7943,7 +7943,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 1: XY Stress
@@ -8053,7 +8053,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 7: XY Stress
@@ -8163,7 +8163,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 11: XY Stress
@@ -8273,7 +8273,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 13: XY Stress
@@ -8383,7 +8383,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 16: XY Stress
@@ -8493,7 +8493,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 20: XY Stress
@@ -8603,7 +8603,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 23: XY Stress
@@ -8713,7 +8713,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 24: XY Stress
@@ -8823,7 +8823,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     XY Stress
 # Beams - 33: XY Stress
@@ -8933,7 +8933,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 1: XY Stress
@@ -9043,7 +9043,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 7: XY Stress
@@ -9153,7 +9153,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 11: XY Stress
@@ -9263,7 +9263,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 13: XY Stress
@@ -9373,7 +9373,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 16: XY Stress
@@ -9483,7 +9483,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 20: XY Stress
@@ -9593,7 +9593,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 23: XY Stress
@@ -9703,7 +9703,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 24: XY Stress
@@ -9813,7 +9813,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     XY Stress
 # Beams - 33: XY Stress
@@ -9923,7 +9923,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 1: XY Stress
@@ -10033,7 +10033,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 7: XY Stress
@@ -10143,7 +10143,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 11: XY Stress
@@ -10253,7 +10253,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 13: XY Stress
@@ -10363,7 +10363,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 16: XY Stress
@@ -10473,7 +10473,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 20: XY Stress
@@ -10583,7 +10583,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 23: XY Stress
@@ -10693,7 +10693,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 24: XY Stress
@@ -10803,7 +10803,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time     XY Stress
 # Beams - 33: XY Stress
@@ -10913,7 +10913,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 1: XY Stress
@@ -11023,7 +11023,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 7: XY Stress
@@ -11133,7 +11133,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 11: XY Stress
@@ -11243,7 +11243,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 13: XY Stress
@@ -11353,7 +11353,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 16: XY Stress
@@ -11463,7 +11463,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 20: XY Stress
@@ -11573,7 +11573,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 23: XY Stress
@@ -11683,7 +11683,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 24: XY Stress
@@ -11793,7 +11793,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time     XY Stress
 # Beams - 33: XY Stress
@@ -11903,7 +11903,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 1: Effective Stress
@@ -12013,7 +12013,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 7: Effective Stress
@@ -12123,7 +12123,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 11: Effective Stress
@@ -12233,7 +12233,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 13: Effective Stress
@@ -12343,7 +12343,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 16: Effective Stress
@@ -12453,7 +12453,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 20: Effective Stress
@@ -12563,7 +12563,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 23: Effective Stress
@@ -12673,7 +12673,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 24: Effective Stress
@@ -12783,7 +12783,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Beams - 33: Effective Stress
@@ -12893,7 +12893,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 1: Effective Stress
@@ -13003,7 +13003,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 7: Effective Stress
@@ -13113,7 +13113,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 11: Effective Stress
@@ -13223,7 +13223,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 13: Effective Stress
@@ -13333,7 +13333,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 16: Effective Stress
@@ -13443,7 +13443,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 20: Effective Stress
@@ -13553,7 +13553,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 23: Effective Stress
@@ -13663,7 +13663,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 24: Effective Stress
@@ -13773,7 +13773,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Beams - 33: Effective Stress
@@ -13883,7 +13883,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 1: Effective Stress
@@ -13993,7 +13993,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 7: Effective Stress
@@ -14103,7 +14103,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 11: Effective Stress
@@ -14213,7 +14213,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 13: Effective Stress
@@ -14323,7 +14323,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 16: Effective Stress
@@ -14433,7 +14433,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 20: Effective Stress
@@ -14543,7 +14543,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 23: Effective Stress
@@ -14653,7 +14653,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 24: Effective Stress
@@ -14763,7 +14763,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time  Effective Stress
 # Beams - 33: Effective Stress
@@ -14873,7 +14873,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 1: Effective Stress
@@ -14983,7 +14983,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 7: Effective Stress
@@ -15093,7 +15093,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 11: Effective Stress
@@ -15203,7 +15203,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 13: Effective Stress
@@ -15313,7 +15313,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 16: Effective Stress
@@ -15423,7 +15423,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 20: Effective Stress
@@ -15533,7 +15533,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 23: Effective Stress
@@ -15643,7 +15643,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 24: Effective Stress
@@ -15753,7 +15753,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time  Effective Stress
 # Beams - 33: Effective Stress
@@ -15863,7 +15863,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 1: Pressure
@@ -15973,7 +15973,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 7: Pressure
@@ -16083,7 +16083,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 11: Pressure
@@ -16193,7 +16193,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 13: Pressure
@@ -16303,7 +16303,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 16: Pressure
@@ -16413,7 +16413,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 20: Pressure
@@ -16523,7 +16523,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 23: Pressure
@@ -16633,7 +16633,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 24: Pressure
@@ -16743,7 +16743,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Beams - 33: Pressure
@@ -16853,7 +16853,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 1: Pressure
@@ -16963,7 +16963,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 7: Pressure
@@ -17073,7 +17073,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 11: Pressure
@@ -17183,7 +17183,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 13: Pressure
@@ -17293,7 +17293,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 16: Pressure
@@ -17403,7 +17403,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 20: Pressure
@@ -17513,7 +17513,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 23: Pressure
@@ -17623,7 +17623,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 24: Pressure
@@ -17733,7 +17733,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Beams - 33: Pressure
@@ -17843,7 +17843,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 1: Pressure
@@ -17953,7 +17953,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 7: Pressure
@@ -18063,7 +18063,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 11: Pressure
@@ -18173,7 +18173,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 13: Pressure
@@ -18283,7 +18283,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 16: Pressure
@@ -18393,7 +18393,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 20: Pressure
@@ -18503,7 +18503,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 23: Pressure
@@ -18613,7 +18613,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 24: Pressure
@@ -18723,7 +18723,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 3
+# Material 1 Integration point: 3
 
 #         Time      Pressure
 # Beams - 33: Pressure
@@ -18833,7 +18833,7 @@
 # Curve 1 - Beams 1
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 1: Pressure
@@ -18943,7 +18943,7 @@
 # Curve 2 - Beams 7
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 7: Pressure
@@ -19053,7 +19053,7 @@
 # Curve 3 - Beams 11
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 11: Pressure
@@ -19163,7 +19163,7 @@
 # Curve 4 - Beams 13
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 13: Pressure
@@ -19273,7 +19273,7 @@
 # Curve 5 - Beams 16
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 16: Pressure
@@ -19383,7 +19383,7 @@
 # Curve 6 - Beams 20
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 20: Pressure
@@ -19493,7 +19493,7 @@
 # Curve 7 - Beams 23
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 23: Pressure
@@ -19603,7 +19603,7 @@
 # Curve 8 - Beams 24
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 24: Pressure
@@ -19713,7 +19713,7 @@
 # Curve 9 - Beams 33
 # Time reference surface: middle
 # Time reference frame: global
-# Beams Integration point: 4
+# Material 1 Integration point: 4
 
 #         Time      Pressure
 # Beams - 33: Pressure
@@ -19825,7 +19825,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X Stress
 # Shells - 1: X Stress
@@ -19937,7 +19937,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X Stress
 # Shells - 3: X Stress
@@ -20049,7 +20049,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X Stress
 # Shells - 5: X Stress
@@ -20161,7 +20161,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X Stress
 # Shells - 8: X Stress
@@ -20273,7 +20273,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X Stress
 # Shells - 12: X Stress
@@ -20385,7 +20385,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X Stress
 # Shells - 1: X Stress
@@ -20497,7 +20497,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X Stress
 # Shells - 3: X Stress
@@ -20609,7 +20609,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X Stress
 # Shells - 5: X Stress
@@ -20721,7 +20721,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X Stress
 # Shells - 8: X Stress
@@ -20833,7 +20833,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X Stress
 # Shells - 12: X Stress
@@ -20945,7 +20945,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 1: Z Stress
@@ -21057,7 +21057,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 3: Z Stress
@@ -21169,7 +21169,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 5: Z Stress
@@ -21281,7 +21281,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 8: Z Stress
@@ -21393,7 +21393,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 12: Z Stress
@@ -21505,7 +21505,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 1: Z Stress
@@ -21617,7 +21617,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 3: Z Stress
@@ -21729,7 +21729,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 5: Z Stress
@@ -21841,7 +21841,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 8: Z Stress
@@ -21953,7 +21953,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 12: Z Stress
@@ -22065,7 +22065,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ Stress
 # Shells - 1: YZ Stress
@@ -22177,7 +22177,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ Stress
 # Shells - 3: YZ Stress
@@ -22289,7 +22289,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ Stress
 # Shells - 5: YZ Stress
@@ -22401,7 +22401,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ Stress
 # Shells - 8: YZ Stress
@@ -22513,7 +22513,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ Stress
 # Shells - 12: YZ Stress
@@ -22625,7 +22625,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ Stress
 # Shells - 1: YZ Stress
@@ -22737,7 +22737,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ Stress
 # Shells - 3: YZ Stress
@@ -22849,7 +22849,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ Stress
 # Shells - 5: YZ Stress
@@ -22961,7 +22961,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ Stress
 # Shells - 8: YZ Stress
@@ -23073,7 +23073,7 @@
 # Time reference frame: global
 # YZ Stress reference surface: middle
 # YZ Stress reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ Stress
 # Shells - 12: YZ Stress
@@ -23185,7 +23185,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X-Strain
 # Shells - 1: X-Strain
@@ -23297,7 +23297,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X-Strain
 # Shells - 3: X-Strain
@@ -23409,7 +23409,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X-Strain
 # Shells - 5: X-Strain
@@ -23521,7 +23521,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X-Strain
 # Shells - 8: X-Strain
@@ -23633,7 +23633,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      X-Strain
 # Shells - 12: X-Strain
@@ -23745,7 +23745,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X-Strain
 # Shells - 1: X-Strain
@@ -23857,7 +23857,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X-Strain
 # Shells - 3: X-Strain
@@ -23969,7 +23969,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X-Strain
 # Shells - 5: X-Strain
@@ -24081,7 +24081,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X-Strain
 # Shells - 8: X-Strain
@@ -24193,7 +24193,7 @@
 # Time reference frame: global
 # X-Strain reference surface: middle
 # X-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      X-Strain
 # Shells - 12: X-Strain
@@ -24305,7 +24305,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z-Strain
 # Shells - 1: Z-Strain
@@ -24417,7 +24417,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z-Strain
 # Shells - 3: Z-Strain
@@ -24529,7 +24529,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z-Strain
 # Shells - 5: Z-Strain
@@ -24641,7 +24641,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z-Strain
 # Shells - 8: Z-Strain
@@ -24753,7 +24753,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time      Z-Strain
 # Shells - 12: Z-Strain
@@ -24865,7 +24865,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z-Strain
 # Shells - 1: Z-Strain
@@ -24977,7 +24977,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z-Strain
 # Shells - 3: Z-Strain
@@ -25089,7 +25089,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z-Strain
 # Shells - 5: Z-Strain
@@ -25201,7 +25201,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z-Strain
 # Shells - 8: Z-Strain
@@ -25313,7 +25313,7 @@
 # Time reference frame: global
 # Z-Strain reference surface: middle
 # Z-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time      Z-Strain
 # Shells - 12: Z-Strain
@@ -25425,7 +25425,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ-Strain
 # Shells - 1: YZ-Strain
@@ -25537,7 +25537,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ-Strain
 # Shells - 3: YZ-Strain
@@ -25649,7 +25649,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ-Strain
 # Shells - 5: YZ-Strain
@@ -25761,7 +25761,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ-Strain
 # Shells - 8: YZ-Strain
@@ -25873,7 +25873,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 1
+# Material 3 Integration point: 1
 
 #         Time     YZ-Strain
 # Shells - 12: YZ-Strain
@@ -25985,7 +25985,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ-Strain
 # Shells - 1: YZ-Strain
@@ -26097,7 +26097,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ-Strain
 # Shells - 3: YZ-Strain
@@ -26209,7 +26209,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ-Strain
 # Shells - 5: YZ-Strain
@@ -26321,7 +26321,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ-Strain
 # Shells - 8: YZ-Strain
@@ -26433,7 +26433,7 @@
 # Time reference frame: global
 # YZ-Strain reference surface: middle
 # YZ-Strain reference frame: global
-# Shells Integration point: 2
+# Material 3 Integration point: 2
 
 #         Time     YZ-Strain
 # Shells - 12: YZ-Strain
@@ -26538,3 +26538,4523 @@
   9.800000e-04  -1.875110e-05
   9.900000e-04  -1.348954e-05
   1.000000e-03  4.858034e-06
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 1: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.134405e-06
+  2.200000e-04  3.244345e-04
+  2.300000e-04  -1.524949e-04
+  2.400000e-04  1.084784e-05
+  2.500000e-04  5.510682e-05
+  2.600000e-04  8.543864e-05
+  2.700000e-04  -3.173752e-05
+  2.800000e-04  -3.683242e-05
+  2.900000e-04  -7.019572e-06
+  3.000000e-04  2.681152e-05
+  3.100000e-04  -4.345811e-05
+  3.200000e-04  6.929414e-06
+  3.300000e-04  3.390163e-05
+  3.400000e-04  5.483769e-05
+  3.500000e-04  7.153885e-05
+  3.600000e-04  1.344657e-04
+  3.700000e-04  8.450560e-05
+  3.800000e-04  9.514324e-05
+  3.900000e-04  1.885713e-04
+  4.000000e-04  1.059560e-04
+  4.100000e-04  1.165273e-04
+  4.200000e-04  9.501725e-05
+  4.300000e-04  5.435592e-05
+  4.400000e-04  1.335627e-04
+  4.500000e-04  9.996855e-05
+  4.600000e-04  1.542330e-04
+  4.700000e-04  9.519927e-05
+  4.800000e-04  1.314481e-04
+  4.900000e-04  1.090968e-04
+  5.000000e-04  1.213099e-04
+  5.100000e-04  1.163621e-04
+  5.200000e-04  1.397865e-04
+  5.300000e-04  1.242891e-04
+  5.400000e-04  1.084055e-04
+  5.500000e-04  1.143733e-04
+  5.600000e-04  1.011867e-04
+  5.700000e-04  1.246091e-04
+  5.800000e-04  1.223165e-04
+  5.900000e-04  1.361594e-04
+  6.000000e-04  9.157928e-05
+  6.100000e-04  9.784789e-05
+  6.200000e-04  6.865339e-05
+  6.300000e-04  9.364681e-05
+  6.400000e-04  4.461236e-05
+  6.500000e-04  6.615391e-05
+  6.600000e-04  9.394863e-05
+  6.700000e-04  1.152615e-04
+  6.800000e-04  1.625842e-04
+  6.900000e-04  1.403667e-04
+  7.000000e-04  1.798497e-04
+  7.100000e-04  1.189040e-04
+  7.200000e-04  1.075535e-04
+  7.300000e-04  4.087895e-05
+  7.400000e-04  8.647433e-05
+  7.500000e-04  6.829407e-05
+  7.600000e-04  1.321046e-04
+  7.700000e-04  1.638454e-04
+  7.800000e-04  1.710322e-04
+  7.900000e-04  1.361418e-04
+  8.000000e-04  8.541389e-05
+  8.100000e-04  7.362534e-05
+  8.200000e-04  4.198576e-05
+  8.300000e-04  1.146530e-04
+  8.400000e-04  7.759978e-05
+  8.500000e-04  1.777741e-04
+  8.600000e-04  1.537390e-04
+  8.700000e-04  1.517019e-04
+  8.800000e-04  1.172977e-04
+  8.900000e-04  9.033785e-05
+  9.000000e-04  6.648428e-05
+  9.100000e-04  5.897862e-05
+  9.200000e-04  8.307461e-05
+  9.300000e-04  1.143463e-04
+  9.400000e-04  1.713807e-04
+  9.500000e-04  1.355018e-04
+  9.600000e-04  1.713785e-04
+  9.700000e-04  9.050029e-05
+  9.800000e-04  9.086463e-05
+  9.900000e-04  3.123535e-05
+  1.000000e-03  7.649613e-05
+
+#
+# Curve 2 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 3: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -8.428990e-06
+  2.200000e-04  3.146565e-04
+  2.300000e-04  -1.444455e-04
+  2.400000e-04  -5.225295e-06
+  2.500000e-04  3.513369e-05
+  2.600000e-04  6.188016e-05
+  2.700000e-04  -4.249464e-05
+  2.800000e-04  -4.324010e-05
+  2.900000e-04  -1.072953e-05
+  3.000000e-04  2.584559e-05
+  3.100000e-04  -5.241597e-05
+  3.200000e-04  5.413182e-06
+  3.300000e-04  3.878325e-05
+  3.400000e-04  6.093709e-05
+  3.500000e-04  8.549459e-05
+  3.600000e-04  1.499294e-04
+  3.700000e-04  1.041787e-04
+  3.800000e-04  1.096331e-04
+  3.900000e-04  2.021218e-04
+  4.000000e-04  1.246045e-04
+  4.100000e-04  1.378006e-04
+  4.200000e-04  1.095225e-04
+  4.300000e-04  6.579343e-05
+  4.400000e-04  1.507665e-04
+  4.500000e-04  1.218495e-04
+  4.600000e-04  1.747302e-04
+  4.700000e-04  1.142979e-04
+  4.800000e-04  1.487053e-04
+  4.900000e-04  1.262358e-04
+  5.000000e-04  1.416401e-04
+  5.100000e-04  1.343803e-04
+  5.200000e-04  1.597506e-04
+  5.300000e-04  1.456927e-04
+  5.400000e-04  1.302597e-04
+  5.500000e-04  1.304009e-04
+  5.600000e-04  1.157116e-04
+  5.700000e-04  1.391230e-04
+  5.800000e-04  1.432612e-04
+  5.900000e-04  1.568339e-04
+  6.000000e-04  1.130413e-04
+  6.100000e-04  1.188616e-04
+  6.200000e-04  8.235710e-05
+  6.300000e-04  1.135911e-04
+  6.400000e-04  6.412793e-05
+  6.500000e-04  5.877017e-05
+  6.600000e-04  9.407887e-05
+  6.700000e-04  1.191263e-04
+  6.800000e-04  1.617869e-04
+  6.900000e-04  1.495807e-04
+  7.000000e-04  1.871419e-04
+  7.100000e-04  1.125293e-04
+  7.200000e-04  1.120641e-04
+  7.300000e-04  4.620126e-05
+  7.400000e-04  9.790784e-05
+  7.500000e-04  9.108250e-05
+  7.600000e-04  1.378663e-04
+  7.700000e-04  1.650629e-04
+  7.800000e-04  1.777512e-04
+  7.900000e-04  1.367334e-04
+  8.000000e-04  9.508776e-05
+  8.100000e-04  8.449776e-05
+  8.200000e-04  4.651356e-05
+  8.300000e-04  1.188107e-04
+  8.400000e-04  7.826211e-05
+  8.500000e-04  1.824177e-04
+  8.600000e-04  1.620484e-04
+  8.700000e-04  1.571357e-04
+  8.800000e-04  1.171137e-04
+  8.900000e-04  9.771159e-05
+  9.000000e-04  7.503110e-05
+  9.100000e-04  6.616441e-05
+  9.200000e-04  9.676342e-05
+  9.300000e-04  1.211241e-04
+  9.400000e-04  1.700313e-04
+  9.500000e-04  1.374508e-04
+  9.600000e-04  1.749779e-04
+  9.700000e-04  9.417976e-05
+  9.800000e-04  1.060718e-04
+  9.900000e-04  4.242492e-05
+  1.000000e-03  7.821970e-05
+
+#
+# Curve 3 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 5: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.108011e-06
+  2.200000e-04  3.243164e-04
+  2.300000e-04  -1.523323e-04
+  2.400000e-04  1.085626e-05
+  2.500000e-04  5.502518e-05
+  2.600000e-04  8.537529e-05
+  2.700000e-04  -3.198909e-05
+  2.800000e-04  -3.670887e-05
+  2.900000e-04  -6.900084e-06
+  3.000000e-04  2.671691e-05
+  3.100000e-04  -4.374583e-05
+  3.200000e-04  7.134386e-06
+  3.300000e-04  3.406565e-05
+  3.400000e-04  5.494897e-05
+  3.500000e-04  7.141499e-05
+  3.600000e-04  1.343096e-04
+  3.700000e-04  8.455241e-05
+  3.800000e-04  9.524738e-05
+  3.900000e-04  1.886407e-04
+  4.000000e-04  1.059411e-04
+  4.100000e-04  1.165799e-04
+  4.200000e-04  9.517592e-05
+  4.300000e-04  5.435148e-05
+  4.400000e-04  1.334496e-04
+  4.500000e-04  9.993224e-05
+  4.600000e-04  1.543140e-04
+  4.700000e-04  9.526028e-05
+  4.800000e-04  1.315246e-04
+  4.900000e-04  1.089676e-04
+  5.000000e-04  1.212830e-04
+  5.100000e-04  1.164552e-04
+  5.200000e-04  1.398264e-04
+  5.300000e-04  1.243130e-04
+  5.400000e-04  1.083831e-04
+  5.500000e-04  1.144951e-04
+  5.600000e-04  1.012096e-04
+  5.700000e-04  1.245471e-04
+  5.800000e-04  1.223545e-04
+  5.900000e-04  1.362634e-04
+  6.000000e-04  9.176414e-05
+  6.100000e-04  9.785618e-05
+  6.200000e-04  6.858692e-05
+  6.300000e-04  9.367417e-05
+  6.400000e-04  4.466275e-05
+  6.500000e-04  6.620355e-05
+  6.600000e-04  9.382617e-05
+  6.700000e-04  1.151310e-04
+  6.800000e-04  1.626184e-04
+  6.900000e-04  1.403844e-04
+  7.000000e-04  1.799575e-04
+  7.100000e-04  1.189933e-04
+  7.200000e-04  1.075932e-04
+  7.300000e-04  4.088175e-05
+  7.400000e-04  8.643072e-05
+  7.500000e-04  6.825745e-05
+  7.600000e-04  1.321566e-04
+  7.700000e-04  1.639188e-04
+  7.800000e-04  1.710280e-04
+  7.900000e-04  1.361337e-04
+  8.000000e-04  8.548475e-05
+  8.100000e-04  7.374944e-05
+  8.200000e-04  4.205965e-05
+  8.300000e-04  1.146145e-04
+  8.400000e-04  7.752987e-05
+  8.500000e-04  1.778216e-04
+  8.600000e-04  1.537874e-04
+  8.700000e-04  1.517601e-04
+  8.800000e-04  1.173097e-04
+  8.900000e-04  9.030833e-05
+  9.000000e-04  6.651828e-05
+  9.100000e-04  5.900324e-05
+  9.200000e-04  8.311187e-05
+  9.300000e-04  1.144429e-04
+  9.400000e-04  1.714226e-04
+  9.500000e-04  1.354722e-04
+  9.600000e-04  1.713355e-04
+  9.700000e-04  9.052363e-05
+  9.800000e-04  9.098904e-05
+  9.900000e-04  3.127446e-05
+  1.000000e-03  7.645031e-05
+
+#
+# Curve 4 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 8: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -1.987492e-04
+  2.200000e-04  -7.201129e-05
+  2.300000e-04  7.341205e-05
+  2.400000e-04  -3.478979e-05
+  2.500000e-04  -5.866135e-05
+  2.600000e-04  4.051106e-06
+  2.700000e-04  -5.352800e-05
+  2.800000e-04  -4.655258e-05
+  2.900000e-04  1.368646e-06
+  3.000000e-04  -5.193630e-05
+  3.100000e-04  -4.322797e-05
+  3.200000e-04  7.124973e-06
+  3.300000e-04  -5.130073e-05
+  3.400000e-04  -3.830966e-05
+  3.500000e-04  3.504354e-05
+  3.600000e-04  -7.985441e-05
+  3.700000e-04  3.961166e-05
+  3.800000e-04  -5.988239e-05
+  3.900000e-04  -1.284497e-05
+  4.000000e-04  -3.687319e-05
+  4.100000e-04  3.688598e-05
+  4.200000e-04  -5.967091e-05
+  4.300000e-04  2.172040e-05
+  4.400000e-04  -4.239968e-05
+  4.500000e-04  -1.928287e-06
+  4.600000e-04  -4.399227e-05
+  4.700000e-04  2.748507e-05
+  4.800000e-04  -7.331499e-05
+  4.900000e-04  7.886428e-06
+  5.000000e-04  -3.887188e-05
+  5.100000e-04  1.043024e-05
+  5.200000e-04  -8.335531e-05
+  5.300000e-04  2.977558e-05
+  5.400000e-04  -4.823740e-05
+  5.500000e-04  1.320861e-05
+  5.600000e-04  -3.808042e-05
+  5.700000e-04  3.337943e-06
+  5.800000e-04  -7.110173e-05
+  5.900000e-04  4.118004e-05
+  6.000000e-04  -6.777344e-05
+  6.100000e-04  2.315561e-06
+  6.200000e-04  -1.287316e-05
+  6.300000e-04  8.216179e-06
+  6.400000e-04  -6.781932e-05
+  6.500000e-04  7.359253e-06
+  6.600000e-04  6.610173e-05
+  6.700000e-04  2.976193e-05
+  6.800000e-04  1.442056e-05
+  6.900000e-04  9.970133e-06
+  7.000000e-04  7.511181e-05
+  7.100000e-04  4.768005e-05
+  7.200000e-04  3.106216e-05
+  7.300000e-04  -3.913268e-05
+  7.400000e-04  -4.328101e-05
+  7.500000e-04  -1.821455e-05
+  7.600000e-04  2.912884e-05
+  7.700000e-04  7.723596e-05
+  7.800000e-04  1.116290e-04
+  7.900000e-04  1.848854e-05
+  8.000000e-04  -5.737807e-05
+  8.100000e-04  1.312957e-06
+  8.200000e-04  7.421736e-06
+  8.300000e-04  3.273332e-05
+  8.400000e-04  1.758434e-05
+  8.500000e-04  3.986937e-05
+  8.600000e-04  2.511411e-05
+  8.700000e-04  4.690199e-05
+  8.800000e-04  4.645500e-05
+  8.900000e-04  3.915759e-05
+  9.000000e-04  9.355697e-06
+  9.100000e-04  -4.516960e-05
+  9.200000e-04  -3.717918e-05
+  9.300000e-04  3.061405e-05
+  9.400000e-04  9.210854e-05
+  9.500000e-04  4.297250e-05
+  9.600000e-04  3.513665e-05
+  9.700000e-04  1.134964e-05
+  9.800000e-04  -1.190367e-05
+  9.900000e-04  -2.633310e-05
+  1.000000e-03  3.998190e-05
+
+#
+# Curve 5 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 12: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -1.987389e-04
+  2.200000e-04  -7.214503e-05
+  2.300000e-04  7.336988e-05
+  2.400000e-04  -3.485395e-05
+  2.500000e-04  -5.861819e-05
+  2.600000e-04  4.123540e-06
+  2.700000e-04  -5.369426e-05
+  2.800000e-04  -4.677997e-05
+  2.900000e-04  1.562519e-06
+  3.000000e-04  -5.192076e-05
+  3.100000e-04  -4.327170e-05
+  3.200000e-04  7.969107e-06
+  3.300000e-04  -5.093252e-05
+  3.400000e-04  -3.852137e-05
+  3.500000e-04  3.508525e-05
+  3.600000e-04  -8.007367e-05
+  3.700000e-04  3.972816e-05
+  3.800000e-04  -5.982196e-05
+  3.900000e-04  -1.270681e-05
+  4.000000e-04  -3.713615e-05
+  4.100000e-04  3.688057e-05
+  4.200000e-04  -5.961144e-05
+  4.300000e-04  2.178926e-05
+  4.400000e-04  -4.228114e-05
+  4.500000e-04  -2.172269e-06
+  4.600000e-04  -4.388885e-05
+  4.700000e-04  2.762365e-05
+  4.800000e-04  -7.321959e-05
+  4.900000e-04  7.901509e-06
+  5.000000e-04  -3.872119e-05
+  5.100000e-04  1.043399e-05
+  5.200000e-04  -8.346389e-05
+  5.300000e-04  2.986933e-05
+  5.400000e-04  -4.824309e-05
+  5.500000e-04  1.328524e-05
+  5.600000e-04  -3.807519e-05
+  5.700000e-04  3.302422e-06
+  5.800000e-04  -7.095323e-05
+  5.900000e-04  4.109949e-05
+  6.000000e-04  -6.787649e-05
+  6.100000e-04  2.349163e-06
+  6.200000e-04  -1.282259e-05
+  6.300000e-04  8.339371e-06
+  6.400000e-04  -6.786232e-05
+  6.500000e-04  7.339675e-06
+  6.600000e-04  6.603455e-05
+  6.700000e-04  2.972216e-05
+  6.800000e-04  1.440447e-05
+  6.900000e-04  9.955336e-06
+  7.000000e-04  7.519448e-05
+  7.100000e-04  4.774813e-05
+  7.200000e-04  3.107404e-05
+  7.300000e-04  -3.907124e-05
+  7.400000e-04  -4.328342e-05
+  7.500000e-04  -1.822482e-05
+  7.600000e-04  2.911163e-05
+  7.700000e-04  7.718259e-05
+  7.800000e-04  1.116344e-04
+  7.900000e-04  1.855022e-05
+  8.000000e-04  -5.733654e-05
+  8.100000e-04  1.279274e-06
+  8.200000e-04  7.423723e-06
+  8.300000e-04  3.273477e-05
+  8.400000e-04  1.752842e-05
+  8.500000e-04  3.983932e-05
+  8.600000e-04  2.511230e-05
+  8.700000e-04  4.694028e-05
+  8.800000e-04  4.650373e-05
+  8.900000e-04  3.919581e-05
+  9.000000e-04  9.381964e-06
+  9.100000e-04  -4.517879e-05
+  9.200000e-04  -3.714306e-05
+  9.300000e-04  3.063715e-05
+  9.400000e-04  9.205971e-05
+  9.500000e-04  4.297408e-05
+  9.600000e-04  3.516955e-05
+  9.700000e-04  1.133939e-05
+  9.800000e-04  -1.193532e-05
+  9.900000e-04  -2.634417e-05
+  1.000000e-03  3.997941e-05
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 1: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -3.785857e-05
+  2.200000e-04  -3.380227e-04
+  2.300000e-04  1.282266e-04
+  2.400000e-04  -2.238250e-05
+  2.500000e-04  -8.658899e-05
+  2.600000e-04  -1.152704e-04
+  2.700000e-04  -4.079438e-06
+  2.800000e-04  9.098614e-06
+  2.900000e-04  -3.428999e-05
+  3.000000e-04  -8.420132e-05
+  3.100000e-04  -3.932161e-05
+  3.200000e-04  -2.508060e-05
+  3.300000e-04  -6.678131e-05
+  3.400000e-04  -9.649696e-05
+  3.500000e-04  -5.465248e-05
+  3.600000e-04  -8.780106e-05
+  3.700000e-04  -3.254421e-05
+  3.800000e-04  -9.937017e-05
+  3.900000e-04  -1.195988e-04
+  4.000000e-04  -7.257506e-05
+  4.100000e-04  -8.694920e-05
+  4.200000e-04  -3.559329e-05
+  4.300000e-04  -1.309952e-04
+  4.400000e-04  -5.416375e-05
+  4.500000e-04  -1.058490e-04
+  4.600000e-04  -7.091508e-05
+  4.700000e-04  -8.736461e-05
+  4.800000e-04  -1.297262e-04
+  4.900000e-04  -1.020973e-04
+  5.000000e-04  -7.169144e-05
+  5.100000e-04  -1.177385e-04
+  5.200000e-04  -1.058535e-04
+  5.300000e-04  -1.237257e-04
+  5.400000e-04  -5.306230e-05
+  5.500000e-04  -1.041051e-04
+  5.600000e-04  -9.680552e-05
+  5.700000e-04  -1.083406e-04
+  5.800000e-04  -1.262254e-04
+  5.900000e-04  -4.781887e-05
+  6.000000e-04  -1.210336e-04
+  6.100000e-04  -7.154468e-05
+  6.200000e-04  -3.093642e-05
+  6.300000e-04  -3.104685e-05
+  6.400000e-04  -5.555649e-05
+  6.500000e-04  -6.441633e-05
+  6.600000e-04  -5.437570e-05
+  6.700000e-04  -8.423554e-05
+  6.800000e-04  -1.255914e-04
+  6.900000e-04  -1.617719e-04
+  7.000000e-04  -1.139544e-04
+  7.100000e-04  -1.350796e-04
+  7.200000e-04  -6.445812e-05
+  7.300000e-04  -6.091699e-05
+  7.400000e-04  1.576076e-05
+  7.500000e-04  -8.187902e-05
+  7.600000e-04  -1.252615e-04
+  7.700000e-04  -1.684194e-04
+  7.800000e-04  -1.454053e-04
+  7.900000e-04  -1.056805e-04
+  8.000000e-04  -1.049244e-04
+  8.100000e-04  -1.141529e-05
+  8.200000e-04  -5.125607e-05
+  8.300000e-04  -5.040493e-05
+  8.400000e-04  -1.192138e-04
+  8.500000e-04  -1.012560e-04
+  8.600000e-04  -1.243975e-04
+  8.700000e-04  -1.344054e-04
+  8.800000e-04  -1.493816e-04
+  8.900000e-04  -4.913493e-05
+  9.000000e-04  -4.063809e-05
+  9.100000e-04  -3.644660e-05
+  9.200000e-04  -4.859059e-05
+  9.300000e-04  -1.241896e-04
+  9.400000e-04  -1.162287e-04
+  9.500000e-04  -1.980404e-04
+  9.600000e-04  -1.119786e-04
+  9.700000e-04  -7.005026e-05
+  9.800000e-04  -2.445299e-05
+  9.900000e-04  -6.672614e-05
+  1.000000e-03  -4.872270e-05
+
+#
+# Curve 2 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 3: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -2.699159e-05
+  2.200000e-04  -3.306554e-04
+  2.300000e-04  1.177858e-04
+  2.400000e-04  -8.660870e-06
+  2.500000e-04  -6.780266e-05
+  2.600000e-04  -9.407086e-05
+  2.700000e-04  4.277797e-06
+  2.800000e-04  1.261936e-05
+  2.900000e-04  -3.504466e-05
+  3.000000e-04  -8.609088e-05
+  3.100000e-04  -3.696400e-05
+  3.200000e-04  -2.907029e-05
+  3.300000e-04  -7.224886e-05
+  3.400000e-04  -1.032256e-04
+  3.500000e-04  -7.058911e-05
+  3.600000e-04  -9.527801e-05
+  3.700000e-04  -4.346233e-05
+  3.800000e-04  -1.148347e-04
+  3.900000e-04  -1.319835e-04
+  4.000000e-04  -8.701203e-05
+  4.100000e-04  -1.099968e-04
+  4.200000e-04  -4.912358e-05
+  4.300000e-04  -1.383343e-04
+  4.400000e-04  -6.899689e-05
+  4.500000e-04  -1.250676e-04
+  4.600000e-04  -8.613354e-05
+  4.700000e-04  -1.056711e-04
+  4.800000e-04  -1.495855e-04
+  4.900000e-04  -1.200698e-04
+  5.000000e-04  -8.898827e-05
+  5.100000e-04  -1.323355e-04
+  5.200000e-04  -1.235151e-04
+  5.300000e-04  -1.422713e-04
+  5.400000e-04  -7.216441e-05
+  5.500000e-04  -1.215633e-04
+  5.600000e-04  -1.147417e-04
+  5.700000e-04  -1.210611e-04
+  5.800000e-04  -1.446711e-04
+  5.900000e-04  -6.465246e-05
+  6.000000e-04  -1.437184e-04
+  6.100000e-04  -8.515624e-05
+  6.200000e-04  -4.201465e-05
+  6.300000e-04  -4.124822e-05
+  6.400000e-04  -6.497784e-05
+  6.500000e-04  -4.976147e-05
+  6.600000e-04  -5.352535e-05
+  6.700000e-04  -9.165842e-05
+  6.800000e-04  -1.248431e-04
+  6.900000e-04  -1.666825e-04
+  7.000000e-04  -1.195546e-04
+  7.100000e-04  -1.290558e-04
+  7.200000e-04  -7.353392e-05
+  7.300000e-04  -6.582205e-05
+  7.400000e-04  1.392059e-05
+  7.500000e-04  -9.714191e-05
+  7.600000e-04  -1.264425e-04
+  7.700000e-04  -1.663124e-04
+  7.800000e-04  -1.431881e-04
+  7.900000e-04  -9.680109e-05
+  8.000000e-04  -1.085401e-04
+  8.100000e-04  -1.863341e-05
+  8.200000e-04  -5.032709e-05
+  8.300000e-04  -5.943850e-05
+  8.400000e-04  -1.232139e-04
+  8.500000e-04  -9.705760e-05
+  8.600000e-04  -1.318301e-04
+  8.700000e-04  -1.345703e-04
+  8.800000e-04  -1.473746e-04
+  8.900000e-04  -4.630617e-05
+  9.000000e-04  -4.066683e-05
+  9.100000e-04  -4.375846e-05
+  9.200000e-04  -5.577022e-05
+  9.300000e-04  -1.303449e-04
+  9.400000e-04  -1.162104e-04
+  9.500000e-04  -1.960814e-04
+  9.600000e-04  -1.097383e-04
+  9.700000e-04  -7.101837e-05
+  9.800000e-04  -3.126503e-05
+  9.900000e-04  -7.332768e-05
+  1.000000e-03  -4.616313e-05
+
+#
+# Curve 3 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 5: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -3.778297e-05
+  2.200000e-04  -3.377371e-04
+  2.300000e-04  1.282615e-04
+  2.400000e-04  -2.244815e-05
+  2.500000e-04  -8.665742e-05
+  2.600000e-04  -1.152555e-04
+  2.700000e-04  -3.751971e-06
+  2.800000e-04  9.104383e-06
+  2.900000e-04  -3.431363e-05
+  3.000000e-04  -8.431426e-05
+  3.100000e-04  -3.918514e-05
+  3.200000e-04  -2.517969e-05
+  3.300000e-04  -6.668110e-05
+  3.400000e-04  -9.650624e-05
+  3.500000e-04  -5.483800e-05
+  3.600000e-04  -8.790402e-05
+  3.700000e-04  -3.265137e-05
+  3.800000e-04  -9.931222e-05
+  3.900000e-04  -1.195215e-04
+  4.000000e-04  -7.257188e-05
+  4.100000e-04  -8.705338e-05
+  4.200000e-04  -3.571935e-05
+  4.300000e-04  -1.310994e-04
+  4.400000e-04  -5.424512e-05
+  4.500000e-04  -1.058802e-04
+  4.600000e-04  -7.090390e-05
+  4.700000e-04  -8.740290e-05
+  4.800000e-04  -1.297640e-04
+  4.900000e-04  -1.023596e-04
+  5.000000e-04  -7.174583e-05
+  5.100000e-04  -1.177222e-04
+  5.200000e-04  -1.059176e-04
+  5.300000e-04  -1.237246e-04
+  5.400000e-04  -5.316396e-05
+  5.500000e-04  -1.041497e-04
+  5.600000e-04  -9.692750e-05
+  5.700000e-04  -1.084525e-04
+  5.800000e-04  -1.262510e-04
+  5.900000e-04  -4.783558e-05
+  6.000000e-04  -1.209929e-04
+  6.100000e-04  -7.166202e-05
+  6.200000e-04  -3.107428e-05
+  6.300000e-04  -3.110449e-05
+  6.400000e-04  -5.555515e-05
+  6.500000e-04  -6.436204e-05
+  6.600000e-04  -5.430963e-05
+  6.700000e-04  -8.427581e-05
+  6.800000e-04  -1.257049e-04
+  6.900000e-04  -1.618295e-04
+  7.000000e-04  -1.140273e-04
+  7.100000e-04  -1.351290e-04
+  7.200000e-04  -6.445759e-05
+  7.300000e-04  -6.095957e-05
+  7.400000e-04  1.565792e-05
+  7.500000e-04  -8.190546e-05
+  7.600000e-04  -1.252916e-04
+  7.700000e-04  -1.684652e-04
+  7.800000e-04  -1.454600e-04
+  7.900000e-04  -1.058146e-04
+  8.000000e-04  -1.049759e-04
+  8.100000e-04  -1.140151e-05
+  8.200000e-04  -5.129732e-05
+  8.300000e-04  -5.044200e-05
+  8.400000e-04  -1.192978e-04
+  8.500000e-04  -1.013192e-04
+  8.600000e-04  -1.243761e-04
+  8.700000e-04  -1.344429e-04
+  8.800000e-04  -1.494638e-04
+  8.900000e-04  -4.922086e-05
+  9.000000e-04  -4.073356e-05
+  9.100000e-04  -3.654224e-05
+  9.200000e-04  -4.859056e-05
+  9.300000e-04  -1.241877e-04
+  9.400000e-04  -1.162473e-04
+  9.500000e-04  -1.980726e-04
+  9.600000e-04  -1.121050e-04
+  9.700000e-04  -7.009574e-05
+  9.800000e-04  -2.445857e-05
+  9.900000e-04  -6.678363e-05
+  1.000000e-03  -4.877631e-05
+
+#
+# Curve 4 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 8: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.880409e-04
+  2.200000e-04  7.501254e-05
+  2.300000e-04  -9.320690e-05
+  2.400000e-04  2.998615e-05
+  2.500000e-04  5.633289e-05
+  2.600000e-04  -1.345661e-05
+  2.700000e-04  4.120572e-05
+  2.800000e-04  3.737840e-05
+  2.900000e-04  -1.218441e-05
+  3.000000e-04  3.993921e-05
+  3.100000e-04  1.527039e-05
+  3.200000e-04  -5.555008e-06
+  3.300000e-04  3.534472e-05
+  3.400000e-04  3.239895e-05
+  3.500000e-04  -3.409804e-05
+  3.600000e-04  9.100625e-05
+  3.700000e-04  -3.693852e-05
+  3.800000e-04  5.084608e-05
+  3.900000e-04  3.496396e-05
+  4.000000e-04  4.892913e-05
+  4.100000e-04  -3.188151e-05
+  4.200000e-04  8.923774e-05
+  4.300000e-04  -5.209586e-05
+  4.400000e-04  6.456341e-05
+  4.500000e-04  -1.189080e-05
+  4.600000e-04  6.541354e-05
+  4.700000e-04  -1.790234e-05
+  4.800000e-04  7.007525e-05
+  4.900000e-04  -7.224217e-06
+  5.000000e-04  5.218653e-05
+  5.100000e-04  -1.136777e-05
+  5.200000e-04  9.006009e-05
+  5.300000e-04  -3.836271e-05
+  5.400000e-04  6.784663e-05
+  5.500000e-04  -1.438858e-05
+  5.600000e-04  4.507157e-05
+  5.700000e-04  -4.112502e-06
+  5.800000e-04  6.679039e-05
+  5.900000e-04  -1.702298e-05
+  6.000000e-04  5.537808e-05
+  6.100000e-04  3.025430e-06
+  6.200000e-04  1.891881e-05
+  6.300000e-04  1.433346e-05
+  6.400000e-04  3.997087e-05
+  6.500000e-04  1.259837e-06
+  6.600000e-04  -5.236593e-05
+  6.700000e-04  -1.322735e-05
+  6.800000e-04  7.853389e-06
+  6.900000e-04  -4.469011e-05
+  7.000000e-04  -5.011584e-05
+  7.100000e-04  -6.097320e-05
+  7.200000e-04  -1.539492e-05
+  7.300000e-04  4.600384e-05
+  7.400000e-04  5.562850e-05
+  7.500000e-04  8.689953e-06
+  7.600000e-04  -2.821146e-05
+  7.700000e-04  -8.699844e-05
+  7.800000e-04  -9.560573e-05
+  7.900000e-04  -2.224332e-05
+  8.000000e-04  4.238292e-05
+  8.100000e-04  2.672153e-05
+  8.200000e-04  -1.543990e-05
+  8.300000e-04  -5.409992e-06
+  8.400000e-04  -3.809198e-05
+  8.500000e-04  -2.330639e-05
+  8.600000e-04  -1.682623e-05
+  8.700000e-04  -3.961576e-05
+  8.800000e-04  -5.934306e-05
+  8.900000e-04  -2.662035e-05
+  9.000000e-04  -1.460135e-06
+  9.100000e-04  4.754049e-05
+  9.200000e-04  5.042668e-05
+  9.300000e-04  -4.662986e-05
+  9.400000e-04  -8.818792e-05
+  9.500000e-04  -6.637999e-05
+  9.600000e-04  -2.497130e-05
+  9.700000e-04  -1.024700e-06
+  9.800000e-04  3.941492e-05
+  9.900000e-04  5.951402e-06
+  1.000000e-03  -2.148739e-05
+
+#
+# Curve 5 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 12: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.879348e-04
+  2.200000e-04  7.488075e-05
+  2.300000e-04  -9.332313e-05
+  2.400000e-04  3.000841e-05
+  2.500000e-04  5.637771e-05
+  2.600000e-04  -1.347273e-05
+  2.700000e-04  4.137721e-05
+  2.800000e-04  3.748372e-05
+  2.900000e-04  -1.240245e-05
+  3.000000e-04  3.992998e-05
+  3.100000e-04  1.537409e-05
+  3.200000e-04  -6.445692e-06
+  3.300000e-04  3.494730e-05
+  3.400000e-04  3.265720e-05
+  3.500000e-04  -3.408909e-05
+  3.600000e-04  9.129778e-05
+  3.700000e-04  -3.702868e-05
+  3.800000e-04  5.069761e-05
+  3.900000e-04  3.470653e-05
+  4.000000e-04  4.917166e-05
+  4.100000e-04  -3.184662e-05
+  4.200000e-04  8.920355e-05
+  4.300000e-04  -5.219717e-05
+  4.400000e-04  6.445705e-05
+  4.500000e-04  -1.157382e-05
+  4.600000e-04  6.540252e-05
+  4.700000e-04  -1.814458e-05
+  4.800000e-04  7.030657e-05
+  4.900000e-04  -7.041062e-06
+  5.000000e-04  5.220624e-05
+  5.100000e-04  -1.139159e-05
+  5.200000e-04  9.001543e-05
+  5.300000e-04  -3.831739e-05
+  5.400000e-04  6.783035e-05
+  5.500000e-04  -1.436155e-05
+  5.600000e-04  4.512258e-05
+  5.700000e-04  -4.074143e-06
+  5.800000e-04  6.673182e-05
+  5.900000e-04  -1.702819e-05
+  6.000000e-04  5.537952e-05
+  6.100000e-04  2.964159e-06
+  6.200000e-04  1.889937e-05
+  6.300000e-04  1.436405e-05
+  6.400000e-04  3.994404e-05
+  6.500000e-04  1.298089e-06
+  6.600000e-04  -5.233334e-05
+  6.700000e-04  -1.317091e-05
+  6.800000e-04  7.893868e-06
+  6.900000e-04  -4.479842e-05
+  7.000000e-04  -5.016340e-05
+  7.100000e-04  -6.098757e-05
+  7.200000e-04  -1.535761e-05
+  7.300000e-04  4.602141e-05
+  7.400000e-04  5.566309e-05
+  7.500000e-04  8.731166e-06
+  7.600000e-04  -2.824482e-05
+  7.700000e-04  -8.699555e-05
+  7.800000e-04  -9.554939e-05
+  7.900000e-04  -2.229766e-05
+  8.000000e-04  4.233533e-05
+  8.100000e-04  2.669312e-05
+  8.200000e-04  -1.543123e-05
+  8.300000e-04  -5.369900e-06
+  8.400000e-04  -3.806540e-05
+  8.500000e-04  -2.329925e-05
+  8.600000e-04  -1.686602e-05
+  8.700000e-04  -3.959404e-05
+  8.800000e-04  -5.929031e-05
+  8.900000e-04  -2.660116e-05
+  9.000000e-04  -1.463416e-06
+  9.100000e-04  4.756070e-05
+  9.200000e-04  5.039458e-05
+  9.300000e-04  -4.666629e-05
+  9.400000e-04  -8.818724e-05
+  9.500000e-04  -6.637148e-05
+  9.600000e-04  -2.494894e-05
+  9.700000e-04  -1.000692e-06
+  9.800000e-04  3.938123e-05
+  9.900000e-04  5.913326e-06
+  1.000000e-03  -2.146514e-05
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 1: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.587887e-04
+  2.200000e-04  6.805107e-04
+  2.300000e-04  3.913033e-04
+  2.400000e-04  3.384454e-04
+  2.500000e-04  1.215262e-04
+  2.600000e-04  1.891854e-04
+  2.700000e-04  2.108762e-04
+  2.800000e-04  1.464865e-04
+  2.900000e-04  6.524545e-05
+  3.000000e-04  2.115972e-04
+  3.100000e-04  1.313497e-04
+  3.200000e-04  4.270633e-05
+  3.300000e-04  6.308562e-05
+  3.400000e-04  4.321678e-04
+  3.500000e-04  2.664941e-04
+  3.600000e-04  2.664468e-04
+  3.700000e-04  3.391450e-04
+  3.800000e-04  4.227530e-04
+  3.900000e-04  3.423215e-04
+  4.000000e-04  3.826309e-04
+  4.100000e-04  3.384224e-04
+  4.200000e-04  2.087362e-04
+  4.300000e-04  2.091675e-04
+  4.400000e-04  5.836767e-04
+  4.500000e-04  1.930400e-04
+  4.600000e-04  3.604388e-04
+  4.700000e-04  5.175362e-04
+  4.800000e-04  2.638679e-04
+  4.900000e-04  1.985851e-04
+  5.000000e-04  4.251392e-04
+  5.100000e-04  2.657167e-04
+  5.200000e-04  3.648064e-04
+  5.300000e-04  4.956889e-04
+  5.400000e-04  3.014522e-04
+  5.500000e-04  1.876294e-04
+  5.600000e-04  4.511560e-04
+  5.700000e-04  3.885807e-04
+  5.800000e-04  2.324782e-04
+  5.900000e-04  4.166381e-04
+  6.000000e-04  2.756752e-04
+  6.100000e-04  2.664388e-04
+  6.200000e-04  2.090940e-04
+  6.300000e-04  1.832648e-04
+  6.400000e-04  1.148648e-04
+  6.500000e-04  2.081537e-04
+  6.600000e-04  1.619711e-04
+  6.700000e-04  2.241391e-04
+  6.800000e-04  5.496223e-04
+  6.900000e-04  4.128288e-04
+  7.000000e-04  4.273806e-04
+  7.100000e-04  2.238267e-04
+  7.200000e-04  2.898687e-04
+  7.300000e-04  9.086870e-05
+  7.400000e-04  1.594779e-04
+  7.500000e-04  1.608620e-04
+  7.600000e-04  4.506285e-04
+  7.700000e-04  3.976509e-04
+  7.800000e-04  3.970872e-04
+  7.900000e-04  3.672099e-04
+  8.000000e-04  2.865727e-04
+  8.100000e-04  1.725242e-04
+  8.200000e-04  1.918456e-04
+  8.300000e-04  2.743512e-04
+  8.400000e-04  3.016529e-04
+  8.500000e-04  4.013688e-04
+  8.600000e-04  3.907868e-04
+  8.700000e-04  4.552606e-04
+  8.800000e-04  3.487490e-04
+  8.900000e-04  1.765900e-04
+  9.000000e-04  1.528395e-04
+  9.100000e-04  1.778132e-04
+  9.200000e-04  2.805457e-04
+  9.300000e-04  2.115608e-04
+  9.400000e-04  4.695215e-04
+  9.500000e-04  4.465746e-04
+  9.600000e-04  4.394894e-04
+  9.700000e-04  1.798901e-04
+  9.800000e-04  1.588613e-04
+  9.900000e-04  1.082667e-04
+  1.000000e-03  2.189718e-04
+
+#
+# Curve 2 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 3: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.328190e-04
+  2.200000e-04  6.589273e-04
+  2.300000e-04  3.799449e-04
+  2.400000e-04  3.854287e-04
+  2.500000e-04  1.359404e-04
+  2.600000e-04  1.450548e-04
+  2.700000e-04  2.021466e-04
+  2.800000e-04  1.546025e-04
+  2.900000e-04  7.087814e-05
+  3.000000e-04  2.060027e-04
+  3.100000e-04  1.537897e-04
+  3.200000e-04  3.866548e-05
+  3.300000e-04  6.879221e-05
+  3.400000e-04  4.211892e-04
+  3.500000e-04  2.399241e-04
+  3.600000e-04  2.967300e-04
+  3.700000e-04  3.534599e-04
+  3.800000e-04  3.955018e-04
+  3.900000e-04  3.490990e-04
+  4.000000e-04  3.689281e-04
+  4.100000e-04  3.115239e-04
+  4.200000e-04  2.222817e-04
+  4.300000e-04  2.002321e-04
+  4.400000e-04  5.548066e-04
+  4.500000e-04  2.205209e-04
+  4.600000e-04  3.661055e-04
+  4.700000e-04  4.836270e-04
+  4.800000e-04  2.628213e-04
+  4.900000e-04  2.095558e-04
+  5.000000e-04  4.073982e-04
+  5.100000e-04  2.687162e-04
+  5.200000e-04  3.497123e-04
+  5.300000e-04  4.641179e-04
+  5.400000e-04  2.954935e-04
+  5.500000e-04  2.229075e-04
+  5.600000e-04  4.093305e-04
+  5.700000e-04  3.698990e-04
+  5.800000e-04  2.485900e-04
+  5.900000e-04  4.053022e-04
+  6.000000e-04  2.531278e-04
+  6.100000e-04  2.653390e-04
+  6.200000e-04  1.862876e-04
+  6.300000e-04  2.047875e-04
+  6.400000e-04  1.437972e-04
+  6.500000e-04  2.546062e-04
+  6.600000e-04  1.602313e-04
+  6.700000e-04  2.349812e-04
+  6.800000e-04  5.866667e-04
+  6.900000e-04  4.478085e-04
+  7.000000e-04  4.407131e-04
+  7.100000e-04  2.363111e-04
+  7.200000e-04  2.820064e-04
+  7.300000e-04  8.549208e-05
+  7.400000e-04  1.738314e-04
+  7.500000e-04  1.868911e-04
+  7.600000e-04  4.515494e-04
+  7.700000e-04  4.144621e-04
+  7.800000e-04  4.235227e-04
+  7.900000e-04  3.837608e-04
+  8.000000e-04  3.126273e-04
+  8.100000e-04  1.947183e-04
+  8.200000e-04  1.659906e-04
+  8.300000e-04  2.790210e-04
+  8.400000e-04  2.931905e-04
+  8.500000e-04  4.332805e-04
+  8.600000e-04  4.103310e-04
+  8.700000e-04  4.883303e-04
+  8.800000e-04  3.540928e-04
+  8.900000e-04  2.058194e-04
+  9.000000e-04  1.560048e-04
+  9.100000e-04  1.697166e-04
+  9.200000e-04  3.169150e-04
+  9.300000e-04  2.284384e-04
+  9.400000e-04  4.687698e-04
+  9.500000e-04  4.692482e-04
+  9.600000e-04  4.614851e-04
+  9.700000e-04  1.906882e-04
+  9.800000e-04  1.899439e-04
+  9.900000e-04  1.126914e-04
+  1.000000e-03  2.257423e-04
+
+#
+# Curve 3 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 5: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.586710e-04
+  2.200000e-04  6.799719e-04
+  2.300000e-04  3.908798e-04
+  2.400000e-04  3.379643e-04
+  2.500000e-04  1.212145e-04
+  2.600000e-04  1.896420e-04
+  2.700000e-04  2.105701e-04
+  2.800000e-04  1.464883e-04
+  2.900000e-04  6.499208e-05
+  3.000000e-04  2.115409e-04
+  3.100000e-04  1.312810e-04
+  3.200000e-04  4.335286e-05
+  3.300000e-04  6.359186e-05
+  3.400000e-04  4.322317e-04
+  3.500000e-04  2.663363e-04
+  3.600000e-04  2.663052e-04
+  3.700000e-04  3.392446e-04
+  3.800000e-04  4.229592e-04
+  3.900000e-04  3.424701e-04
+  4.000000e-04  3.826408e-04
+  4.100000e-04  3.384017e-04
+  4.200000e-04  2.089655e-04
+  4.300000e-04  2.091316e-04
+  4.400000e-04  5.835241e-04
+  4.500000e-04  1.929681e-04
+  4.600000e-04  3.605898e-04
+  4.700000e-04  5.177472e-04
+  4.800000e-04  2.639801e-04
+  4.900000e-04  1.983201e-04
+  5.000000e-04  4.250020e-04
+  5.100000e-04  2.658737e-04
+  5.200000e-04  3.649437e-04
+  5.300000e-04  4.957318e-04
+  5.400000e-04  3.014558e-04
+  5.500000e-04  1.878196e-04
+  5.600000e-04  4.511341e-04
+  5.700000e-04  3.884414e-04
+  5.800000e-04  2.324627e-04
+  5.900000e-04  4.169571e-04
+  6.000000e-04  2.759653e-04
+  6.100000e-04  2.664365e-04
+  6.200000e-04  2.088796e-04
+  6.300000e-04  1.832939e-04
+  6.400000e-04  1.149845e-04
+  6.500000e-04  2.083721e-04
+  6.600000e-04  1.617751e-04
+  6.700000e-04  2.239123e-04
+  6.800000e-04  5.496997e-04
+  6.900000e-04  4.127848e-04
+  7.000000e-04  4.274144e-04
+  7.100000e-04  2.239999e-04
+  7.200000e-04  2.899557e-04
+  7.300000e-04  9.086631e-05
+  7.400000e-04  1.594215e-04
+  7.500000e-04  1.608089e-04
+  7.600000e-04  4.507862e-04
+  7.700000e-04  3.977062e-04
+  7.800000e-04  3.969996e-04
+  7.900000e-04  3.670787e-04
+  8.000000e-04  2.866417e-04
+  8.100000e-04  1.727572e-04
+  8.200000e-04  1.918205e-04
+  8.300000e-04  2.742378e-04
+  8.400000e-04  3.014753e-04
+  8.500000e-04  4.014843e-04
+  8.600000e-04  3.909333e-04
+  8.700000e-04  4.553598e-04
+  8.800000e-04  3.486896e-04
+  8.900000e-04  1.764983e-04
+  9.000000e-04  1.529409e-04
+  9.100000e-04  1.778309e-04
+  9.200000e-04  2.805956e-04
+  9.300000e-04  2.117525e-04
+  9.400000e-04  4.695668e-04
+  9.500000e-04  4.464905e-04
+  9.600000e-04  4.393746e-04
+  9.700000e-04  1.799507e-04
+  9.800000e-04  1.590866e-04
+  9.900000e-04  1.083324e-04
+  1.000000e-03  2.188313e-04
+
+#
+# Curve 4 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 8: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.147619e-04
+  2.200000e-04  1.414922e-04
+  2.300000e-04  4.292872e-04
+  2.400000e-04  1.501491e-04
+  2.500000e-04  3.127801e-04
+  2.600000e-04  1.378186e-04
+  2.700000e-04  1.002416e-04
+  2.800000e-04  1.109495e-04
+  2.900000e-04  1.403819e-04
+  3.000000e-04  1.143444e-04
+  3.100000e-04  7.682011e-05
+  3.200000e-04  7.165304e-05
+  3.300000e-04  1.043335e-04
+  3.400000e-04  1.830019e-04
+  3.500000e-04  1.401400e-04
+  3.600000e-04  1.444060e-04
+  3.700000e-04  1.117448e-04
+  3.800000e-04  1.168986e-04
+  3.900000e-04  7.579760e-05
+  4.000000e-04  8.444456e-05
+  4.100000e-04  1.407801e-04
+  4.200000e-04  1.194892e-04
+  4.300000e-04  1.924091e-04
+  4.400000e-04  8.810601e-05
+  4.500000e-04  1.192599e-04
+  4.600000e-04  1.432687e-04
+  4.700000e-04  1.295936e-04
+  4.800000e-04  1.300538e-04
+  4.900000e-04  1.053163e-04
+  5.000000e-04  8.590846e-05
+  5.100000e-04  1.271542e-04
+  5.200000e-04  1.456129e-04
+  5.300000e-04  1.710070e-04
+  5.400000e-04  1.451584e-04
+  5.500000e-04  1.144784e-04
+  5.600000e-04  8.575433e-05
+  5.700000e-04  1.090563e-04
+  5.800000e-04  1.224142e-04
+  5.900000e-04  1.081967e-04
+  6.000000e-04  1.227571e-04
+  6.100000e-04  8.494713e-05
+  6.200000e-04  3.140527e-05
+  6.300000e-04  3.911170e-05
+  6.400000e-04  1.503219e-04
+  6.500000e-04  8.065633e-05
+  6.600000e-04  1.300858e-04
+  6.700000e-04  9.110763e-05
+  6.800000e-04  1.171646e-04
+  6.900000e-04  9.954593e-05
+  7.000000e-04  1.937654e-04
+  7.100000e-04  1.258565e-04
+  7.200000e-04  1.024908e-04
+  7.300000e-04  8.113975e-05
+  7.400000e-04  1.252699e-04
+  7.500000e-04  6.804687e-05
+  7.600000e-04  1.088119e-04
+  7.700000e-04  1.788586e-04
+  7.800000e-04  2.273801e-04
+  7.900000e-04  1.261865e-04
+  8.000000e-04  1.210348e-04
+  8.100000e-04  7.696268e-05
+  8.200000e-04  3.503093e-05
+  8.300000e-04  1.036168e-04
+  8.400000e-04  6.759779e-05
+  8.500000e-04  1.432486e-04
+  8.600000e-04  1.291589e-04
+  8.700000e-04  1.315564e-04
+  8.800000e-04  1.065071e-04
+  8.900000e-04  1.096157e-04
+  9.000000e-04  4.484615e-05
+  9.100000e-04  9.141478e-05
+  9.200000e-04  1.081145e-04
+  9.300000e-04  1.027340e-04
+  9.400000e-04  2.158507e-04
+  9.500000e-04  1.392067e-04
+  9.600000e-04  1.425499e-04
+  9.700000e-04  5.900749e-05
+  9.800000e-04  6.860815e-05
+  9.900000e-04  6.259621e-05
+  1.000000e-03  9.592599e-05
+
+#
+# Curve 5 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 12: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.146797e-04
+  2.200000e-04  1.416647e-04
+  2.300000e-04  4.290815e-04
+  2.400000e-04  1.499069e-04
+  2.500000e-04  3.128438e-04
+  2.600000e-04  1.400396e-04
+  2.700000e-04  1.008468e-04
+  2.800000e-04  1.119709e-04
+  2.900000e-04  1.419842e-04
+  3.000000e-04  1.145511e-04
+  3.100000e-04  7.678338e-05
+  3.200000e-04  7.287231e-05
+  3.300000e-04  1.042951e-04
+  3.400000e-04  1.827934e-04
+  3.500000e-04  1.393575e-04
+  3.600000e-04  1.447305e-04
+  3.700000e-04  1.121856e-04
+  3.800000e-04  1.166386e-04
+  3.900000e-04  7.584762e-05
+  4.000000e-04  8.488897e-05
+  4.100000e-04  1.402353e-04
+  4.200000e-04  1.193917e-04
+  4.300000e-04  1.923942e-04
+  4.400000e-04  8.767240e-05
+  4.500000e-04  1.188393e-04
+  4.600000e-04  1.433347e-04
+  4.700000e-04  1.298113e-04
+  4.800000e-04  1.299381e-04
+  4.900000e-04  1.048090e-04
+  5.000000e-04  8.554545e-05
+  5.100000e-04  1.272581e-04
+  5.200000e-04  1.457826e-04
+  5.300000e-04  1.709002e-04
+  5.400000e-04  1.450513e-04
+  5.500000e-04  1.144430e-04
+  5.600000e-04  8.560865e-05
+  5.700000e-04  1.087844e-04
+  5.800000e-04  1.221495e-04
+  5.900000e-04  1.080557e-04
+  6.000000e-04  1.229644e-04
+  6.100000e-04  8.489975e-05
+  6.200000e-04  3.125985e-05
+  6.300000e-04  3.914009e-05
+  6.400000e-04  1.503496e-04
+  6.500000e-04  8.045946e-05
+  6.600000e-04  1.300621e-04
+  6.700000e-04  9.110982e-05
+  6.800000e-04  1.171240e-04
+  6.900000e-04  9.950052e-05
+  7.000000e-04  1.937910e-04
+  7.100000e-04  1.258835e-04
+  7.200000e-04  1.025941e-04
+  7.300000e-04  8.105861e-05
+  7.400000e-04  1.253705e-04
+  7.500000e-04  6.803467e-05
+  7.600000e-04  1.087893e-04
+  7.700000e-04  1.788074e-04
+  7.800000e-04  2.274365e-04
+  7.900000e-04  1.262267e-04
+  8.000000e-04  1.209283e-04
+  8.100000e-04  7.690598e-05
+  8.200000e-04  3.508293e-05
+  8.300000e-04  1.037231e-04
+  8.400000e-04  6.763574e-05
+  8.500000e-04  1.431963e-04
+  8.600000e-04  1.291010e-04
+  8.700000e-04  1.316652e-04
+  8.800000e-04  1.066539e-04
+  8.900000e-04  1.097100e-04
+  9.000000e-04  4.486758e-05
+  9.100000e-04  9.143914e-05
+  9.200000e-04  1.080725e-04
+  9.300000e-04  1.027449e-04
+  9.400000e-04  2.157795e-04
+  9.500000e-04  1.392544e-04
+  9.600000e-04  1.426831e-04
+  9.700000e-04  5.904843e-05
+  9.800000e-04  6.858764e-05
+  9.900000e-04  6.261442e-05
+  1.000000e-03  9.595053e-05
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  2nd Invariant of Strain
+# Shells - 1: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  3.067123e-04
+  2.200000e-04  7.016204e-04
+  2.300000e-04  4.489211e-04
+  2.400000e-04  3.399318e-04
+  2.500000e-04  1.677027e-04
+  2.600000e-04  2.047223e-04
+  2.700000e-04  2.258283e-04
+  2.800000e-04  1.723787e-04
+  2.900000e-04  1.084503e-04
+  3.000000e-04  2.279320e-04
+  3.100000e-04  1.887022e-04
+  3.200000e-04  6.269092e-05
+  3.300000e-04  1.476228e-04
+  3.400000e-04  4.912165e-04
+  3.500000e-04  2.504009e-04
+  3.600000e-04  2.547019e-04
+  3.700000e-04  2.633282e-04
+  3.800000e-04  4.410685e-04
+  3.900000e-04  2.054921e-04
+  4.000000e-04  3.169915e-04
+  4.100000e-04  2.791071e-04
+  4.200000e-04  1.222167e-04
+  4.300000e-04  4.160658e-04
+  4.400000e-04  4.033113e-04
+  4.500000e-04  2.293518e-04
+  4.600000e-04  1.783518e-04
+  4.700000e-04  4.587352e-04
+  4.800000e-04  2.574415e-04
+  4.900000e-04  1.841508e-04
+  5.000000e-04  3.272683e-04
+  5.100000e-04  2.736325e-04
+  5.200000e-04  2.746829e-04
+  5.300000e-04  5.061938e-04
+  5.400000e-04  1.619096e-04
+  5.500000e-04  1.714653e-04
+  5.600000e-04  4.202102e-04
+  5.700000e-04  3.653626e-04
+  5.800000e-04  2.460561e-04
+  5.900000e-04  2.069504e-04
+  6.000000e-04  3.731672e-04
+  6.100000e-04  2.282806e-04
+  6.200000e-04  1.350970e-04
+  6.300000e-04  8.810240e-05
+  6.400000e-04  1.803970e-04
+  6.500000e-04  1.672826e-04
+  6.600000e-04  1.102672e-04
+  6.700000e-04  1.592959e-04
+  6.800000e-04  4.183018e-04
+  6.900000e-04  5.081276e-04
+  7.000000e-04  2.153988e-04
+  7.100000e-04  3.072284e-04
+  7.200000e-04  2.301310e-04
+  7.300000e-04  1.202415e-04
+  7.400000e-04  2.136975e-04
+  7.500000e-04  1.782130e-04
+  7.600000e-04  4.488680e-04
+  7.700000e-04  4.643960e-04
+  7.800000e-04  3.112933e-04
+  7.900000e-04  3.075529e-04
+  8.000000e-04  3.157219e-04
+  8.100000e-04  3.466863e-05
+  8.200000e-04  1.192657e-04
+  8.300000e-04  9.867861e-05
+  8.400000e-04  4.074917e-04
+  8.500000e-04  2.105484e-04
+  8.600000e-04  3.100289e-04
+  8.700000e-04  4.305061e-04
+  8.800000e-04  4.349333e-04
+  8.900000e-04  9.437930e-05
+  9.000000e-04  1.707525e-04
+  9.100000e-04  1.276755e-04
+  9.200000e-04  2.014197e-04
+  9.300000e-04  2.623735e-04
+  9.400000e-04  3.653944e-04
+  9.500000e-04  6.032350e-04
+  9.600000e-04  3.101098e-04
+  9.700000e-04  1.199998e-04
+  9.800000e-04  1.179273e-04
+  9.900000e-04  2.421524e-04
+  1.000000e-03  1.402089e-04
+
+#
+# Curve 2 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  2nd Invariant of Strain
+# Shells - 3: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.955159e-04
+  2.200000e-04  6.739119e-04
+  2.300000e-04  4.524692e-04
+  2.400000e-04  3.877830e-04
+  2.500000e-04  1.811129e-04
+  2.600000e-04  1.565794e-04
+  2.700000e-04  2.231496e-04
+  2.800000e-04  2.021364e-04
+  2.900000e-04  1.245264e-04
+  3.000000e-04  2.231470e-04
+  3.100000e-04  2.116216e-04
+  3.200000e-04  5.055599e-05
+  3.300000e-04  1.509895e-04
+  3.400000e-04  4.832320e-04
+  3.500000e-04  2.422067e-04
+  3.600000e-04  3.116947e-04
+  3.700000e-04  1.949299e-04
+  3.800000e-04  4.132657e-04
+  3.900000e-04  2.276934e-04
+  4.000000e-04  2.769030e-04
+  4.100000e-04  2.570116e-04
+  4.200000e-04  1.815317e-04
+  4.300000e-04  3.697800e-04
+  4.400000e-04  3.614268e-04
+  4.500000e-04  2.359234e-04
+  4.600000e-04  1.518585e-04
+  4.700000e-04  4.103152e-04
+  4.800000e-04  2.674837e-04
+  4.900000e-04  1.995763e-04
+  5.000000e-04  2.790867e-04
+  5.100000e-04  2.582618e-04
+  5.200000e-04  2.520767e-04
+  5.300000e-04  4.586035e-04
+  5.400000e-04  1.370927e-04
+  5.500000e-04  2.057632e-04
+  5.600000e-04  3.906067e-04
+  5.700000e-04  3.305716e-04
+  5.800000e-04  2.423130e-04
+  5.900000e-04  1.651991e-04
+  6.000000e-04  3.490470e-04
+  6.100000e-04  1.960058e-04
+  6.200000e-04  1.067592e-04
+  6.300000e-04  1.344357e-04
+  6.400000e-04  1.450696e-04
+  6.500000e-04  1.425162e-04
+  6.600000e-04  1.380675e-04
+  6.700000e-04  1.661688e-04
+  6.800000e-04  3.925246e-04
+  6.900000e-04  4.857552e-04
+  7.000000e-04  2.095343e-04
+  7.100000e-04  3.068217e-04
+  7.200000e-04  2.491036e-04
+  7.300000e-04  1.209980e-04
+  7.400000e-04  2.308343e-04
+  7.500000e-04  1.749949e-04
+  7.600000e-04  4.309301e-04
+  7.700000e-04  4.844942e-04
+  7.800000e-04  2.984537e-04
+  7.900000e-04  2.653478e-04
+  8.000000e-04  3.118916e-04
+  8.100000e-04  7.281460e-05
+  8.200000e-04  1.536276e-04
+  8.300000e-04  1.142960e-04
+  8.400000e-04  4.004578e-04
+  8.500000e-04  1.838820e-04
+  8.600000e-04  3.075252e-04
+  8.700000e-04  4.112729e-04
+  8.800000e-04  4.364017e-04
+  8.900000e-04  8.033114e-05
+  9.000000e-04  1.953459e-04
+  9.100000e-04  1.181199e-04
+  9.200000e-04  1.658154e-04
+  9.300000e-04  2.588432e-04
+  9.400000e-04  3.649954e-04
+  9.500000e-04  6.007545e-04
+  9.600000e-04  2.914559e-04
+  9.700000e-04  1.188724e-04
+  9.800000e-04  1.565047e-04
+  9.900000e-04  2.274681e-04
+  1.000000e-03  1.218275e-04
+
+#
+# Curve 3 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  2nd Invariant of Strain
+# Shells - 5: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  3.064296e-04
+  2.200000e-04  7.013766e-04
+  2.300000e-04  4.484124e-04
+  2.400000e-04  3.394746e-04
+  2.500000e-04  1.676766e-04
+  2.600000e-04  2.050552e-04
+  2.700000e-04  2.254718e-04
+  2.800000e-04  1.721901e-04
+  2.900000e-04  1.082974e-04
+  3.000000e-04  2.278875e-04
+  3.100000e-04  1.887115e-04
+  3.200000e-04  6.333006e-05
+  3.300000e-04  1.473461e-04
+  3.400000e-04  4.910566e-04
+  3.500000e-04  2.508746e-04
+  3.600000e-04  2.545197e-04
+  3.700000e-04  2.634865e-04
+  3.800000e-04  4.409321e-04
+  3.900000e-04  2.053687e-04
+  4.000000e-04  3.170662e-04
+  4.100000e-04  2.791489e-04
+  4.200000e-04  1.223282e-04
+  4.300000e-04  4.162955e-04
+  4.400000e-04  4.037074e-04
+  4.500000e-04  2.294792e-04
+  4.600000e-04  1.783108e-04
+  4.700000e-04  4.586210e-04
+  4.800000e-04  2.575278e-04
+  4.900000e-04  1.846363e-04
+  5.000000e-04  3.275755e-04
+  5.100000e-04  2.736960e-04
+  5.200000e-04  2.746508e-04
+  5.300000e-04  5.061944e-04
+  5.400000e-04  1.619760e-04
+  5.500000e-04  1.715476e-04
+  5.600000e-04  4.204426e-04
+  5.700000e-04  3.656829e-04
+  5.800000e-04  2.461851e-04
+  5.900000e-04  2.068477e-04
+  6.000000e-04  3.730397e-04
+  6.100000e-04  2.284635e-04
+  6.200000e-04  1.354939e-04
+  6.300000e-04  8.813411e-05
+  6.400000e-04  1.802668e-04
+  6.500000e-04  1.673328e-04
+  6.600000e-04  1.100807e-04
+  6.700000e-04  1.594889e-04
+  6.800000e-04  4.185278e-04
+  6.900000e-04  5.082072e-04
+  7.000000e-04  2.154997e-04
+  7.100000e-04  3.072181e-04
+  7.200000e-04  2.300415e-04
+  7.300000e-04  1.203398e-04
+  7.400000e-04  2.134485e-04
+  7.500000e-04  1.782824e-04
+  7.600000e-04  4.489322e-04
+  7.700000e-04  4.644975e-04
+  7.800000e-04  3.113912e-04
+  7.900000e-04  3.077804e-04
+  8.000000e-04  3.157125e-04
+  8.100000e-04  3.471224e-05
+  8.200000e-04  1.192755e-04
+  8.300000e-04  9.881686e-05
+  8.400000e-04  4.077279e-04
+  8.500000e-04  2.106673e-04
+  8.600000e-04  3.099347e-04
+  8.700000e-04  4.304892e-04
+  8.800000e-04  4.351060e-04
+  8.900000e-04  9.454620e-05
+  9.000000e-04  1.707178e-04
+  9.100000e-04  1.278451e-04
+  9.200000e-04  2.013595e-04
+  9.300000e-04  2.623590e-04
+  9.400000e-04  3.654235e-04
+  9.500000e-04  6.033785e-04
+  9.600000e-04  3.103875e-04
+  9.700000e-04  1.200812e-04
+  9.800000e-04  1.180167e-04
+  9.900000e-04  2.422173e-04
+  1.000000e-03  1.403614e-04
+
+#
+# Curve 4 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  2nd Invariant of Strain
+# Shells - 8: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.188202e-04
+  2.200000e-04  1.458508e-04
+  2.300000e-04  4.307600e-04
+  2.400000e-04  1.426802e-04
+  2.500000e-04  3.167505e-04
+  2.600000e-04  1.327134e-04
+  2.700000e-04  9.370366e-05
+  2.800000e-04  1.095262e-04
+  2.900000e-04  1.339888e-04
+  3.000000e-04  1.108185e-04
+  3.100000e-04  6.188910e-05
+  3.200000e-04  5.702903e-05
+  3.300000e-04  8.190898e-05
+  3.400000e-04  1.713996e-04
+  3.500000e-04  1.462103e-04
+  3.600000e-04  1.542360e-04
+  3.700000e-04  1.646614e-04
+  3.800000e-04  1.023116e-04
+  3.900000e-04  1.329949e-04
+  4.000000e-04  1.101324e-04
+  4.100000e-04  1.532488e-04
+  4.200000e-04  1.626218e-04
+  4.300000e-04  1.593964e-04
+  4.400000e-04  1.421388e-04
+  4.500000e-04  1.189399e-04
+  4.600000e-04  1.859026e-04
+  4.700000e-04  1.249701e-04
+  4.800000e-04  1.212028e-04
+  4.900000e-04  1.084757e-04
+  5.000000e-04  1.173914e-04
+  5.100000e-04  1.238999e-04
+  5.200000e-04  1.608739e-04
+  5.300000e-04  1.730952e-04
+  5.400000e-04  1.749487e-04
+  5.500000e-04  1.172784e-04
+  5.600000e-04  9.084031e-05
+  5.700000e-04  1.271669e-04
+  5.800000e-04  1.203553e-04
+  5.900000e-04  1.731376e-04
+  6.000000e-04  9.693972e-05
+  6.100000e-04  1.119937e-04
+  6.200000e-04  6.836114e-05
+  6.300000e-04  8.523071e-05
+  6.400000e-04  1.301196e-04
+  6.500000e-04  8.516113e-05
+  6.600000e-04  9.080493e-05
+  6.700000e-04  5.951092e-05
+  6.800000e-04  1.037813e-04
+  6.900000e-04  1.475482e-04
+  7.000000e-04  1.229435e-04
+  7.100000e-04  1.599438e-04
+  7.200000e-04  6.753425e-05
+  7.300000e-04  9.915431e-05
+  7.400000e-04  1.162614e-04
+  7.500000e-04  6.160128e-05
+  7.600000e-04  1.164722e-04
+  7.700000e-04  2.126237e-04
+  7.800000e-04  1.996917e-04
+  7.900000e-04  9.463391e-05
+  8.000000e-04  1.075204e-04
+  8.100000e-04  7.117466e-05
+  8.200000e-04  4.374087e-05
+  8.300000e-04  4.392484e-05
+  8.400000e-04  1.317858e-04
+  8.500000e-04  7.288505e-05
+  8.600000e-04  1.024064e-04
+  8.700000e-04  1.153370e-04
+  8.800000e-04  1.497387e-04
+  8.900000e-04  7.178420e-05
+  9.000000e-04  2.695054e-05
+  9.100000e-04  9.055703e-05
+  9.200000e-04  1.041511e-04
+  9.300000e-04  1.260030e-04
+  9.400000e-04  1.915597e-04
+  9.500000e-04  2.247887e-04
+  9.600000e-04  8.981065e-05
+  9.700000e-04  3.844313e-05
+  9.800000e-04  8.737281e-05
+  9.900000e-04  6.057581e-05
+  1.000000e-03  6.179282e-05
+
+#
+# Curve 5 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  2nd Invariant of Strain
+# Shells - 12: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.187495e-04
+  2.200000e-04  1.456714e-04
+  2.300000e-04  4.304498e-04
+  2.400000e-04  1.424045e-04
+  2.500000e-04  3.168218e-04
+  2.600000e-04  1.350718e-04
+  2.700000e-04  9.437570e-05
+  2.800000e-04  1.105200e-04
+  2.900000e-04  1.356551e-04
+  3.000000e-04  1.110781e-04
+  3.100000e-04  6.194884e-05
+  3.200000e-04  5.833796e-05
+  3.300000e-04  8.175647e-05
+  3.400000e-04  1.711918e-04
+  3.500000e-04  1.455208e-04
+  3.600000e-04  1.545538e-04
+  3.700000e-04  1.649972e-04
+  3.800000e-04  1.018231e-04
+  3.900000e-04  1.328395e-04
+  4.000000e-04  1.104486e-04
+  4.100000e-04  1.527249e-04
+  4.200000e-04  1.626134e-04
+  4.300000e-04  1.594868e-04
+  4.400000e-04  1.418262e-04
+  4.500000e-04  1.184261e-04
+  4.600000e-04  1.859367e-04
+  4.700000e-04  1.249796e-04
+  4.800000e-04  1.215994e-04
+  4.900000e-04  1.086690e-04
+  5.000000e-04  1.173771e-04
+  5.100000e-04  1.238597e-04
+  5.200000e-04  1.607614e-04
+  5.300000e-04  1.728766e-04
+  5.400000e-04  1.749019e-04
+  5.500000e-04  1.172334e-04
+  5.600000e-04  9.085972e-05
+  5.700000e-04  1.273066e-04
+  5.800000e-04  1.202737e-04
+  5.900000e-04  1.730029e-04
+  6.000000e-04  9.694279e-05
+  6.100000e-04  1.119308e-04
+  6.200000e-04  6.852029e-05
+  6.300000e-04  8.535046e-05
+  6.400000e-04  1.300207e-04
+  6.500000e-04  8.503459e-05
+  6.600000e-04  9.077779e-05
+  6.700000e-04  5.942834e-05
+  6.800000e-04  1.037768e-04
+  6.900000e-04  1.476385e-04
+  7.000000e-04  1.229447e-04
+  7.100000e-04  1.598512e-04
+  7.200000e-04  6.749046e-05
+  7.300000e-04  9.908304e-05
+  7.400000e-04  1.163236e-04
+  7.500000e-04  6.169272e-05
+  7.600000e-04  1.166014e-04
+  7.700000e-04  2.126913e-04
+  7.800000e-04  1.995920e-04
+  7.900000e-04  9.451094e-05
+  8.000000e-04  1.074315e-04
+  8.100000e-04  7.112820e-05
+  8.200000e-04  4.374823e-05
+  8.300000e-04  4.391450e-05
+  8.400000e-04  1.318048e-04
+  8.500000e-04  7.298245e-05
+  8.600000e-04  1.024850e-04
+  8.700000e-04  1.152607e-04
+  8.800000e-04  1.495940e-04
+  8.900000e-04  7.172267e-05
+  9.000000e-04  2.691870e-05
+  9.100000e-04  9.057571e-05
+  9.200000e-04  1.040918e-04
+  9.300000e-04  1.260513e-04
+  9.400000e-04  1.916082e-04
+  9.500000e-04  2.247724e-04
+  9.600000e-04  8.973667e-05
+  9.700000e-04  3.845767e-05
+  9.800000e-04  8.729335e-05
+  9.900000e-04  6.062667e-05
+  1.000000e-03  6.176160e-05
+
+#
+# Curve 1 - Shells 1
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 1: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  6.639573e-05
+  2.200000e-04  3.584383e-05
+  2.300000e-04  3.534390e-05
+  2.400000e-04  -1.550056e-06
+  2.500000e-04  4.707981e-05
+  2.600000e-04  6.661343e-06
+  2.700000e-04  8.514544e-07
+  2.800000e-04  2.596681e-05
+  2.900000e-04  -7.672148e-06
+  3.000000e-04  -3.403176e-05
+  3.100000e-04  -4.578957e-05
+  3.200000e-04  -4.503138e-07
+  3.300000e-04  1.217759e-05
+  3.400000e-04  -4.077730e-05
+  3.500000e-04  -2.025857e-05
+  3.600000e-04  4.055924e-05
+  3.700000e-04  -6.340574e-05
+  3.800000e-04  -3.505644e-05
+  3.900000e-04  9.174547e-05
+  4.000000e-04  -7.768798e-05
+  4.100000e-04  -1.550341e-05
+  4.200000e-04  4.264233e-05
+  4.300000e-04  -3.322736e-05
+  4.400000e-04  -7.088863e-05
+  4.500000e-04  6.227248e-05
+  4.600000e-04  -1.350112e-05
+  4.700000e-04  -5.489209e-05
+  4.800000e-04  3.487841e-05
+  4.900000e-04  4.389741e-05
+  5.000000e-04  -7.066960e-05
+  5.100000e-04  3.968780e-07
+  5.200000e-04  -3.898696e-05
+  5.300000e-04  -7.625061e-05
+  5.400000e-04  -4.154248e-05
+  5.500000e-04  9.221662e-05
+  5.600000e-04  -6.943254e-05
+  5.700000e-04  -7.382098e-05
+  5.800000e-04  3.760525e-05
+  5.900000e-04  -8.466681e-05
+  6.000000e-04  -4.034441e-05
+  6.100000e-04  -3.389497e-05
+  6.200000e-04  -3.869468e-05
+  6.300000e-04  2.418405e-05
+  6.400000e-04  -1.201145e-05
+  6.500000e-04  -4.381283e-05
+  6.600000e-04  5.767211e-05
+  6.700000e-04  3.412869e-05
+  6.800000e-04  -1.027989e-04
+  6.900000e-04  -6.226252e-05
+  7.000000e-04  -2.003640e-05
+  7.100000e-04  3.975869e-05
+  7.200000e-04  -3.350230e-05
+  7.300000e-04  3.410458e-06
+  7.400000e-04  4.455134e-05
+  7.500000e-04  -7.430372e-06
+  7.600000e-04  -8.383393e-05
+  7.700000e-04  -2.573766e-05
+  7.800000e-04  -1.400340e-05
+  7.900000e-04  -5.008995e-05
+  8.000000e-04  -4.503317e-05
+  8.100000e-04  -4.982017e-06
+  8.200000e-04  -3.781322e-05
+  8.300000e-04  -1.541496e-05
+  8.400000e-04  -5.265918e-05
+  8.500000e-04  -4.982834e-06
+  8.600000e-04  -3.893083e-05
+  8.700000e-04  -8.183907e-05
+  8.800000e-04  -5.552921e-05
+  8.900000e-04  2.532124e-05
+  9.000000e-04  5.584159e-06
+  9.100000e-04  -2.949480e-05
+  9.200000e-04  -5.385934e-05
+  9.300000e-04  4.596576e-05
+  9.400000e-04  -6.628479e-05
+  9.500000e-04  -7.978757e-05
+  9.600000e-04  -4.542265e-05
+  9.700000e-04  2.153572e-05
+  9.800000e-04  5.586492e-05
+  9.900000e-04  -1.741657e-05
+  1.000000e-03  -3.648260e-05
+
+#
+# Curve 2 - Shells 3
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 3: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  4.664520e-05
+  2.200000e-04  3.575668e-05
+  2.300000e-04  4.208408e-05
+  2.400000e-04  -8.290063e-06
+  2.500000e-04  3.929031e-05
+  2.600000e-04  -4.336836e-06
+  2.700000e-04  -1.234897e-05
+  2.800000e-04  3.484419e-05
+  2.900000e-04  -1.764392e-05
+  3.000000e-04  -3.688259e-05
+  3.100000e-04  -6.858051e-05
+  3.200000e-04  -7.369849e-06
+  3.300000e-04  1.938161e-05
+  3.400000e-04  -4.483553e-05
+  3.500000e-04  -9.053811e-06
+  3.600000e-04  4.897184e-05
+  3.700000e-04  -6.004141e-05
+  3.800000e-04  -3.148559e-05
+  3.900000e-04  1.273831e-04
+  4.000000e-04  -6.902422e-05
+  4.100000e-04  7.630420e-06
+  4.200000e-04  7.387171e-05
+  4.300000e-04  -3.787607e-05
+  4.400000e-04  -7.178060e-05
+  4.500000e-04  1.108163e-04
+  4.600000e-04  1.945637e-05
+  4.700000e-04  -7.236053e-05
+  4.800000e-04  8.682090e-05
+  4.900000e-04  8.951548e-05
+  5.000000e-04  -6.028075e-05
+  5.100000e-04  4.089101e-05
+  5.200000e-04  4.697402e-06
+  5.300000e-04  -8.332635e-05
+  5.400000e-04  3.144192e-06
+  5.500000e-04  8.544957e-05
+  5.600000e-04  -7.771455e-05
+  5.700000e-04  -4.629430e-05
+  5.800000e-04  7.679783e-05
+  5.900000e-04  -4.324919e-05
+  6.000000e-04  -1.099848e-06
+  6.100000e-04  -8.936004e-07
+  6.200000e-04  3.299165e-06
+  6.300000e-04  5.108396e-05
+  6.400000e-04  -8.627630e-07
+  6.500000e-04  -4.407023e-05
+  6.600000e-04  6.945440e-05
+  6.700000e-04  3.297714e-05
+  6.800000e-04  -1.090318e-04
+  6.900000e-04  -7.011031e-05
+  7.000000e-04  -1.934118e-05
+  7.100000e-04  1.382304e-05
+  7.200000e-04  -1.871066e-05
+  7.300000e-04  2.411511e-05
+  7.400000e-04  6.786768e-05
+  7.500000e-04  1.381468e-05
+  7.600000e-04  -9.208157e-05
+  7.700000e-04  -3.639734e-05
+  7.800000e-04  -2.306722e-05
+  7.900000e-04  -6.087240e-05
+  8.000000e-04  -5.134822e-05
+  8.100000e-04  -8.857678e-07
+  8.200000e-04  -3.509734e-05
+  8.300000e-04  -1.217520e-05
+  8.400000e-04  -5.428581e-05
+  8.500000e-04  -2.257880e-05
+  8.600000e-04  -3.982156e-05
+  8.700000e-04  -9.787841e-05
+  8.800000e-04  -5.558706e-05
+  8.900000e-04  1.436905e-05
+  9.000000e-04  2.393110e-05
+  9.100000e-04  -1.469158e-05
+  9.200000e-04  -6.927791e-05
+  9.300000e-04  4.312268e-05
+  9.400000e-04  -6.717321e-05
+  9.500000e-04  -8.779344e-05
+  9.600000e-04  -5.505572e-05
+  9.700000e-04  2.083663e-05
+  9.800000e-04  5.884645e-05
+  9.900000e-04  -1.249699e-05
+  1.000000e-03  -3.925854e-05
+
+#
+# Curve 3 - Shells 5
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 5: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  6.620191e-05
+  2.200000e-04  3.611616e-05
+  2.300000e-04  3.536133e-05
+  2.400000e-04  -1.480351e-06
+  2.500000e-04  4.695647e-05
+  2.600000e-04  6.370377e-06
+  2.700000e-04  1.010587e-06
+  2.800000e-04  2.604717e-05
+  2.900000e-04  -7.548770e-06
+  3.000000e-04  -3.423435e-05
+  3.100000e-04  -4.596885e-05
+  3.200000e-04  -3.180528e-07
+  3.300000e-04  1.199933e-05
+  3.400000e-04  -4.087900e-05
+  3.500000e-04  -2.022989e-05
+  3.600000e-04  4.029951e-05
+  3.700000e-04  -6.343912e-05
+  3.800000e-04  -3.519454e-05
+  3.900000e-04  9.173032e-05
+  4.000000e-04  -7.766181e-05
+  4.100000e-04  -1.547575e-05
+  4.200000e-04  4.272603e-05
+  4.300000e-04  -3.322794e-05
+  4.400000e-04  -7.082966e-05
+  4.500000e-04  6.228591e-05
+  4.600000e-04  -1.347892e-05
+  4.700000e-04  -5.494794e-05
+  4.800000e-04  3.493533e-05
+  4.900000e-04  4.388498e-05
+  5.000000e-04  -7.065582e-05
+  5.100000e-04  4.365174e-07
+  5.200000e-04  -3.902290e-05
+  5.300000e-04  -7.626566e-05
+  5.400000e-04  -4.157118e-05
+  5.500000e-04  9.236573e-05
+  5.600000e-04  -6.945337e-05
+  5.700000e-04  -7.380462e-05
+  5.800000e-04  3.771680e-05
+  5.900000e-04  -8.473170e-05
+  6.000000e-04  -4.034430e-05
+  6.100000e-04  -3.388978e-05
+  6.200000e-04  -3.864348e-05
+  6.300000e-04  2.421967e-05
+  6.400000e-04  -1.202478e-05
+  6.500000e-04  -4.387579e-05
+  6.600000e-04  5.758350e-05
+  6.700000e-04  3.407487e-05
+  6.800000e-04  -1.028270e-04
+  6.900000e-04  -6.222237e-05
+  7.000000e-04  -1.987415e-05
+  7.100000e-04  3.978271e-05
+  7.200000e-04  -3.350395e-05
+  7.300000e-04  3.425185e-06
+  7.400000e-04  4.450620e-05
+  7.500000e-04  -7.453504e-06
+  7.600000e-04  -8.387477e-05
+  7.700000e-04  -2.565592e-05
+  7.800000e-04  -1.393940e-05
+  7.900000e-04  -5.000783e-05
+  8.000000e-04  -4.504546e-05
+  8.100000e-04  -4.949465e-06
+  8.200000e-04  -3.786129e-05
+  8.300000e-04  -1.539226e-05
+  8.400000e-04  -5.261664e-05
+  8.500000e-04  -4.991114e-06
+  8.600000e-04  -3.896145e-05
+  8.700000e-04  -8.183582e-05
+  8.800000e-04  -5.549367e-05
+  8.900000e-04  2.535542e-05
+  9.000000e-04  5.557491e-06
+  9.100000e-04  -2.948786e-05
+  9.200000e-04  -5.387514e-05
+  9.300000e-04  4.598121e-05
+  9.400000e-04  -6.625615e-05
+  9.500000e-04  -7.977031e-05
+  9.600000e-04  -4.540876e-05
+  9.700000e-04  2.152861e-05
+  9.800000e-04  5.590342e-05
+  9.900000e-04  -1.744090e-05
+  1.000000e-03  -3.645379e-05
+
+#
+# Curve 4 - Shells 8
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 8: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -6.535478e-05
+  2.200000e-04  -6.723701e-05
+  2.300000e-04  -2.388253e-05
+  2.400000e-04  -5.380121e-05
+  2.500000e-04  -3.327261e-05
+  2.600000e-04  -2.078086e-05
+  2.700000e-04  -3.358186e-05
+  2.800000e-04  -2.804047e-05
+  2.900000e-04  -1.234160e-05
+  3.000000e-04  -3.567008e-05
+  3.100000e-04  -2.060375e-05
+  3.200000e-04  -2.323586e-06
+  3.300000e-04  -2.207112e-05
+  3.400000e-04  -5.641817e-05
+  3.500000e-04  -1.484835e-05
+  3.600000e-04  -4.023756e-05
+  3.700000e-04  -1.624410e-05
+  3.800000e-04  -3.070982e-05
+  3.900000e-04  -1.284513e-05
+  4.000000e-04  -1.968162e-05
+  4.100000e-04  -2.861972e-05
+  4.200000e-04  -3.307968e-05
+  4.300000e-04  -3.365845e-05
+  4.400000e-04  -3.170505e-05
+  4.500000e-04  -9.125735e-07
+  4.600000e-04  -3.772592e-05
+  4.700000e-04  -1.772042e-05
+  4.800000e-04  -3.902336e-05
+  4.900000e-04  -1.022409e-05
+  5.000000e-04  -3.129328e-05
+  5.100000e-04  -1.280890e-05
+  5.200000e-04  -5.927178e-05
+  5.300000e-04  -3.557899e-05
+  5.400000e-04  -4.195815e-05
+  5.500000e-04  -1.085672e-05
+  5.600000e-04  -1.544448e-06
+  5.700000e-04  -1.186801e-05
+  5.800000e-04  -4.555029e-05
+  5.900000e-04  -1.035053e-05
+  6.000000e-04  -2.837360e-05
+  6.100000e-04  -1.831250e-05
+  6.200000e-04  1.870572e-06
+  6.300000e-04  -2.610410e-06
+  6.400000e-04  -2.484337e-05
+  6.500000e-04  1.323424e-05
+  6.600000e-04  1.693380e-05
+  6.700000e-04  6.160362e-07
+  6.800000e-04  1.566489e-05
+  6.900000e-04  -3.466662e-06
+  7.000000e-04  -1.488260e-05
+  7.100000e-04  5.142716e-06
+  7.200000e-04  -1.435501e-05
+  7.300000e-04  -2.037410e-05
+  7.400000e-04  8.118538e-06
+  7.500000e-04  3.993695e-06
+  7.600000e-04  -2.250345e-05
+  7.700000e-04  7.101309e-06
+  7.800000e-04  2.873181e-05
+  7.900000e-04  -1.138739e-05
+  8.000000e-04  -2.297778e-05
+  8.100000e-04  4.006573e-06
+  8.200000e-04  -4.902890e-06
+  8.300000e-04  -8.566361e-06
+  8.400000e-04  -1.011337e-05
+  8.500000e-04  -2.872472e-05
+  8.600000e-04  -1.157515e-05
+  8.700000e-04  -1.372559e-05
+  8.800000e-04  7.611943e-07
+  8.900000e-04  -7.621399e-06
+  9.000000e-04  -6.517400e-06
+  9.100000e-04  -2.710368e-05
+  9.200000e-04  1.429037e-06
+  9.300000e-04  -1.660294e-05
+  9.400000e-04  -3.197369e-06
+  9.500000e-04  -2.087492e-05
+  9.600000e-04  -2.605059e-05
+  9.700000e-04  -5.685335e-06
+  9.800000e-04  4.299077e-06
+  9.900000e-04  -1.414546e-05
+  1.000000e-03  -4.333659e-06
+
+#
+# Curve 5 - Shells 12
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 12: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -6.542297e-05
+  2.200000e-04  -6.755138e-05
+  2.300000e-04  -2.398428e-05
+  2.400000e-04  -5.353168e-05
+  2.500000e-04  -3.311527e-05
+  2.600000e-04  -2.018974e-05
+  2.700000e-04  -3.268966e-05
+  2.800000e-04  -2.813559e-05
+  2.900000e-04  -1.257741e-05
+  3.000000e-04  -3.589861e-05
+  3.100000e-04  -2.077267e-05
+  3.200000e-04  -2.556007e-06
+  3.300000e-04  -2.198763e-05
+  3.400000e-04  -5.594708e-05
+  3.500000e-04  -1.567622e-05
+  3.600000e-04  -4.015326e-05
+  3.700000e-04  -1.645633e-05
+  3.800000e-04  -3.044352e-05
+  3.900000e-04  -1.286465e-05
+  4.000000e-04  -2.017690e-05
+  4.100000e-04  -2.879019e-05
+  4.200000e-04  -3.301987e-05
+  4.300000e-04  -3.365633e-05
+  4.400000e-04  -3.143959e-05
+  4.500000e-04  -6.158307e-07
+  4.600000e-04  -3.774521e-05
+  4.700000e-04  -1.799026e-05
+  4.800000e-04  -3.904798e-05
+  4.900000e-04  -1.027757e-05
+  5.000000e-04  -3.109181e-05
+  5.100000e-04  -1.274126e-05
+  5.200000e-04  -5.938482e-05
+  5.300000e-04  -3.556661e-05
+  5.400000e-04  -4.185057e-05
+  5.500000e-04  -1.091704e-05
+  5.600000e-04  -1.601927e-06
+  5.700000e-04  -1.177470e-05
+  5.800000e-04  -4.548395e-05
+  5.900000e-04  -1.033611e-05
+  6.000000e-04  -2.841420e-05
+  6.100000e-04  -1.830784e-05
+  6.200000e-04  1.819636e-06
+  6.300000e-04  -2.642807e-06
+  6.400000e-04  -2.486139e-05
+  6.500000e-04  1.295726e-05
+  6.600000e-04  1.677946e-05
+  6.700000e-04  4.890890e-07
+  6.800000e-04  1.557464e-05
+  6.900000e-04  -3.478131e-06
+  7.000000e-04  -1.482676e-05
+  7.100000e-04  5.133299e-06
+  7.200000e-04  -1.436994e-05
+  7.300000e-04  -2.025714e-05
+  7.400000e-04  8.200278e-06
+  7.500000e-04  3.987745e-06
+  7.600000e-04  -2.248912e-05
+  7.700000e-04  7.067603e-06
+  7.800000e-04  2.869067e-05
+  7.900000e-04  -1.142124e-05
+  8.000000e-04  -2.297086e-05
+  8.100000e-04  4.031127e-06
+  8.200000e-04  -4.921551e-06
+  8.300000e-04  -8.606959e-06
+  8.400000e-04  -1.013391e-05
+  8.500000e-04  -2.870730e-05
+  8.600000e-04  -1.157298e-05
+  8.700000e-04  -1.375006e-05
+  8.800000e-04  7.250319e-07
+  8.900000e-04  -7.641520e-06
+  9.000000e-04  -6.523913e-06
+  9.100000e-04  -2.706850e-05
+  9.200000e-04  1.456490e-06
+  9.300000e-04  -1.659461e-05
+  9.400000e-04  -3.232548e-06
+  9.500000e-04  -2.089666e-05
+  9.600000e-04  -2.607405e-05
+  9.700000e-04  -5.693269e-06
+  9.800000e-04  4.270576e-06
+  9.900000e-04  -1.414413e-05
+  1.000000e-03  -4.359508e-06
+
+#
+# Curve 1 - Shells 1
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Principal Strain 2
+# Shells - 1: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -4.850599e-05
+  2.200000e-04  -4.412108e-05
+  2.300000e-04  -8.786685e-05
+  2.400000e-04  -2.298157e-05
+  2.500000e-04  -6.919980e-05
+  2.600000e-04  -6.343182e-05
+  2.700000e-04  -5.916267e-05
+  2.800000e-04  -1.311996e-05
+  2.900000e-04  -1.975384e-05
+  3.000000e-04  -6.703487e-05
+  3.100000e-04  -2.492445e-05
+  3.200000e-04  -1.971686e-06
+  3.300000e-04  -7.305098e-07
+  3.400000e-04  7.184435e-05
+  3.500000e-04  1.560924e-05
+  3.600000e-04  3.655104e-05
+  3.700000e-04  2.452408e-05
+  3.800000e-04  3.907031e-05
+  3.900000e-04  -1.046648e-04
+  4.000000e-04  5.356384e-05
+  4.100000e-04  7.811732e-06
+  4.200000e-04  4.280815e-06
+  4.300000e-04  7.942587e-05
+  4.400000e-04  1.790972e-05
+  4.500000e-04  -3.509039e-05
+  4.600000e-04  1.379942e-05
+  4.700000e-04  4.649733e-05
+  4.800000e-04  -3.777552e-05
+  4.900000e-04  -4.330966e-05
+  5.000000e-04  4.233223e-05
+  5.100000e-04  3.578691e-06
+  5.200000e-04  2.653880e-05
+  5.300000e-04  7.715006e-05
+  5.400000e-04  2.259025e-05
+  5.500000e-04  -8.136152e-05
+  5.600000e-04  6.536252e-05
+  5.700000e-04  7.198953e-05
+  5.800000e-04  -3.214701e-05
+  5.900000e-04  3.588038e-05
+  6.000000e-04  6.359011e-05
+  6.100000e-04  4.013797e-05
+  6.200000e-04  2.174743e-05
+  6.300000e-04  1.281656e-05
+  6.400000e-04  4.137815e-05
+  6.500000e-04  1.870506e-05
+  6.600000e-04  -1.466837e-05
+  6.700000e-04  -3.277167e-05
+  6.800000e-04  7.179224e-05
+  6.900000e-04  9.087508e-05
+  7.000000e-04  -3.991076e-05
+  7.100000e-04  5.033889e-06
+  7.200000e-04  3.805281e-05
+  7.300000e-04  -1.619000e-05
+  7.400000e-04  -2.823923e-06
+  7.500000e-04  -3.222320e-06
+  7.600000e-04  8.249278e-05
+  7.700000e-04  6.719367e-05
+  7.800000e-04  -1.031135e-05
+  7.900000e-04  5.483560e-05
+  8.000000e-04  4.630372e-05
+  8.100000e-04  3.367433e-06
+  8.200000e-04  -1.064363e-05
+  8.300000e-04  -1.337715e-05
+  8.400000e-04  8.008095e-05
+  8.500000e-04  -1.330873e-05
+  8.600000e-04  2.681583e-05
+  8.700000e-04  8.439827e-05
+  8.800000e-04  6.960231e-05
+  8.900000e-04  -1.877481e-05
+  9.000000e-04  3.720622e-05
+  9.100000e-04  2.118909e-05
+  9.200000e-04  3.207312e-05
+  9.300000e-04  -1.569834e-05
+  9.400000e-04  7.161166e-05
+  9.500000e-04  1.072062e-04
+  9.600000e-04  4.527369e-05
+  9.700000e-04  -4.304422e-05
+  9.800000e-04  2.230354e-05
+  9.900000e-04  4.697184e-05
+  1.000000e-03  2.307864e-05
+
+#
+# Curve 2 - Shells 3
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Principal Strain 2
+# Shells - 3: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -2.363108e-05
+  2.200000e-04  -5.488253e-05
+  2.300000e-04  -9.153904e-05
+  2.400000e-04  -3.163264e-05
+  2.500000e-04  -6.070811e-05
+  2.600000e-04  -6.965967e-05
+  2.700000e-04  -6.814143e-05
+  2.800000e-04  -1.209284e-05
+  2.900000e-04  -1.569547e-05
+  3.000000e-04  -8.285849e-05
+  3.100000e-04  -2.778909e-05
+  3.200000e-04  -2.332890e-05
+  3.300000e-04  -9.048426e-06
+  3.400000e-04  7.615895e-05
+  3.500000e-04  1.869391e-05
+  3.600000e-04  6.356736e-05
+  3.700000e-04  2.143554e-05
+  3.800000e-04  3.579275e-05
+  3.900000e-04  -9.712722e-05
+  4.000000e-04  6.132065e-05
+  4.100000e-04  -4.670725e-06
+  4.200000e-04  2.830348e-05
+  4.300000e-04  4.795176e-05
+  4.400000e-04  2.186768e-05
+  4.500000e-04  -8.445417e-05
+  4.600000e-04  -4.135733e-05
+  4.700000e-04  6.056058e-05
+  4.800000e-04  -8.200695e-05
+  4.900000e-04  -8.472551e-05
+  5.000000e-04  4.206137e-05
+  5.100000e-04  -4.732257e-05
+  5.200000e-04  -2.028145e-05
+  5.300000e-04  8.286374e-05
+  5.400000e-04  -3.636111e-05
+  5.500000e-04  -8.817048e-05
+  5.600000e-04  7.409611e-05
+  5.700000e-04  4.617425e-05
+  5.800000e-04  -9.499326e-05
+  5.900000e-04  1.379354e-05
+  6.000000e-04  2.353066e-05
+  6.100000e-04  5.431904e-06
+  6.200000e-04  -8.156267e-07
+  6.300000e-04  2.992878e-05
+  6.400000e-04  3.495679e-07
+  6.500000e-04  2.418836e-05
+  6.600000e-04  1.000280e-05
+  6.700000e-04  -4.575665e-05
+  6.800000e-04  6.275103e-05
+  6.900000e-04  7.358320e-05
+  7.000000e-04  -6.103028e-05
+  7.100000e-04  1.459517e-05
+  7.200000e-04  3.780149e-05
+  7.300000e-04  -3.011949e-05
+  7.400000e-04  8.937088e-07
+  7.500000e-04  -4.139198e-05
+  7.600000e-04  8.741372e-05
+  7.700000e-04  8.365855e-05
+  7.800000e-04  -1.762318e-05
+  7.900000e-04  3.850667e-05
+  8.000000e-04  4.158254e-05
+  8.100000e-04  1.716144e-05
+  8.200000e-04  2.001800e-05
+  8.300000e-04  -1.701952e-05
+  8.400000e-04  8.087787e-05
+  8.500000e-04  -3.075976e-05
+  8.600000e-04  1.195813e-05
+  8.700000e-04  7.882212e-05
+  8.800000e-04  7.019240e-05
+  8.900000e-04  -3.651387e-05
+  9.000000e-04  3.866552e-05
+  9.100000e-04  1.109979e-05
+  9.200000e-04  2.992435e-05
+  9.300000e-04  -3.183712e-05
+  9.400000e-04  6.997313e-05
+  9.500000e-04  1.097228e-04
+  9.600000e-04  3.438645e-05
+  9.700000e-04  -5.702488e-05
+  9.800000e-04  2.808668e-05
+  9.900000e-04  4.466320e-05
+  1.000000e-03  1.502059e-05
+
+#
+# Curve 3 - Shells 5
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Principal Strain 2
+# Shells - 5: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  -4.835402e-05
+  2.200000e-04  -4.377874e-05
+  2.300000e-04  -8.789328e-05
+  2.400000e-04  -2.316759e-05
+  2.500000e-04  -6.905467e-05
+  2.600000e-04  -6.325108e-05
+  2.700000e-04  -5.911658e-05
+  2.800000e-04  -1.302104e-05
+  2.900000e-04  -1.964273e-05
+  3.000000e-04  -6.718838e-05
+  3.100000e-04  -2.460364e-05
+  3.200000e-04  -1.821723e-06
+  3.300000e-04  -7.782983e-07
+  3.400000e-04  7.187760e-05
+  3.500000e-04  1.573447e-05
+  3.600000e-04  3.629702e-05
+  3.700000e-04  2.460403e-05
+  3.800000e-04  3.911480e-05
+  3.900000e-04  -1.045810e-04
+  4.000000e-04  5.355346e-05
+  4.100000e-04  7.801866e-06
+  4.200000e-04  4.176500e-06
+  4.300000e-04  7.947032e-05
+  4.400000e-04  1.798129e-05
+  4.500000e-04  -3.503530e-05
+  4.600000e-04  1.378681e-05
+  4.700000e-04  4.651740e-05
+  4.800000e-04  -3.777459e-05
+  4.900000e-04  -4.340502e-05
+  5.000000e-04  4.239818e-05
+  5.100000e-04  3.650890e-06
+  5.200000e-04  2.642163e-05
+  5.300000e-04  7.715115e-05
+  5.400000e-04  2.254079e-05
+  5.500000e-04  -8.133861e-05
+  5.600000e-04  6.545353e-05
+  5.700000e-04  7.206302e-05
+  5.800000e-04  -3.207246e-05
+  5.900000e-04  3.589321e-05
+  6.000000e-04  6.357239e-05
+  6.100000e-04  4.016273e-05
+  6.200000e-04  2.184976e-05
+  6.300000e-04  1.273615e-05
+  6.400000e-04  4.129668e-05
+  6.500000e-04  1.882895e-05
+  6.600000e-04  -1.472123e-05
+  6.700000e-04  -3.264892e-05
+  6.800000e-04  7.184851e-05
+  6.900000e-04  9.087435e-05
+  7.000000e-04  -3.997944e-05
+  7.100000e-04  4.934340e-06
+  7.200000e-04  3.803127e-05
+  7.300000e-04  -1.618884e-05
+  7.400000e-04  -2.748108e-06
+  7.500000e-04  -3.212555e-06
+  7.600000e-04  8.251469e-05
+  7.700000e-04  6.719620e-05
+  7.800000e-04  -1.033292e-05
+  7.900000e-04  5.479200e-05
+  8.000000e-04  4.626472e-05
+  8.100000e-04  3.423059e-06
+  8.200000e-04  -1.071710e-05
+  8.300000e-04  -1.331903e-05
+  8.400000e-04  8.014418e-05
+  8.500000e-04  -1.332839e-05
+  8.600000e-04  2.678090e-05
+  8.700000e-04  8.437881e-05
+  8.800000e-04  6.961569e-05
+  8.900000e-04  -1.879832e-05
+  9.000000e-04  3.727899e-05
+  9.100000e-04  2.123689e-05
+  9.200000e-04  3.207207e-05
+  9.300000e-04  -1.570807e-05
+  9.400000e-04  7.161832e-05
+  9.500000e-04  1.072513e-04
+  9.600000e-04  4.528118e-05
+  9.700000e-04  -4.306567e-05
+  9.800000e-04  2.230776e-05
+  9.900000e-04  4.701180e-05
+  1.000000e-03  2.310519e-05
+
+#
+# Curve 4 - Shells 8
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Principal Strain 2
+# Shells - 8: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  3.595955e-05
+  2.200000e-04  6.006519e-05
+  2.300000e-04  -8.380968e-06
+  2.400000e-04  5.318704e-05
+  2.500000e-04  1.195341e-05
+  2.600000e-04  -5.201048e-06
+  2.700000e-04  8.182706e-06
+  2.800000e-04  6.849766e-06
+  2.900000e-04  -1.502554e-05
+  3.000000e-04  3.786437e-06
+  3.100000e-04  -9.263498e-06
+  3.200000e-04  3.486378e-06
+  3.300000e-04  9.982399e-06
+  3.400000e-04  3.008061e-05
+  3.500000e-04  1.787122e-05
+  3.600000e-04  6.772616e-05
+  3.700000e-04  2.828915e-05
+  3.800000e-04  2.664782e-05
+  3.900000e-04  5.219335e-07
+  4.000000e-04  1.701006e-05
+  4.100000e-04  3.134475e-05
+  4.200000e-04  6.203800e-05
+  4.300000e-04  1.179266e-05
+  4.400000e-04  2.208103e-05
+  4.500000e-04  9.488051e-06
+  4.600000e-04  4.954069e-05
+  4.700000e-04  1.160404e-05
+  4.800000e-04  4.323984e-05
+  4.900000e-04  9.686401e-06
+  5.000000e-04  2.506239e-05
+  5.100000e-04  1.344688e-05
+  5.200000e-04  5.467653e-05
+  5.300000e-04  3.966720e-05
+  5.400000e-04  6.122553e-05
+  5.500000e-04  1.178364e-05
+  5.600000e-04  1.044258e-05
+  5.700000e-04  1.084604e-05
+  5.800000e-04  3.352398e-05
+  5.900000e-04  1.215724e-05
+  6.000000e-04  2.829522e-05
+  6.100000e-04  1.208761e-05
+  6.200000e-04  -1.433977e-05
+  6.300000e-04  -9.586842e-06
+  6.400000e-04  -4.683967e-06
+  6.500000e-04  -1.632646e-05
+  6.600000e-04  -3.055033e-05
+  6.700000e-04  -3.797755e-06
+  6.800000e-04  -2.564393e-05
+  6.900000e-04  1.712050e-05
+  7.000000e-04  3.601108e-07
+  7.100000e-04  1.112998e-06
+  7.200000e-04  8.540081e-06
+  7.300000e-04  1.519339e-05
+  7.400000e-04  4.112987e-05
+  7.500000e-04  5.084742e-07
+  7.600000e-04  2.221273e-05
+  7.700000e-04  2.911551e-06
+  7.800000e-04  -2.309265e-05
+  7.900000e-04  1.141932e-05
+  8.000000e-04  7.015265e-06
+  8.100000e-04  1.321592e-05
+  8.200000e-04  1.190638e-06
+  8.300000e-04  -2.301244e-06
+  8.400000e-04  2.572177e-05
+  8.500000e-04  1.300632e-05
+  8.600000e-04  6.611670e-06
+  8.700000e-04  1.268920e-05
+  8.800000e-04  1.146730e-05
+  8.900000e-04  -1.828575e-06
+  9.000000e-04  -1.462070e-06
+  9.100000e-04  4.303858e-05
+  9.200000e-04  3.472916e-05
+  9.300000e-04  1.340026e-05
+  9.400000e-04  -9.762567e-06
+  9.500000e-04  4.141648e-05
+  9.600000e-04  1.666645e-05
+  9.700000e-04  5.567912e-06
+  9.800000e-04  2.644158e-05
+  9.900000e-04  -5.419956e-06
+  1.000000e-03  8.398780e-06
+
+#
+# Curve 5 - Shells 12
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 strain variety: infinitesimal
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Principal Strain 2
+# Shells - 12: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  3.580378e-05
+  2.200000e-04  5.975058e-05
+  2.300000e-04  -8.730869e-06
+  2.400000e-04  5.258972e-05
+  2.500000e-04  1.202343e-05
+  2.600000e-04  -5.484816e-06
+  2.700000e-04  7.523271e-06
+  2.800000e-04  6.479973e-06
+  2.900000e-04  -1.494483e-05
+  3.000000e-04  3.815722e-06
+  3.100000e-04  -9.329145e-06
+  3.200000e-04  3.536400e-06
+  3.300000e-04  1.003794e-05
+  3.400000e-04  2.989401e-05
+  3.500000e-04  1.871197e-05
+  3.600000e-04  6.782811e-05
+  3.700000e-04  2.851893e-05
+  3.800000e-04  2.637098e-05
+  3.900000e-04  4.832482e-07
+  4.000000e-04  1.749279e-05
+  4.100000e-04  3.158381e-05
+  4.200000e-04  6.190590e-05
+  4.300000e-04  1.189677e-05
+  4.400000e-04  2.179005e-05
+  4.500000e-04  9.147978e-06
+  4.600000e-04  4.963202e-05
+  4.700000e-04  1.188580e-05
+  4.800000e-04  4.352492e-05
+  4.900000e-04  9.587037e-06
+  5.000000e-04  2.490790e-05
+  5.100000e-04  1.338799e-05
+  5.200000e-04  5.475798e-05
+  5.300000e-04  3.955943e-05
+  5.400000e-04  6.105455e-05
+  5.500000e-04  1.177086e-05
+  5.600000e-04  1.048851e-05
+  5.700000e-04  1.072613e-05
+  5.800000e-04  3.346104e-05
+  5.900000e-04  1.214956e-05
+  6.000000e-04  2.834029e-05
+  6.100000e-04  1.208493e-05
+  6.200000e-04  -1.433841e-05
+  6.300000e-04  -9.675199e-06
+  6.400000e-04  -4.640960e-06
+  6.500000e-04  -1.608201e-05
+  6.600000e-04  -3.045320e-05
+  6.700000e-04  -3.761291e-06
+  6.800000e-04  -2.558393e-05
+  6.900000e-04  1.711729e-05
+  7.000000e-04  3.481728e-07
+  7.100000e-04  1.099257e-06
+  7.200000e-04  8.518906e-06
+  7.300000e-04  1.527305e-05
+  7.400000e-04  4.111645e-05
+  7.500000e-04  4.751359e-07
+  7.600000e-04  2.223740e-05
+  7.700000e-04  2.953186e-06
+  7.800000e-04  -2.307864e-05
+  7.900000e-04  1.140040e-05
+  8.000000e-04  6.967339e-06
+  8.100000e-04  1.318906e-05
+  8.200000e-04  1.201841e-06
+  8.300000e-04  -2.305796e-06
+  8.400000e-04  2.573620e-05
+  8.500000e-04  1.306742e-05
+  8.600000e-04  6.628902e-06
+  8.700000e-04  1.267077e-05
+  8.800000e-04  1.144464e-05
+  8.900000e-04  -1.837108e-06
+  9.000000e-04  -1.466709e-06
+  9.100000e-04  4.306528e-05
+  9.200000e-04  3.471247e-05
+  9.300000e-04  1.337778e-05
+  9.400000e-04  -9.710684e-06
+  9.500000e-04  4.141778e-05
+  9.600000e-04  1.664406e-05
+  9.700000e-04  5.576306e-06
+  9.800000e-04  2.646995e-05
+  9.900000e-04  -5.427245e-06
+  1.000000e-03  8.410889e-06
+
+#
+# Curve 1 - Shells 1
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 1: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.058870e-04
+  2.200000e-04  4.240221e-04
+  2.300000e-04  1.701486e-04
+  2.400000e-04  1.979333e-04
+  2.500000e-04  5.125430e-05
+  2.600000e-04  1.184886e-04
+  2.700000e-04  1.156310e-04
+  2.800000e-04  5.869688e-05
+  2.900000e-04  4.005150e-05
+  3.000000e-04  1.378447e-04
+  3.100000e-04  8.647535e-05
+  3.200000e-04  2.592043e-05
+  3.300000e-04  3.597606e-05
+  3.400000e-04  2.737425e-04
+  3.500000e-04  1.710964e-04
+  3.600000e-04  1.559202e-04
+  3.700000e-04  2.248134e-04
+  3.800000e-04  2.705133e-04
+  3.900000e-04  1.816054e-04
+  4.000000e-04  2.545545e-04
+  4.100000e-04  2.168080e-04
+  4.200000e-04  1.146539e-04
+  4.300000e-04  1.379511e-04
+  4.400000e-04  3.795277e-04
+  4.500000e-04  9.412036e-05
+  4.600000e-04  2.328187e-04
+  4.700000e-04  3.325414e-04
+  4.800000e-04  1.566163e-04
+  4.900000e-04  1.107015e-04
+  5.000000e-04  2.813613e-04
+  5.100000e-04  1.689609e-04
+  5.200000e-04  2.399409e-04
+  5.300000e-04  3.262649e-04
+  5.400000e-04  1.993561e-04
+  5.500000e-04  7.062915e-05
+  5.600000e-04  2.962551e-04
+  5.700000e-04  2.585547e-04
+  5.800000e-04  1.357768e-04
+  5.900000e-04  2.775756e-04
+  6.000000e-04  1.822866e-04
+  6.100000e-04  1.758929e-04
+  6.200000e-04  1.390921e-04
+  6.300000e-04  1.091484e-04
+  6.400000e-04  7.553766e-05
+  6.500000e-04  1.387106e-04
+  6.600000e-04  7.750783e-05
+  6.700000e-04  1.314993e-04
+  6.800000e-04  3.652191e-04
+  6.900000e-04  2.733636e-04
+  7.000000e-04  2.768188e-04
+  7.100000e-04  1.291644e-04
+  7.200000e-04  1.908834e-04
+  7.300000e-04  5.681964e-05
+  7.400000e-04  8.319848e-05
+  7.500000e-04  1.042138e-04
+  7.600000e-04  2.993614e-04
+  7.700000e-04  2.589601e-04
+  7.800000e-04  2.563626e-04
+  7.900000e-04  2.429575e-04
+  8.000000e-04  1.894691e-04
+  8.100000e-04  1.110313e-04
+  8.200000e-04  1.271720e-04
+  8.300000e-04  1.782501e-04
+  8.400000e-04  1.995962e-04
+  8.500000e-04  2.570733e-04
+  8.600000e-04  2.567625e-04
+  8.700000e-04  3.027171e-04
+  8.800000e-04  2.312328e-04
+  8.900000e-04  1.042655e-04
+  9.000000e-04  9.535490e-05
+  9.100000e-04  1.179959e-04
+  9.200000e-04  1.865403e-04
+  9.300000e-04  1.180302e-04
+  9.400000e-04  3.108256e-04
+  9.500000e-04  2.964988e-04
+  9.600000e-04  2.889642e-04
+  9.700000e-04  1.079058e-04
+  9.800000e-04  7.621545e-05
+  9.900000e-04  7.158926e-05
+  1.000000e-03  1.454529e-04
+
+#
+# Curve 2 - Shells 3
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 3: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.026849e-04
+  2.200000e-04  4.102561e-04
+  2.300000e-04  1.598543e-04
+  2.400000e-04  2.257293e-04
+  2.500000e-04  6.097325e-05
+  2.600000e-04  9.339068e-05
+  2.700000e-04  1.157908e-04
+  2.800000e-04  5.377774e-05
+  2.900000e-04  4.609969e-05
+  3.000000e-04  1.349682e-04
+  3.100000e-04  1.025263e-04
+  3.200000e-04  2.544892e-05
+  3.300000e-04  3.609503e-05
+  3.400000e-04  2.691120e-04
+  3.500000e-04  1.534246e-04
+  3.600000e-04  1.718172e-04
+  3.700000e-04  2.342232e-04
+  3.800000e-04  2.546266e-04
+  3.900000e-04  1.647325e-04
+  4.000000e-04  2.455473e-04
+  4.100000e-04  1.959246e-04
+  4.200000e-04  1.055059e-04
+  4.300000e-04  1.332555e-04
+  4.400000e-04  3.633983e-04
+  4.500000e-04  7.676526e-05
+  4.600000e-04  2.280785e-04
+  4.700000e-04  3.175541e-04
+  4.800000e-04  1.296445e-04
+  4.900000e-04  9.008044e-05
+  5.000000e-04  2.697521e-04
+  5.100000e-04  1.570577e-04
+  5.200000e-04  2.217560e-04
+  5.300000e-04  3.083406e-04
+  5.400000e-04  1.871375e-04
+  5.500000e-04  1.024618e-04
+  5.600000e-04  2.719388e-04
+  5.700000e-04  2.442429e-04
+  5.800000e-04  1.267802e-04
+  5.900000e-04  2.666529e-04
+  6.000000e-04  1.616222e-04
+  6.100000e-04  1.693785e-04
+  6.200000e-04  1.175762e-04
+  6.300000e-04  1.110683e-04
+  6.400000e-04  9.187592e-05
+  6.500000e-04  1.680969e-04
+  6.600000e-04  6.737955e-05
+  6.700000e-04  1.389069e-04
+  6.800000e-04  3.893907e-04
+  6.900000e-04  2.967330e-04
+  7.000000e-04  2.852660e-04
+  7.100000e-04  1.467267e-04
+  7.200000e-04  1.834409e-04
+  7.300000e-04  4.442113e-05
+  7.400000e-04  7.799530e-05
+  7.500000e-04  1.152190e-04
+  7.600000e-04  3.006971e-04
+  7.700000e-04  2.715224e-04
+  7.800000e-04  2.750570e-04
+  7.900000e-04  2.546998e-04
+  8.000000e-04  2.070707e-04
+  8.100000e-04  1.240950e-04
+  8.200000e-04  1.105293e-04
+  8.300000e-04  1.806154e-04
+  8.400000e-04  1.944872e-04
+  8.500000e-04  2.811972e-04
+  8.600000e-04  2.694491e-04
+  8.700000e-04  3.252404e-04
+  8.800000e-04  2.346050e-04
+  8.900000e-04  1.268805e-04
+  9.000000e-04  9.060423e-05
+  9.100000e-04  1.110475e-04
+  9.200000e-04  2.112241e-04
+  9.300000e-04  1.304935e-04
+  9.400000e-04  3.104090e-04
+  9.500000e-04  3.117729e-04
+  9.600000e-04  3.043760e-04
+  9.700000e-04  1.149920e-04
+  9.800000e-04  9.601637e-05
+  9.900000e-04  7.415436e-05
+  1.000000e-03  1.500769e-04
+
+#
+# Curve 3 - Shells 5
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 5: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.059713e-04
+  2.200000e-04  4.235946e-04
+  2.300000e-04  1.699191e-04
+  2.400000e-04  1.976234e-04
+  2.500000e-04  5.114147e-05
+  2.600000e-04  1.188500e-04
+  2.700000e-04  1.153148e-04
+  2.800000e-04  5.866393e-05
+  2.900000e-04  3.987122e-05
+  3.000000e-04  1.378486e-04
+  3.100000e-04  8.644690e-05
+  3.200000e-04  2.626872e-05
+  3.300000e-04  3.638849e-05
+  3.400000e-04  2.738244e-04
+  3.500000e-04  1.709829e-04
+  3.600000e-04  1.559378e-04
+  3.700000e-04  2.248819e-04
+  3.800000e-04  2.706856e-04
+  3.900000e-04  1.817152e-04
+  4.000000e-04  2.545586e-04
+  4.100000e-04  2.167928e-04
+  4.200000e-04  1.147692e-04
+  4.300000e-04  1.379287e-04
+  4.400000e-04  3.794131e-04
+  4.500000e-04  9.405988e-05
+  4.600000e-04  2.329105e-04
+  4.700000e-04  3.326882e-04
+  4.800000e-04  1.566668e-04
+  4.900000e-04  1.105315e-04
+  5.000000e-04  2.812722e-04
+  5.100000e-04  1.690511e-04
+  5.200000e-04  2.400341e-04
+  5.300000e-04  3.262954e-04
+  5.400000e-04  1.993612e-04
+  5.500000e-04  7.065163e-05
+  5.600000e-04  2.962468e-04
+  5.700000e-04  2.584623e-04
+  5.800000e-04  1.357202e-04
+  5.900000e-04  2.777881e-04
+  6.000000e-04  1.824766e-04
+  6.100000e-04  1.758911e-04
+  6.200000e-04  1.389487e-04
+  6.300000e-04  1.091533e-04
+  6.400000e-04  7.561676e-05
+  6.500000e-04  1.388565e-04
+  6.600000e-04  7.742539e-05
+  6.700000e-04  1.313732e-04
+  6.800000e-04  3.652720e-04
+  6.900000e-04  2.733317e-04
+  7.000000e-04  2.768079e-04
+  7.100000e-04  1.292672e-04
+  7.200000e-04  1.909397e-04
+  7.300000e-04  5.681338e-05
+  7.400000e-04  8.318482e-05
+  7.500000e-04  1.041846e-04
+  7.600000e-04  2.994674e-04
+  7.700000e-04  2.589808e-04
+  7.800000e-04  2.562931e-04
+  7.900000e-04  2.428640e-04
+  8.000000e-04  1.895173e-04
+  8.100000e-04  1.111728e-04
+  8.200000e-04  1.271646e-04
+  8.300000e-04  1.781732e-04
+  8.400000e-04  1.994761e-04
+  8.500000e-04  2.571489e-04
+  8.600000e-04  2.568611e-04
+  8.700000e-04  3.027820e-04
+  8.800000e-04  2.311916e-04
+  8.900000e-04  1.041921e-04
+  9.000000e-04  9.542779e-05
+  9.100000e-04  1.180073e-04
+  9.200000e-04  1.865746e-04
+  9.300000e-04  1.181502e-04
+  9.400000e-04  3.108522e-04
+  9.500000e-04  2.964426e-04
+  9.600000e-04  2.888885e-04
+  9.700000e-04  1.079474e-04
+  9.800000e-04  7.635164e-05
+  9.900000e-04  7.163552e-05
+  1.000000e-03  1.453592e-04
+
+#
+# Curve 4 - Shells 8
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 8: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.390142e-04
+  2.200000e-04  9.422182e-05
+  2.300000e-04  2.684626e-04
+  2.400000e-04  9.970892e-05
+  2.500000e-04  1.870518e-04
+  2.600000e-04  8.829240e-05
+  2.700000e-04  6.411608e-05
+  2.800000e-04  6.939348e-05
+  2.900000e-04  8.668708e-05
+  3.000000e-04  7.325278e-05
+  3.100000e-04  4.712370e-05
+  3.200000e-04  4.351758e-05
+  3.300000e-04  6.256841e-05
+  3.400000e-04  1.204870e-04
+  3.500000e-04  9.084405e-05
+  3.600000e-04  8.934401e-05
+  3.700000e-04  7.398538e-05
+  3.800000e-04  7.222087e-05
+  3.900000e-04  4.741052e-05
+  4.000000e-04  5.202742e-05
+  4.100000e-04  9.360680e-05
+  4.200000e-04  7.462963e-05
+  4.300000e-04  1.257389e-04
+  4.400000e-04  5.732435e-05
+  4.500000e-04  6.898927e-05
+  4.600000e-04  9.179974e-05
+  4.700000e-04  8.454786e-05
+  4.800000e-04  8.130907e-05
+  4.900000e-04  6.620332e-05
+  5.000000e-04  5.615662e-05
+  5.100000e-04  8.018782e-05
+  5.200000e-04  9.526782e-05
+  5.300000e-04  1.132774e-04
+  5.400000e-04  9.369443e-05
+  5.500000e-04  7.238930e-05
+  5.600000e-04  4.298517e-05
+  5.700000e-04  6.844233e-05
+  5.800000e-04  7.902053e-05
+  5.900000e-04  7.092318e-05
+  6.000000e-04  7.358793e-05
+  6.100000e-04  5.571769e-05
+  6.200000e-04  1.424805e-05
+  6.300000e-04  2.477544e-05
+  6.400000e-04  8.788525e-05
+  6.500000e-04  4.023076e-05
+  6.600000e-04  7.752512e-05
+  6.700000e-04  5.663244e-05
+  6.800000e-04  6.155924e-05
+  6.900000e-04  6.056628e-05
+  7.000000e-04  1.263546e-04
+  7.100000e-04  7.743966e-05
+  7.200000e-04  6.752290e-05
+  7.300000e-04  5.007892e-05
+  7.400000e-04  5.836643e-05
+  7.500000e-04  3.327506e-05
+  7.600000e-04  7.239518e-05
+  7.700000e-04  1.113159e-04
+  7.800000e-04  1.353114e-04
+  7.900000e-04  8.002587e-05
+  8.000000e-04  7.172571e-05
+  8.100000e-04  4.254233e-05
+  8.200000e-04  2.287805e-05
+  8.300000e-04  6.713458e-05
+  8.400000e-04  4.448066e-05
+  8.500000e-04  9.527799e-05
+  8.600000e-04  8.251478e-05
+  8.700000e-04  8.625171e-05
+  8.800000e-04  6.751723e-05
+  8.900000e-04  7.103821e-05
+  9.000000e-04  2.932826e-05
+  9.100000e-04  5.776045e-05
+  9.200000e-04  5.435039e-05
+  9.300000e-04  6.798501e-05
+  9.400000e-04  1.380640e-04
+  9.500000e-04  9.196534e-05
+  9.600000e-04  9.440602e-05
+  9.700000e-04  3.780069e-05
+  9.800000e-04  3.482507e-05
+  9.900000e-04  3.852361e-05
+  1.000000e-03  6.205955e-05
+
+#
+# Curve 5 - Shells 12
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 12: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.390027e-04
+  2.200000e-04  9.434796e-05
+  2.300000e-04  2.683729e-04
+  2.400000e-04  9.952606e-05
+  2.500000e-04  1.870253e-04
+  2.600000e-04  8.944768e-05
+  2.700000e-04  6.419310e-05
+  2.800000e-04  6.999849e-05
+  2.900000e-04  8.773511e-05
+  3.000000e-04  7.344216e-05
+  3.100000e-04  4.716301e-05
+  3.200000e-04  4.443617e-05
+  3.300000e-04  6.256337e-05
+  3.400000e-04  1.202659e-04
+  3.500000e-04  9.057266e-05
+  3.600000e-04  8.947393e-05
+  3.700000e-04  7.429426e-05
+  3.800000e-04  7.197566e-05
+  3.900000e-04  4.746281e-05
+  4.000000e-04  5.244224e-05
+  4.100000e-04  9.327017e-05
+  4.200000e-04  7.455837e-05
+  4.300000e-04  1.257341e-04
+  4.400000e-04  5.701019e-05
+  4.500000e-04  6.855770e-05
+  4.600000e-04  9.185434e-05
+  4.700000e-04  8.474812e-05
+  4.800000e-04  8.126121e-05
+  4.900000e-04  6.592515e-05
+  5.000000e-04  5.590399e-05
+  5.100000e-04  8.022696e-05
+  5.200000e-04  9.538702e-05
+  5.300000e-04  1.132124e-04
+  5.400000e-04  9.360179e-05
+  5.500000e-04  7.239618e-05
+  5.600000e-04  4.293921e-05
+  5.700000e-04  6.824670e-05
+  5.800000e-04  7.885754e-05
+  5.900000e-04  7.082880e-05
+  6.000000e-04  7.371066e-05
+  6.100000e-04  5.568988e-05
+  6.200000e-04  1.421214e-05
+  6.300000e-04  2.481549e-05
+  6.400000e-04  8.790303e-05
+  6.500000e-04  4.029739e-05
+  6.600000e-04  7.757061e-05
+  6.700000e-04  5.667521e-05
+  6.800000e-04  6.158828e-05
+  6.900000e-04  6.054260e-05
+  7.000000e-04  1.263639e-04
+  7.100000e-04  7.746784e-05
+  7.200000e-04  6.759000e-05
+  7.300000e-04  4.999475e-05
+  7.400000e-04  5.836543e-05
+  7.500000e-04  3.326960e-05
+  7.600000e-04  7.237920e-05
+  7.700000e-04  1.112918e-04
+  7.800000e-04  1.353634e-04
+  7.900000e-04  8.006674e-05
+  8.000000e-04  7.166730e-05
+  8.100000e-04  4.248946e-05
+  8.200000e-04  2.291377e-05
+  8.300000e-04  6.720866e-05
+  8.400000e-04  4.450442e-05
+  8.500000e-04  9.524224e-05
+  8.600000e-04  8.247964e-05
+  8.700000e-04  8.632551e-05
+  8.800000e-04  6.762044e-05
+  8.900000e-04  7.110303e-05
+  9.000000e-04  2.934446e-05
+  9.100000e-04  5.776234e-05
+  9.200000e-04  5.431531e-05
+  9.300000e-04  6.799174e-05
+  9.400000e-04  1.380272e-04
+  9.500000e-04  9.199833e-05
+  9.600000e-04  9.449411e-05
+  9.700000e-04  3.782634e-05
+  9.800000e-04  3.482486e-05
+  9.900000e-04  3.853225e-05
+  1.000000e-03  6.208056e-05
+
+#
+# Curve 1 - Shells 1
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Prin Dev Strain 1
+# Shells - 1: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.922751e-04
+  2.200000e-04  3.664300e-04
+  2.300000e-04  2.985055e-04
+  2.400000e-04  2.035593e-04
+  2.500000e-04  1.104703e-04
+  2.600000e-04  1.286994e-04
+  2.700000e-04  1.492908e-04
+  2.800000e-04  1.066113e-04
+  2.900000e-04  6.635936e-05
+  3.000000e-04  1.466798e-04
+  3.100000e-04  1.143741e-04
+  3.200000e-04  3.257501e-05
+  3.300000e-04  7.240062e-05
+  3.400000e-04  2.169144e-04
+  3.500000e-04  1.246565e-04
+  3.600000e-04  1.026466e-04
+  3.700000e-04  1.312284e-04
+  3.800000e-04  2.107598e-04
+  3.900000e-04  1.369293e-04
+  4.000000e-04  1.312989e-04
+  4.100000e-04  1.395632e-04
+  4.200000e-04  6.109004e-05
+  4.300000e-04  1.537219e-04
+  4.400000e-04  2.127773e-04
+  4.500000e-04  1.323199e-04
+  4.600000e-04  7.901507e-05
+  4.700000e-04  2.188174e-04
+  4.800000e-04  1.458252e-04
+  4.900000e-04  1.106542e-04
+  5.000000e-04  1.469180e-04
+  5.100000e-04  1.321544e-04
+  5.200000e-04  1.183654e-04
+  5.300000e-04  2.144794e-04
+  5.400000e-04  6.658783e-05
+  5.500000e-04  1.137028e-04
+  5.600000e-04  1.785828e-04
+  5.700000e-04  1.349773e-04
+  5.800000e-04  1.368361e-04
+  5.900000e-04  8.482471e-05
+  6.000000e-04  1.437777e-04
+  6.100000e-04  8.758953e-05
+  6.200000e-04  5.685964e-05
+  6.300000e-04  3.515977e-05
+  6.400000e-04  6.036739e-05
+  6.500000e-04  7.000675e-05
+  6.600000e-04  6.186395e-05
+  6.700000e-04  9.422628e-05
+  6.800000e-04  1.637103e-04
+  6.900000e-04  1.928163e-04
+  7.000000e-04  1.253124e-04
+  7.100000e-04  1.469685e-04
+  7.200000e-04  9.268371e-05
+  7.300000e-04  6.727206e-05
+  7.400000e-04  1.272186e-04
+  7.500000e-04  8.872216e-05
+  7.600000e-04  1.736370e-04
+  7.700000e-04  1.842591e-04
+  7.800000e-04  1.575827e-04
+  7.900000e-04  1.144873e-04
+  8.000000e-04  1.275039e-04
+  8.100000e-04  1.544145e-05
+  8.200000e-04  6.541084e-05
+  8.300000e-04  5.518263e-05
+  8.400000e-04  1.512360e-04
+  8.500000e-04  1.100424e-04
+  8.600000e-04  1.348044e-04
+  8.700000e-04  1.573437e-04
+  8.800000e-04  1.691339e-04
+  8.900000e-04  5.564862e-05
+  9.000000e-04  6.286767e-05
+  9.100000e-04  5.115518e-05
+  9.200000e-04  8.438138e-05
+  9.300000e-04  1.369885e-04
+  9.400000e-04  1.328938e-04
+  9.500000e-04  2.277049e-04
+  9.600000e-04  1.228310e-04
+  9.700000e-04  7.699680e-05
+  9.800000e-04  4.754222e-05
+  9.900000e-04  9.169829e-05
+  1.000000e-03  5.377949e-05
+
+#
+# Curve 2 - Shells 3
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Prin Dev Strain 1
+# Shells - 3: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.774618e-04
+  2.200000e-04  3.584527e-04
+  2.300000e-04  3.007961e-04
+  2.400000e-04  2.368711e-04
+  2.500000e-04  1.182748e-04
+  2.600000e-04  1.032468e-04
+  2.700000e-04  1.486646e-04
+  2.800000e-04  1.239963e-04
+  2.900000e-04  7.381821e-05
+  3.000000e-04  1.470728e-04
+  3.100000e-04  1.291771e-04
+  3.200000e-04  3.351129e-05
+  3.300000e-04  7.867870e-05
+  3.400000e-04  2.067637e-04
+  3.500000e-04  1.138607e-04
+  3.600000e-04  1.122402e-04
+  3.700000e-04  9.019596e-05
+  3.800000e-04  1.927788e-04
+  3.900000e-04  1.497090e-04
+  4.000000e-04  9.426328e-05
+  4.100000e-04  1.297783e-04
+  4.200000e-04  7.506477e-05
+  4.300000e-04  1.503086e-04
+  4.400000e-04  1.825870e-04
+  4.500000e-04  1.524613e-04
+  4.600000e-04  9.331192e-05
+  4.700000e-04  1.740055e-04
+  4.800000e-04  1.679745e-04
+  4.900000e-04  1.308785e-04
+  5.000000e-04  1.128150e-04
+  5.100000e-04  1.506870e-04
+  5.200000e-04  1.339626e-04
+  5.300000e-04  1.743862e-04
+  5.400000e-04  8.458284e-05
+  5.500000e-04  1.352248e-04
+  5.600000e-04  1.472788e-04
+  5.700000e-04  1.322654e-04
+  5.800000e-04  1.572926e-04
+  5.900000e-04  7.266051e-05
+  6.000000e-04  1.560728e-04
+  6.100000e-04  9.240000e-05
+  6.200000e-04  5.397522e-05
+  6.300000e-04  4.593615e-05
+  6.400000e-04  7.055399e-05
+  6.500000e-04  5.393120e-05
+  6.600000e-04  6.205615e-05
+  6.700000e-04  1.026317e-04
+  6.800000e-04  1.556380e-04
+  6.900000e-04  1.926128e-04
+  7.000000e-04  1.301656e-04
+  7.100000e-04  1.411647e-04
+  7.200000e-04  1.021554e-04
+  7.300000e-04  7.358764e-05
+  7.400000e-04  1.351060e-04
+  7.500000e-04  1.052372e-04
+  7.600000e-04  1.572795e-04
+  7.700000e-04  1.829081e-04
+  7.800000e-04  1.552753e-04
+  7.900000e-04  1.050166e-04
+  8.000000e-04  1.281223e-04
+  8.100000e-04  2.515953e-05
+  8.200000e-04  6.437885e-05
+  8.300000e-04  6.454782e-05
+  8.400000e-04  1.446994e-04
+  8.500000e-04  1.053590e-04
+  8.600000e-04  1.428713e-04
+  8.700000e-04  1.500790e-04
+  8.800000e-04  1.701341e-04
+  8.900000e-04  5.317495e-05
+  9.000000e-04  7.720800e-05
+  9.100000e-04  5.162366e-05
+  9.200000e-04  6.176421e-05
+  9.300000e-04  1.432989e-04
+  9.400000e-04  1.341757e-04
+  9.500000e-04  2.244060e-04
+  9.600000e-04  1.211645e-04
+  9.700000e-04  7.893312e-05
+  9.800000e-04  6.472442e-05
+  9.900000e-04  8.234687e-05
+  1.000000e-03  5.001710e-05
+
+#
+# Curve 3 - Shells 5
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Prin Dev Strain 1
+# Shells - 5: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  1.920655e-04
+  2.200000e-04  3.661323e-04
+  2.300000e-04  2.981820e-04
+  2.400000e-04  2.033669e-04
+  2.500000e-04  1.104263e-04
+  2.600000e-04  1.288353e-04
+  2.700000e-04  1.490766e-04
+  2.800000e-04  1.064647e-04
+  2.900000e-04  6.622291e-05
+  3.000000e-04  1.466845e-04
+  3.100000e-04  1.142641e-04
+  3.200000e-04  3.283225e-05
+  3.300000e-04  7.229325e-05
+  3.400000e-04  2.167884e-04
+  3.500000e-04  1.248087e-04
+  3.600000e-04  1.027223e-04
+  3.700000e-04  1.312433e-04
+  3.800000e-04  2.106605e-04
+  3.900000e-04  1.368464e-04
+  4.000000e-04  1.313549e-04
+  4.100000e-04  1.395710e-04
+  4.200000e-04  6.119772e-05
+  4.300000e-04  1.537964e-04
+  4.400000e-04  2.129472e-04
+  4.500000e-04  1.323606e-04
+  4.600000e-04  7.900302e-05
+  4.700000e-04  2.187257e-04
+  4.800000e-04  1.458679e-04
+  4.900000e-04  1.109387e-04
+  5.000000e-04  1.470389e-04
+  5.100000e-04  1.321448e-04
+  5.200000e-04  1.184233e-04
+  5.300000e-04  2.144792e-04
+  5.400000e-04  6.664238e-05
+  5.500000e-04  1.137506e-04
+  5.600000e-04  1.786177e-04
+  5.700000e-04  1.350807e-04
+  5.800000e-04  1.368647e-04
+  5.900000e-04  8.474506e-05
+  6.000000e-04  1.437248e-04
+  6.100000e-04  8.764835e-05
+  6.200000e-04  5.698181e-05
+  6.300000e-04  3.523299e-05
+  6.400000e-04  6.036240e-05
+  6.500000e-04  6.994948e-05
+  6.600000e-04  6.179664e-05
+  6.700000e-04  9.427486e-05
+  6.800000e-04  1.637698e-04
+  6.900000e-04  1.928505e-04
+  7.000000e-04  1.253923e-04
+  7.100000e-04  1.470220e-04
+  7.200000e-04  9.264641e-05
+  7.300000e-04  6.732051e-05
+  7.400000e-04  1.270250e-04
+  7.500000e-04  8.875049e-05
+  7.600000e-04  1.736491e-04
+  7.700000e-04  1.843074e-04
+  7.800000e-04  1.576424e-04
+  7.900000e-04  1.146325e-04
+  8.000000e-04  1.275168e-04
+  8.100000e-04  1.542796e-05
+  8.200000e-04  6.545057e-05
+  8.300000e-04  5.522411e-05
+  8.400000e-04  1.513035e-04
+  8.500000e-04  1.101109e-04
+  8.600000e-04  1.347806e-04
+  8.700000e-04  1.573392e-04
+  8.800000e-04  1.692069e-04
+  8.900000e-04  5.574266e-05
+  9.000000e-04  6.274779e-05
+  9.100000e-04  5.119236e-05
+  9.200000e-04  8.434503e-05
+  9.300000e-04  1.369865e-04
+  9.400000e-04  1.329006e-04
+  9.500000e-04  2.277456e-04
+  9.600000e-04  1.229623e-04
+  9.700000e-04  7.704705e-05
+  9.800000e-04  4.759292e-05
+  9.900000e-04  9.168590e-05
+  1.000000e-03  5.383647e-05
+
+#
+# Curve 4 - Shells 8
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Prin Dev Strain 1
+# Shells - 8: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.540565e-04
+  2.200000e-04  6.101161e-05
+  2.300000e-04  2.365780e-04
+  2.400000e-04  5.179857e-05
+  2.500000e-04  1.861926e-04
+  2.600000e-04  7.697737e-05
+  2.700000e-04  5.666197e-05
+  2.800000e-04  6.585297e-05
+  2.900000e-04  8.225554e-05
+  3.000000e-04  6.821022e-05
+  3.100000e-04  4.067657e-05
+  3.200000e-04  2.993055e-05
+  3.300000e-04  4.816408e-05
+  3.400000e-04  8.789817e-05
+  3.500000e-04  6.590905e-05
+  3.600000e-04  6.425660e-05
+  3.700000e-04  6.802453e-05
+  3.800000e-04  5.361978e-05
+  3.900000e-04  8.174330e-05
+  4.000000e-04  6.323193e-05
+  4.100000e-04  5.968104e-05
+  4.200000e-04  7.348209e-05
+  4.300000e-04  7.391641e-05
+  4.400000e-04  8.178246e-05
+  4.500000e-04  6.094880e-05
+  4.600000e-04  9.074046e-05
+  4.700000e-04  6.174280e-05
+  4.800000e-04  5.788444e-05
+  4.900000e-04  5.569917e-05
+  5.000000e-04  6.361648e-05
+  5.100000e-04  6.134086e-05
+  5.200000e-04  7.806445e-05
+  5.300000e-04  6.278770e-05
+  5.400000e-04  7.600660e-05
+  5.500000e-04  5.788087e-05
+  5.600000e-04  5.458703e-05
+  5.700000e-04  6.654511e-05
+  5.800000e-04  6.316923e-05
+  5.900000e-04  8.984519e-05
+  6.000000e-04  5.039825e-05
+  6.100000e-04  5.840418e-05
+  6.200000e-04  4.550901e-05
+  6.300000e-04  5.479186e-05
+  6.400000e-04  8.249186e-05
+  6.500000e-04  5.535342e-05
+  6.600000e-04  5.773249e-05
+  6.700000e-04  3.404888e-05
+  6.800000e-04  6.882218e-05
+  6.900000e-04  6.453953e-05
+  7.000000e-04  6.089315e-05
+  7.100000e-04  7.973942e-05
+  7.200000e-04  3.031390e-05
+  7.300000e-04  5.731725e-05
+  7.400000e-04  5.291659e-05
+  7.500000e-04  3.669942e-05
+  7.600000e-04  4.561010e-05
+  7.700000e-04  1.036517e-04
+  7.800000e-04  1.106533e-04
+  7.900000e-04  4.272868e-05
+  8.000000e-04  6.532681e-05
+  8.100000e-04  3.876856e-05
+  8.200000e-04  2.148159e-05
+  8.300000e-04  2.560531e-05
+  8.400000e-04  4.921667e-05
+  8.500000e-04  2.765241e-05
+  8.600000e-04  5.205922e-05
+  8.700000e-04  4.975299e-05
+  8.800000e-04  6.648280e-05
+  8.900000e-04  3.747067e-05
+  9.000000e-04  1.602464e-05
+  9.100000e-04  3.308369e-05
+  9.200000e-04  4.913433e-05
+  9.300000e-04  5.382136e-05
+  9.400000e-04  9.946551e-05
+  9.500000e-04  8.576574e-05
+  9.600000e-04  3.462461e-05
+  9.700000e-04  1.864233e-05
+  9.800000e-04  4.245984e-05
+  9.900000e-04  3.808256e-05
+  1.000000e-03  2.525224e-05
+
+#
+# Curve 5 - Shells 12
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 strain variety: infinitesimal
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 2
+
+#         Time  Prin Dev Strain 1
+# Shells - 12: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-05  0.000000e+00
+  2.000000e-05  0.000000e+00
+  3.000000e-05  0.000000e+00
+  4.000000e-05  0.000000e+00
+  5.000000e-05  0.000000e+00
+  6.000000e-05  0.000000e+00
+  7.000000e-05  0.000000e+00
+  8.000000e-05  0.000000e+00
+  9.000000e-05  0.000000e+00
+  1.000000e-04  0.000000e+00
+  1.100000e-04  0.000000e+00
+  1.200000e-04  0.000000e+00
+  1.300000e-04  0.000000e+00
+  1.400000e-04  0.000000e+00
+  1.500000e-04  0.000000e+00
+  1.600000e-04  0.000000e+00
+  1.700000e-04  0.000000e+00
+  1.800000e-04  0.000000e+00
+  1.900000e-04  0.000000e+00
+  2.000000e-04  0.000000e+00
+  2.100000e-04  2.540657e-04
+  2.200000e-04  6.112619e-05
+  2.300000e-04  2.365752e-04
+  2.400000e-04  5.218745e-05
+  2.500000e-04  1.862077e-04
+  2.600000e-04  7.847596e-05
+  2.700000e-04  5.735124e-05
+  2.800000e-04  6.660309e-05
+  2.900000e-04  8.316426e-05
+  3.000000e-04  6.834882e-05
+  3.100000e-04  4.073117e-05
+  3.200000e-04  3.047718e-05
+  3.300000e-04  4.798708e-05
+  3.400000e-04  8.795296e-05
+  3.500000e-04  6.483983e-05
+  3.600000e-04  6.444956e-05
+  3.700000e-04  6.801356e-05
+  3.800000e-04  5.347662e-05
+  3.900000e-04  8.163445e-05
+  4.000000e-04  6.320928e-05
+  4.100000e-04  5.914606e-05
+  4.200000e-04  7.356991e-05
+  4.300000e-04  7.386760e-05
+  4.400000e-04  8.173078e-05
+  4.500000e-04  6.093628e-05
+  4.600000e-04  9.069427e-05
+  4.700000e-04  6.149869e-05
+  4.800000e-04  5.797088e-05
+  4.900000e-04  5.591591e-05
+  5.000000e-04  6.370232e-05
+  5.100000e-04  6.135200e-05
+  5.200000e-04  7.792983e-05
+  5.300000e-04  6.276173e-05
+  5.400000e-04  7.611094e-05
+  5.500000e-04  5.786928e-05
+  5.600000e-04  5.458570e-05
+  5.700000e-04  6.670954e-05
+  5.800000e-04  6.314864e-05
+  5.900000e-04  8.977031e-05
+  6.000000e-04  5.037177e-05
+  6.100000e-04  5.835630e-05
+  6.200000e-04  4.561158e-05
+  6.300000e-04  5.489024e-05
+  6.400000e-04  8.241707e-05
+  6.500000e-04  5.522268e-05
+  6.600000e-04  5.768981e-05
+  6.700000e-04  3.399214e-05
+  6.800000e-04  6.881414e-05
+  6.900000e-04  6.456838e-05
+  7.000000e-04  6.089120e-05
+  7.100000e-04  7.969086e-05
+  7.200000e-04  3.031344e-05
+  7.300000e-04  5.723930e-05
+  7.400000e-04  5.297321e-05
+  7.500000e-04  3.677344e-05
+  7.600000e-04  4.566009e-05
+  7.700000e-04  1.036633e-04
+  7.800000e-04  1.105983e-04
+  7.900000e-04  4.265490e-05
+  8.000000e-04  6.528843e-05
+  8.100000e-04  3.875169e-05
+  8.200000e-04  2.148019e-05
+  8.300000e-04  2.560803e-05
+  8.400000e-04  4.922374e-05
+  8.500000e-04  2.766119e-05
+  8.600000e-04  5.208534e-05
+  8.700000e-04  4.972699e-05
+  8.800000e-04  6.642639e-05
+  8.900000e-04  3.744414e-05
+  9.000000e-04  1.600783e-05
+  9.100000e-04  3.307706e-05
+  9.200000e-04  4.910325e-05
+  9.300000e-04  5.385952e-05
+  9.400000e-04  9.946102e-05
+  9.500000e-04  8.575672e-05
+  9.600000e-04  3.460440e-05
+  9.700000e-04  1.865068e-05
+  9.800000e-04  4.238484e-05
+  9.900000e-04  3.811060e-05
+  1.000000e-03  2.522876e-05

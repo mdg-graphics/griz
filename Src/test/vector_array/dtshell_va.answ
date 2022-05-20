@@ -3,8 +3,8 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V21_01
-# 	Built: 	Fri Apr  1 14:48:40 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
+#	Griz4-V22_01
+# 	Built: 	Thu May 19 14:18:21 2022 on Linux #1 SMP Wed Apr 6 12:39:56 PDT 2022 3.10.0-1160.62.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
 # 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
 # 		Mili Library Version (Griz Linked): 	V21_02
@@ -16,7 +16,7 @@
 #---------------------------------------------------------------------
 # Database path/name: dtshell.plt
 # Description: Thick Shell BEAM of Mat 3 (with degenerated elements)
-# Output date: 04/01/22
+# Output date: 05/19/22
 #
 
 #
@@ -12572,7 +12572,7 @@
 #         Time  Prin Dev Stress 1
 # Thick Shells - 6: Prin Dev Stress 1
   0.000000e+00  0.000000e+00
-  1.000000e-01  0.000000e+00
+  1.000000e-01  1.900685e-04
   2.000000e-01  5.318985e-04
   3.000000e-01  1.297861e-03
   4.000000e-01  2.335830e-03
@@ -13238,7 +13238,7 @@
 #         Time  Prin Dev Stress 1
 # Thick Shells - 6: Prin Dev Stress 1
   0.000000e+00  0.000000e+00
-  1.000000e-01  0.000000e+00
+  1.000000e-01  1.983513e-04
   2.000000e-01  6.701431e-04
   3.000000e-01  1.266465e-03
   4.000000e-01  2.070801e-03
@@ -14570,7 +14570,7 @@
 #         Time  Principal Stress 2
 # Thick Shells - 6: Principal Stress 2
   0.000000e+00  0.000000e+00
-  1.000000e-01  -9.744304e-05
+  1.000000e-01  3.579052e-05
   2.000000e-01  1.246099e-04
   3.000000e-01  3.096699e-04
   4.000000e-01  5.510822e-04
@@ -15236,7 +15236,7 @@
 #         Time  Principal Stress 2
 # Thick Shells - 6: Principal Stress 2
   0.000000e+00  0.000000e+00
-  1.000000e-01  -1.060724e-06
+  1.000000e-01  -3.074538e-07
   2.000000e-01  -1.141004e-06
   3.000000e-01  2.323522e-06
   4.000000e-01  4.038789e-06

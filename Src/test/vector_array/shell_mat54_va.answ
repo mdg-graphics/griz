@@ -1,3 +1,24 @@
+# Time series data
+#
+#---------------------------------------------------------------------
+# Griz Version Info:
+#
+#	Griz4-V22_01
+# 	Built: 	Wed May 18 09:22:32 2022 on Linux #1 SMP Wed Apr 6 12:39:56 PDT 2022 3.10.0-1160.62.1.1chaos.ch6.x86_64 x86_64 by rhathaw
+# 	Configure: ./configure linux gnu
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V21_02
+#		Mili Database-Library Version: 		V21_02
+#		Mili Database-Host: 			rzgenie16
+#		Mili Database-Arch: 			Linux + 3.10.0-1160.59.1.1chaos.ch6.x86_64rzgenie16
+#		Mili Database-Timestamp: 		Fri Apr  1 10:53:10 2022
+#
+#---------------------------------------------------------------------
+# Database path/name: shell_mat54.plt
+# Description: Verification tests for shell material model 54
+# Output date: 05/18/22
+#
+
 #
 # Curve 1 - Shells 1
 # Time reference surface: middle
@@ -2967,3 +2988,1983 @@
   8.000000e-01  -0.000000e+00
   9.000000e-01  -0.000000e+00
   1.000000e+00  -0.000000e+00
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 1: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.333333e-03
+  2.000000e-01  2.666667e-03
+  3.000000e-01  3.999999e-03
+  4.000000e-01  5.333333e-03
+  5.000000e-01  6.666666e-03
+  6.000000e-01  7.999999e-03
+  7.000000e-01  9.333333e-03
+  8.000000e-01  1.066667e-02
+  9.000000e-01  1.200000e-02
+  1.000000e+00  1.333333e-02
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 2: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.388870e-14
+  2.000000e-01  -5.555532e-14
+  3.000000e-01  -1.249997e-13
+  4.000000e-01  -2.222221e-13
+  5.000000e-01  -3.472223e-13
+  6.000000e-01  -5.000006e-13
+  7.000000e-01  -6.805572e-13
+  8.000000e-01  -8.888922e-13
+  9.000000e-01  -1.125006e-12
+  1.000000e+00  -1.388898e-12
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 3: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.777769e-14
+  2.000000e-01  1.111109e-13
+  3.000000e-01  2.500003e-13
+  4.000000e-01  4.444443e-13
+  5.000000e-01  6.944466e-13
+  6.000000e-01  1.000003e-12
+  7.000000e-01  1.361117e-12
+  8.000000e-01  1.777787e-12
+  9.000000e-01  2.250015e-12
+  1.000000e+00  2.777801e-12
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 4: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 5: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 6: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.952239e-11
+  2.000000e-01  -2.380955e-10
+  3.000000e-01  3.189553e-09
+  4.000000e-01  6.498103e-09
+  5.000000e-01  5.962223e-09
+  6.000000e-01  1.214727e-08
+  7.000000e-01  1.807147e-08
+  8.000000e-01  2.372729e-08
+  9.000000e-01  2.910870e-08
+  1.000000e+00  3.421079e-08
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 7: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.952239e-11
+  2.000000e-01  -2.380955e-10
+  3.000000e-01  3.189553e-09
+  4.000000e-01  6.498103e-09
+  5.000000e-01  5.962223e-09
+  6.000000e-01  1.262596e-08
+  7.000000e-01  1.858636e-08
+  8.000000e-01  2.428547e-08
+  9.000000e-01  2.971668e-08
+  1.000000e+00  3.487449e-08
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 8: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -6.742071e-11
+  2.000000e-01  -2.892827e-10
+  3.000000e-01  3.039234e-09
+  4.000000e-01  6.176532e-09
+  5.000000e-01  5.383736e-09
+  6.000000e-01  1.182504e-08
+  7.000000e-01  1.803957e-08
+  8.000000e-01  2.401813e-08
+  9.000000e-01  2.975233e-08
+  1.000000e+00  3.523447e-08
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 9: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.041642e-10
+  2.000000e-01  -4.166672e-10
+  3.000000e-01  2.787750e-09
+  4.000000e-01  5.783745e-09
+  5.000000e-01  4.845955e-09
+  6.000000e-01  1.066091e-08
+  7.000000e-01  1.584851e-08
+  8.000000e-01  2.044518e-08
+  9.000000e-01  2.446614e-08
+  1.000000e+00  2.791317e-08
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 10: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.952239e-11
+  2.000000e-01  -2.380955e-10
+  3.000000e-01  3.189553e-09
+  4.000000e-01  6.498103e-09
+  5.000000e-01  5.962223e-09
+  6.000000e-01  1.238878e-08
+  7.000000e-01  1.784936e-08
+  8.000000e-01  2.289649e-08
+  9.000000e-01  2.750010e-08
+  1.000000e+00  3.163222e-08
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 11: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.952239e-11
+  2.000000e-01  -2.380955e-10
+  3.000000e-01  3.189553e-09
+  4.000000e-01  6.498103e-09
+  5.000000e-01  5.962223e-09
+  6.000000e-01  1.234503e-08
+  7.000000e-01  1.823729e-08
+  8.000000e-01  2.374271e-08
+  9.000000e-01  2.886474e-08
+  1.000000e+00  3.359438e-08
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 12: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.041642e-10
+  2.000000e-01  -4.166672e-10
+  3.000000e-01  2.787750e-09
+  4.000000e-01  5.783745e-09
+  5.000000e-01  4.845955e-09
+  6.000000e-01  1.012718e-08
+  7.000000e-01  1.466837e-08
+  8.000000e-01  1.856527e-08
+  9.000000e-01  2.181128e-08
+  1.000000e+00  2.437392e-08
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 13: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.333333e-03
+  2.000000e-01  -2.666667e-03
+  3.000000e-01  -3.999999e-03
+  4.000000e-01  -5.333333e-03
+  5.000000e-01  -6.666666e-03
+  6.000000e-01  -7.999999e-03
+  7.000000e-01  -7.999999e-03
+  8.000000e-01  -7.999999e-03
+  9.000000e-01  -7.999999e-03
+  1.000000e+00  -7.999999e-03
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 14: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.952239e-11
+  2.000000e-01  -2.380955e-10
+  3.000000e-01  3.136420e-09
+  4.000000e-01  5.713086e-09
+  5.000000e-01  4.124298e-09
+  6.000000e-01  9.494922e-09
+  7.000000e-01  1.432990e-08
+  8.000000e-01  1.432990e-08
+  9.000000e-01  1.432990e-08
+  1.000000e+00  1.432990e-08
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Strain Trace - Volumetric Strain reference surface: middle
+# Strain Trace - Volumetric Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  Strain Trace - Volumetric Strain
+# Shells - 15: Strain Trace - Volumetric Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 1: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.666666e-03
+  2.000000e-01  3.333333e-03
+  3.000000e-01  4.999999e-03
+  4.000000e-01  6.666666e-03
+  5.000000e-01  8.333333e-03
+  6.000000e-01  9.999999e-03
+  7.000000e-01  1.166666e-02
+  8.000000e-01  1.333333e-02
+  9.000000e-01  1.500000e-02
+  1.000000e+00  1.666667e-02
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 2: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732051e-03
+  2.000000e-01  3.464101e-03
+  3.000000e-01  5.196152e-03
+  4.000000e-01  6.928203e-03
+  5.000000e-01  8.660253e-03
+  6.000000e-01  1.039230e-02
+  7.000000e-01  1.212435e-02
+  8.000000e-01  1.385641e-02
+  9.000000e-01  1.558845e-02
+  1.000000e+00  1.732051e-02
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 3: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732051e-03
+  2.000000e-01  3.464101e-03
+  3.000000e-01  5.196152e-03
+  4.000000e-01  6.928203e-03
+  5.000000e-01  8.660253e-03
+  6.000000e-01  1.039230e-02
+  7.000000e-01  1.212435e-02
+  8.000000e-01  1.385641e-02
+  9.000000e-01  1.558845e-02
+  1.000000e+00  1.732051e-02
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 4: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732051e-03
+  2.000000e-01  3.464102e-03
+  3.000000e-01  5.196153e-03
+  4.000000e-01  6.928204e-03
+  5.000000e-01  8.660254e-03
+  6.000000e-01  1.039231e-02
+  7.000000e-01  1.212436e-02
+  8.000000e-01  1.385641e-02
+  9.000000e-01  1.558846e-02
+  1.000000e+00  1.732051e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 5: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732051e-03
+  2.000000e-01  3.464102e-03
+  3.000000e-01  5.196153e-03
+  4.000000e-01  6.928204e-03
+  5.000000e-01  8.660254e-03
+  6.000000e-01  1.039231e-02
+  7.000000e-01  1.212436e-02
+  8.000000e-01  1.385641e-02
+  9.000000e-01  1.558846e-02
+  1.000000e+00  1.732051e-02
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 6: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.999988e-02
+  2.000000e-01  5.999975e-02
+  3.000000e-01  8.999962e-02
+  4.000000e-01  1.199995e-01
+  5.000000e-01  1.499994e-01
+  6.000000e-01  1.799992e-01
+  7.000000e-01  2.099991e-01
+  8.000000e-01  2.399990e-01
+  9.000000e-01  2.699989e-01
+  1.000000e+00  2.999988e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 7: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732029e-02
+  2.000000e-01  3.464058e-02
+  3.000000e-01  5.196087e-02
+  4.000000e-01  6.928117e-02
+  5.000000e-01  8.660146e-02
+  6.000000e-01  1.039217e-01
+  7.000000e-01  1.212420e-01
+  8.000000e-01  1.385623e-01
+  9.000000e-01  1.558826e-01
+  1.000000e+00  1.732029e-01
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 8: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.999988e-02
+  2.000000e-01  5.999975e-02
+  3.000000e-01  8.999962e-02
+  4.000000e-01  1.199995e-01
+  5.000000e-01  1.499994e-01
+  6.000000e-01  1.799992e-01
+  7.000000e-01  2.099991e-01
+  8.000000e-01  2.399990e-01
+  9.000000e-01  2.699989e-01
+  1.000000e+00  2.999988e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 9: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.999988e-02
+  2.000000e-01  5.999975e-02
+  3.000000e-01  8.999962e-02
+  4.000000e-01  1.199995e-01
+  5.000000e-01  1.499994e-01
+  6.000000e-01  1.799992e-01
+  7.000000e-01  2.099991e-01
+  8.000000e-01  2.399990e-01
+  9.000000e-01  2.699989e-01
+  1.000000e+00  2.999988e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 10: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.999988e-02
+  2.000000e-01  5.999975e-02
+  3.000000e-01  8.999962e-02
+  4.000000e-01  1.199995e-01
+  5.000000e-01  1.499994e-01
+  6.000000e-01  1.799992e-01
+  7.000000e-01  2.099991e-01
+  8.000000e-01  2.399990e-01
+  9.000000e-01  2.699989e-01
+  1.000000e+00  2.999988e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 11: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.999988e-02
+  2.000000e-01  5.999975e-02
+  3.000000e-01  8.999962e-02
+  4.000000e-01  1.199995e-01
+  5.000000e-01  1.499994e-01
+  6.000000e-01  1.799992e-01
+  7.000000e-01  2.099991e-01
+  8.000000e-01  2.399990e-01
+  9.000000e-01  2.699989e-01
+  1.000000e+00  2.999988e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 12: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.999988e-02
+  2.000000e-01  5.999975e-02
+  3.000000e-01  8.999962e-02
+  4.000000e-01  1.199995e-01
+  5.000000e-01  1.499994e-01
+  6.000000e-01  1.799992e-01
+  7.000000e-01  2.099991e-01
+  8.000000e-01  2.399990e-01
+  9.000000e-01  2.699989e-01
+  1.000000e+00  2.999988e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 13: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.666666e-03
+  2.000000e-01  3.333333e-03
+  3.000000e-01  4.999999e-03
+  4.000000e-01  6.666666e-03
+  5.000000e-01  8.333333e-03
+  6.000000e-01  9.999999e-03
+  7.000000e-01  9.999999e-03
+  8.000000e-01  9.999999e-03
+  9.000000e-01  9.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 14: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732029e-02
+  2.000000e-01  3.464058e-02
+  3.000000e-01  5.196087e-02
+  4.000000e-01  6.928117e-02
+  5.000000e-01  8.660146e-02
+  6.000000e-01  1.039217e-01
+  7.000000e-01  1.212420e-01
+  8.000000e-01  1.212420e-01
+  9.000000e-01  1.212420e-01
+  1.000000e+00  1.212420e-01
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# 2nd Invariant of Strain reference surface: middle
+# 2nd Invariant of Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  2nd Invariant of Strain
+# Shells - 15: 2nd Invariant of Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.224745e-03
+  2.000000e-01  2.449490e-03
+  3.000000e-01  3.674235e-03
+  4.000000e-01  4.898980e-03
+  5.000000e-01  6.123724e-03
+  6.000000e-01  7.348469e-03
+  7.000000e-01  8.573215e-03
+  8.000000e-01  9.797960e-03
+  9.000000e-01  1.102270e-02
+  1.000000e+00  1.224745e-02
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 1: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.998891e-04
+  2.000000e-01  1.999778e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  3.999556e-03
+  5.000000e-01  4.999216e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.998902e-03
+  8.000000e-01  7.999113e-03
+  9.000000e-01  8.999998e-03
+  1.000000e+00  9.998431e-03
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 2: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.047819e-11
+  2.000000e-01  -1.009657e-10
+  3.000000e-01  -1.514623e-10
+  4.000000e-01  -2.019683e-10
+  5.000000e-01  -2.524835e-10
+  6.000000e-01  -3.030080e-10
+  7.000000e-01  -3.535418e-10
+  8.000000e-01  -4.040848e-10
+  9.000000e-01  -4.546371e-10
+  1.000000e+00  -5.051985e-10
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 3: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.046431e-11
+  2.000000e-01  -1.009101e-10
+  3.000000e-01  -1.513373e-10
+  4.000000e-01  -2.017461e-10
+  5.000000e-01  -2.521363e-10
+  6.000000e-01  -3.025080e-10
+  7.000000e-01  -3.528612e-10
+  8.000000e-01  -4.031959e-10
+  9.000000e-01  -4.535120e-10
+  1.000000e+00  -5.038097e-10
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 4: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.047357e-11
+  2.000000e-01  -1.009471e-10
+  3.000000e-01  -1.514207e-10
+  4.000000e-01  -2.018943e-10
+  5.000000e-01  -2.523678e-10
+  6.000000e-01  -3.028414e-10
+  7.000000e-01  -3.533150e-10
+  8.000000e-01  -4.037886e-10
+  9.000000e-01  -4.542621e-10
+  1.000000e+00  -5.047356e-10
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 5: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.047357e-11
+  2.000000e-01  -1.009471e-10
+  3.000000e-01  -1.514207e-10
+  4.000000e-01  -2.018943e-10
+  5.000000e-01  -2.523678e-10
+  6.000000e-01  -3.028414e-10
+  7.000000e-01  -3.533150e-10
+  8.000000e-01  -4.037886e-10
+  9.000000e-01  -4.542621e-10
+  1.000000e+00  -5.047356e-10
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 6: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.940649e-10
+  2.000000e-01  -1.827813e-09
+  3.000000e-01  -1.559488e-09
+  4.000000e-01  -1.330862e-09
+  5.000000e-01  -2.383713e-09
+  6.000000e-01  -1.196254e-09
+  7.000000e-01  -9.574652e-11
+  8.000000e-01  9.153034e-10
+  9.000000e-01  1.834882e-09
+  1.000000e+00  2.661354e-09
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 7: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.245702e-10
+  2.000000e-01  -1.088824e-09
+  3.000000e-01  -4.510038e-10
+  4.000000e-01  1.471170e-10
+  5.000000e-01  -5.362391e-10
+  6.000000e-01  -7.078683e-09
+  7.000000e-01  -6.973105e-09
+  8.000000e-01  -6.954622e-09
+  9.000000e-01  -7.025443e-09
+  1.000000e+00  -7.187394e-09
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 8: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.966977e-10
+  2.000000e-01  -1.844876e-09
+  3.000000e-01  -1.609595e-09
+  4.000000e-01  -1.438053e-09
+  5.000000e-01  -2.576542e-09
+  6.000000e-01  -1.303666e-09
+  7.000000e-01  -1.063789e-10
+  8.000000e-01  1.012249e-09
+  9.000000e-01  2.049425e-09
+  1.000000e+00  3.002582e-09
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 9: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.089455e-10
+  2.000000e-01  -1.887337e-09
+  3.000000e-01  -1.693423e-09
+  4.000000e-01  -1.568982e-09
+  5.000000e-01  -2.755803e-09
+  6.000000e-01  -1.691710e-09
+  7.000000e-01  -8.367316e-10
+  8.000000e-01  -1.787339e-10
+  9.000000e-01  2.873639e-10
+  1.000000e+00  5.621485e-10
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 10: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.940649e-10
+  2.000000e-01  -1.827813e-09
+  3.000000e-01  -1.559488e-09
+  4.000000e-01  -1.330862e-09
+  5.000000e-01  -2.383713e-09
+  6.000000e-01  -1.115753e-09
+  7.000000e-01  -1.697815e-10
+  8.000000e-01  6.383694e-10
+  9.000000e-01  1.298683e-09
+  1.000000e+00  1.801830e-09
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 11: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.940649e-10
+  2.000000e-01  -1.827813e-09
+  3.000000e-01  -1.559488e-09
+  4.000000e-01  -1.330862e-09
+  5.000000e-01  -2.383713e-09
+  6.000000e-01  -1.130336e-09
+  7.000000e-01  -4.047340e-11
+  8.000000e-01  9.204424e-10
+  9.000000e-01  1.753564e-09
+  1.000000e+00  2.455886e-09
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 12: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.089455e-10
+  2.000000e-01  -1.887337e-09
+  3.000000e-01  -1.693423e-09
+  4.000000e-01  -1.568982e-09
+  5.000000e-01  -2.755803e-09
+  6.000000e-01  -1.869619e-09
+  7.000000e-01  -1.230112e-09
+  8.000000e-01  -8.053704e-10
+  9.000000e-01  -5.975913e-10
+  1.000000e+00  -6.176020e-10
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 13: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.998892e-04
+  2.000000e-01  -1.999778e-03
+  3.000000e-01  -3.000000e-03
+  4.000000e-01  -3.999557e-03
+  5.000000e-01  -4.999217e-03
+  6.000000e-01  -5.999999e-03
+  7.000000e-01  -5.999999e-03
+  8.000000e-01  -5.999999e-03
+  9.000000e-01  -5.999999e-03
+  1.000000e+00  -5.999999e-03
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 14: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.245702e-10
+  2.000000e-01  -1.088824e-09
+  3.000000e-01  -4.687150e-10
+  4.000000e-01  -5.620528e-09
+  5.000000e-01  -8.031346e-09
+  6.000000e-01  -8.122361e-09
+  7.000000e-01  -8.391924e-09
+  8.000000e-01  -8.391924e-09
+  9.000000e-01  -8.391924e-09
+  1.000000e+00  -8.391924e-09
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Principal Strain 2 reference surface: middle
+# Principal Strain 2 reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  Principal Strain 2
+# Shells - 15: Principal Strain 2
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -3.569020e-11
+  2.000000e-01  -7.138040e-11
+  3.000000e-01  -1.070706e-10
+  4.000000e-01  -1.427608e-10
+  5.000000e-01  -1.784510e-10
+  6.000000e-01  -2.141412e-10
+  7.000000e-01  -2.498314e-10
+  8.000000e-01  -2.855216e-10
+  9.000000e-01  -3.212118e-10
+  1.000000e+00  -3.569020e-10
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 1: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  8.333887e-04
+  2.000000e-01  1.666777e-03
+  3.000000e-01  2.500000e-03
+  4.000000e-01  3.333555e-03
+  5.000000e-01  4.167058e-03
+  6.000000e-01  4.999999e-03
+  7.000000e-01  5.833881e-03
+  8.000000e-01  6.667109e-03
+  9.000000e-01  7.499998e-03
+  1.000000e+00  8.334116e-03
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 2: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-04
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  4.999999e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.999999e-03
+  8.000000e-01  7.999999e-03
+  9.000000e-01  8.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 3: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-04
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  4.999999e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.999999e-03
+  8.000000e-01  7.999999e-03
+  9.000000e-01  8.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 4: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-03
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  5.000000e-03
+  6.000000e-01  6.000000e-03
+  7.000000e-01  7.000000e-03
+  8.000000e-01  8.000000e-03
+  9.000000e-01  9.000000e-03
+  1.000000e+00  1.000000e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 5: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-03
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  5.000000e-03
+  6.000000e-01  6.000000e-03
+  7.000000e-01  7.000000e-03
+  8.000000e-01  8.000000e-03
+  9.000000e-01  9.000000e-03
+  1.000000e+00  1.000000e-02
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 6: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 7: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999875e-03
+  2.000000e-01  1.999975e-02
+  3.000000e-01  2.999962e-02
+  4.000000e-01  3.999950e-02
+  5.000000e-01  4.999938e-02
+  6.000000e-01  5.999925e-02
+  7.000000e-01  6.999913e-02
+  8.000000e-01  7.999900e-02
+  9.000000e-01  8.999888e-02
+  1.000000e+00  9.999876e-02
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 8: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 9: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 10: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 11: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 12: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 13: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  8.333887e-04
+  2.000000e-01  1.666777e-03
+  3.000000e-01  2.500000e-03
+  4.000000e-01  3.333555e-03
+  5.000000e-01  4.167059e-03
+  6.000000e-01  4.999999e-03
+  7.000000e-01  4.999999e-03
+  8.000000e-01  4.999999e-03
+  9.000000e-01  4.999999e-03
+  1.000000e+00  4.999999e-03
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 14: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999875e-03
+  2.000000e-01  1.999975e-02
+  3.000000e-01  2.999962e-02
+  4.000000e-01  3.999950e-02
+  5.000000e-01  4.999938e-02
+  6.000000e-01  5.999925e-02
+  7.000000e-01  6.999913e-02
+  8.000000e-01  6.999913e-02
+  9.000000e-01  6.999913e-02
+  1.000000e+00  6.999913e-02
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain reference surface: middle
+# Max Tensor Shear Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  Max Tensor Shear Strain
+# Shells - 15: Max Tensor Shear Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  7.071068e-04
+  2.000000e-01  1.414214e-03
+  3.000000e-01  2.121320e-03
+  4.000000e-01  2.828427e-03
+  5.000000e-01  3.535534e-03
+  6.000000e-01  4.242641e-03
+  7.000000e-01  4.949748e-03
+  8.000000e-01  5.656854e-03
+  9.000000e-01  6.363961e-03
+  1.000000e+00  7.071068e-03
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 1: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.556663e-04
+  2.000000e-01  1.111333e-03
+  3.000000e-01  1.666666e-03
+  4.000000e-01  2.222665e-03
+  5.000000e-01  2.778561e-03
+  6.000000e-01  3.333333e-03
+  7.000000e-01  3.889985e-03
+  8.000000e-01  4.445330e-03
+  9.000000e-01  4.999998e-03
+  1.000000e+00  5.557122e-03
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 2: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-04
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  4.999999e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.999999e-03
+  8.000000e-01  7.999999e-03
+  9.000000e-01  8.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 3: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-04
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  4.999999e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.999999e-03
+  8.000000e-01  7.999999e-03
+  9.000000e-01  8.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 4: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-03
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  5.000000e-03
+  6.000000e-01  6.000000e-03
+  7.000000e-01  7.000000e-03
+  8.000000e-01  8.000000e-03
+  9.000000e-01  9.000000e-03
+  1.000000e+00  1.000000e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 5: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-03
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  5.000000e-03
+  6.000000e-01  6.000000e-03
+  7.000000e-01  7.000000e-03
+  8.000000e-01  8.000000e-03
+  9.000000e-01  9.000000e-03
+  1.000000e+00  1.000000e-02
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 6: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 7: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999875e-03
+  2.000000e-01  1.999975e-02
+  3.000000e-01  2.999963e-02
+  4.000000e-01  3.999950e-02
+  5.000000e-01  4.999938e-02
+  6.000000e-01  5.999925e-02
+  7.000000e-01  6.999913e-02
+  8.000000e-01  7.999901e-02
+  9.000000e-01  8.999889e-02
+  1.000000e+00  9.999876e-02
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 8: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 9: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 10: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 11: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 12: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.732044e-02
+  2.000000e-01  3.464087e-02
+  3.000000e-01  5.196131e-02
+  4.000000e-01  6.928174e-02
+  5.000000e-01  8.660218e-02
+  6.000000e-01  1.039226e-01
+  7.000000e-01  1.212431e-01
+  8.000000e-01  1.385635e-01
+  9.000000e-01  1.558839e-01
+  1.000000e+00  1.732044e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 13: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.111111e-03
+  2.000000e-01  2.222222e-03
+  3.000000e-01  3.333333e-03
+  4.000000e-01  4.444444e-03
+  5.000000e-01  5.555555e-03
+  6.000000e-01  6.666666e-03
+  7.000000e-01  6.666666e-03
+  8.000000e-01  6.666666e-03
+  9.000000e-01  6.666666e-03
+  1.000000e+00  6.666666e-03
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 14: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999875e-03
+  2.000000e-01  1.999975e-02
+  3.000000e-01  2.999963e-02
+  4.000000e-01  3.999950e-02
+  5.000000e-01  4.999938e-02
+  6.000000e-01  5.999925e-02
+  7.000000e-01  6.999913e-02
+  8.000000e-01  6.999913e-02
+  9.000000e-01  6.999913e-02
+  1.000000e+00  6.999913e-02
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 1 reference surface: middle
+# Prin Dev Strain 1 reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  Prin Dev Strain 1
+# Shells - 15: Prin Dev Strain 1
+  0.000000e+00  0.000000e+00
+  1.000000e-01  7.071068e-04
+  2.000000e-01  1.414214e-03
+  3.000000e-01  2.121320e-03
+  4.000000e-01  2.828427e-03
+  5.000000e-01  3.535534e-03
+  6.000000e-01  4.242641e-03
+  7.000000e-01  4.949748e-03
+  8.000000e-01  5.656854e-03
+  9.000000e-01  6.363961e-03
+  1.000000e+00  7.071068e-03
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 1: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 2: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 3: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 4: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-03
+  2.000000e-01  4.000000e-03
+  3.000000e-01  6.000000e-03
+  4.000000e-01  8.000000e-03
+  5.000000e-01  1.000000e-02
+  6.000000e-01  1.200000e-02
+  7.000000e-01  1.400000e-02
+  8.000000e-01  1.600000e-02
+  9.000000e-01  1.800000e-02
+  1.000000e+00  2.000000e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 5: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.407412e-35
+  2.000000e-01  4.814825e-35
+  3.000000e-01  9.629650e-35
+  4.000000e-01  9.629650e-35
+  5.000000e-01  -9.629650e-35
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  1.925930e-34
+  9.000000e-01  1.925930e-34
+  1.000000e+00  1.925930e-34
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 6: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.200000e-01
+  7.000000e-01  1.400000e-01
+  8.000000e-01  1.600000e-01
+  9.000000e-01  1.800000e-01
+  1.000000e+00  2.000000e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 7: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 8: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.200000e-01
+  7.000000e-01  1.400000e-01
+  8.000000e-01  1.600000e-01
+  9.000000e-01  1.800000e-01
+  1.000000e+00  2.000000e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 9: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.200000e-01
+  7.000000e-01  1.400000e-01
+  8.000000e-01  1.600000e-01
+  9.000000e-01  1.800000e-01
+  1.000000e+00  2.000000e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 10: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.200000e-01
+  7.000000e-01  1.400000e-01
+  8.000000e-01  1.600000e-01
+  9.000000e-01  1.800000e-01
+  1.000000e+00  2.000000e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 11: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.200000e-01
+  7.000000e-01  1.400000e-01
+  8.000000e-01  1.600000e-01
+  9.000000e-01  1.800000e-01
+  1.000000e+00  2.000000e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 12: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.200000e-01
+  7.000000e-01  1.400000e-01
+  8.000000e-01  1.600000e-01
+  9.000000e-01  1.800000e-01
+  1.000000e+00  2.000000e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 13: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 14: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Engr Strain reference surface: middle
+# YZ Engr Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  YZ Engr Strain
+# Shells - 15: YZ Engr Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-03
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  5.000000e-03
+  6.000000e-01  6.000000e-03
+  7.000000e-01  7.000000e-03
+  8.000000e-01  8.000000e-03
+  9.000000e-01  9.000000e-03
+  1.000000e+00  1.000000e-02

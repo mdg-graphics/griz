@@ -173,3 +173,53 @@ outth d3samp6_va.jansw
 # Shell EYZ - integration point 2
 set_ipt 2 3
 outth d3samp6_va.jansw
+
+
+# Shell etrace - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3 
+show etrace
+outth d3samp6_va.jansw
+
+# Shell etrace - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell strinv2 - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3 
+show strinv2
+outth d3samp6_va.jansw
+
+# Shell strinv2 - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell pstrn2 - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3 
+show pstrn2
+outth d3samp6_va.jansw
+
+# Shell pstrn2 - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell pdstrn1 - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3 
+show pdstrn1
+outth d3samp6_va.jansw
+
+# Shell pdstrn1 - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
