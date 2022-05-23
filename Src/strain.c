@@ -1160,9 +1160,6 @@ compute_strain_invariant_one( Analysis *analy,float *resultArr, Bool_type interp
     srec = p_result->srec_id;
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
 
-    if( p_subrec->p_object_class->superclass == G_HEX && analy->preferred_primal_source == DERIVED )
-        return;
-
     if( p_subrec->element_set != NULL){
         compute_es_strain_inv_one(analy, resultArr, interpolate);
     }
