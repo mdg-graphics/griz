@@ -173,11 +173,8 @@ refresh_shown_result( Analysis *analy )
     if ( analy->cur_result == NULL )
         return FALSE;
 
-    if ( ( analy->cur_result->origin.is_derived
-            && analy->result_source == PRIMAL )
-            || ( analy->cur_result->origin.is_primal
-                 && ( analy->result_source == DERIVED
-                      || analy->result_source == ALL ) ) )
+    if ( ( analy->cur_result->origin.is_derived && (analy->result_source == PRIMAL || analy->result_source == ALL) )
+            || ( analy->cur_result->origin.is_primal && analy->result_source == DERIVED ) )
     {
         /* Potential change in result... */
         if ( find_result( analy, analy->result_source, TRUE, &new_result,
