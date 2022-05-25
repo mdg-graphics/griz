@@ -307,50 +307,6 @@ static char *shell_stress_primals[] =
     "stress_in", "stress_mid", "stress_out", NULL
 };
 
-
-static char *shell_press_shorts[] =
-{
-    "press", NULL
-};
-static char *shell_press_longs[] =
-{
-    "Pressure", NULL
-};
-static char *shell_press_primals[] =
-{
-    "stress_in", "stress_mid", "stress_out", NULL
-};
-
-static char *shell_effs_shorts[] =
-{
-    "seff", NULL
-};
-static char *shell_effs_longs[] =
-{
-    "Effective Stress", NULL
-};
-static char *shell_effs_primals[] =
-{
-    "stress_in", "stress_mid", "stress_out", NULL
-};
-
-
-static char *shell_prin_shorts[] =
-{
-    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL
-};
-static char *shell_prin_longs[] =
-{
-    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3",
-    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2",
-    "Principal Stress 3", NULL
-};
-static char *shell_prin_primals[] =
-{
-    "stress_in", "stress_mid", "stress_out", NULL
-};
-
-
 static char *shell_surf_shorts[] =
 {
     "surf1", "surf2", "surf3", "surf4", "surf5", "surf6", "eff1", "eff2",
@@ -425,47 +381,71 @@ static char *hex_stress_primals[] =
 };
 
 
-static char *hex_press_shorts[] =
+static char *pressure_shorts[] =
 {
     "press", NULL
 };
-static char *hex_press_longs[] =
+static char *pressure_longs[] =
 {
     "Pressure", NULL
 };
-static char *hex_press_primals[] =
-{
-    "stress", NULL
-};
 
-
-static char *hex_effs_shorts[] =
+static char *effective_stress_shorts[] =
 {
     "seff", NULL
 };
-static char *hex_effs_longs[] =
+static char *effective_stress_longs[] =
 {
     "Effective Stress", NULL
 };
-static char *hex_effs_primals[] =
-{
-    "stress", NULL
-};
 
-
-static char *hex_prin_shorts[] =
+static char *principal_stress_shorts[] =
 {
     "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL
 };
-static char *hex_prin_longs[] =
+static char *principal_stress_longs[] =
 {
     "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3",
     "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2",
     "Principal Stress 3", NULL
 };
-static char *hex_prin_primals[] =
+static char *stress_invariant_primals[] =
 {
     "stress", NULL
+};
+
+static char *strain_invariant_one_shorts[] =
+{
+    "etrace", NULL
+};
+static char *strain_invariant_one_longs[] =
+{
+    "Strain Trace - Volumetric Strain", NULL
+};
+
+static char *strain_invariant_two_shorts[] =
+{
+    "strinv2", NULL
+};
+static char *strain_invariant_two_longs[] =
+{
+    "2nd Invariant of Strain", NULL
+};
+
+static char *principal_strain_shorts[] =
+{
+    "pdstrn1", "pdstrn2", "pdstrn3", "pshrstr", "pstrn1", "pstrn2", "pstrn3",
+    "gamxy", "gamyz", "gamzx", NULL
+};
+static char *principal_strain_longs[] =
+{
+    "Prin Dev Strain 1", "Prin Dev Strain 2", "Prin Dev Strain 3",
+    "Max Tensor Shear Strain", "Principal Strain 1", "Principal Strain 2",
+    "Principal Strain 3", "XY Engr Strain", "YZ Engr Strain", "ZX Engr Strain", NULL
+};
+static char *strain_invariant_primals[] =
+{
+    "strain", NULL
 };
 
 
@@ -526,7 +506,7 @@ static char *hex_vol_shorts[] =
 };
 static char *hex_vol_longs[] =
 {
-    "Relative Volume", "Volumetric Strain", NULL
+    "Relative Volume", "Logarithmic Volumetric Strain", NULL
 };
 static char *hex_vol_primals[] =
 {
@@ -1039,9 +1019,9 @@ Result_candidate possible_results[] =
         compute_effective_stress,
         NULL,
         NULL,
-        hex_effs_shorts,
-        hex_effs_longs,
-        hex_effs_primals,
+        effective_stress_shorts,
+        effective_stress_longs,
+        stress_invariant_primals,
         QTY_SCLASS
     },
 
@@ -1055,9 +1035,9 @@ Result_candidate possible_results[] =
         compute_pressure,
         NULL,
         NULL,
-        hex_press_shorts,
-        hex_press_longs,
-        hex_press_primals,
+        pressure_shorts,
+        pressure_longs,
+        stress_invariant_primals,
         QTY_SCLASS
     },
 
@@ -1071,9 +1051,57 @@ Result_candidate possible_results[] =
         compute_principal_stress,
         NULL,
         NULL,
-        hex_prin_shorts,
-        hex_prin_longs,
-        hex_prin_primals,
+        principal_stress_shorts,
+        principal_stress_longs,
+        stress_invariant_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_strain_invariant_one,
+        NULL,
+        NULL,
+        strain_invariant_one_shorts,
+        strain_invariant_one_longs,
+        strain_invariant_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_strain_invariant_two,
+        NULL,
+        NULL,
+        strain_invariant_two_shorts,
+        strain_invariant_two_longs,
+        strain_invariant_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_WEDGE, G_PYRAMID, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_principal_strain,
+        NULL,
+        NULL,
+        principal_strain_shorts,
+        principal_strain_longs,
+        strain_invariant_primals,
         QTY_SCLASS
     },
 
@@ -1086,7 +1114,7 @@ Result_candidate possible_results[] =
         FALSE,
         compute_hex_strain,
         NULL,
-        "Strain",
+        NULL,
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_primals,
@@ -1102,7 +1130,7 @@ Result_candidate possible_results[] =
         FALSE,
         compute_hex_strain,
         NULL,
-        "Strain",
+        NULL,
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_th_primals,
@@ -1183,9 +1211,9 @@ Result_candidate possible_results[] =
         compute_shell_effstress,
         NULL,
         NULL,
-        shell_effs_shorts,
-        shell_effs_longs,
-        shell_effs_primals,
+        effective_stress_shorts,
+        effective_stress_longs,
+        shell_stress_primals,
         QTY_SCLASS
     },
 
@@ -1199,9 +1227,9 @@ Result_candidate possible_results[] =
         compute_shell_press,
         NULL,
         NULL,
-        shell_press_shorts,
-        shell_press_longs,
-        shell_press_primals,
+        pressure_shorts,
+        pressure_longs,
+        shell_stress_primals,
         QTY_SCLASS
     },
 
@@ -1215,9 +1243,9 @@ Result_candidate possible_results[] =
         compute_shell_principal_stress,
         NULL,
         NULL,
-        shell_prin_shorts,
-        shell_prin_longs,
-        shell_prin_primals,
+        principal_stress_shorts,
+        principal_stress_longs,
+        shell_stress_primals,
         QTY_SCLASS
     },
 

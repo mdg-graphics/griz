@@ -1987,7 +1987,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 // Check for old shell stresses
                 if(!strcmp(svar_names[k], "stress_in") || !strcmp(svar_names[k], "stress_mid") || !strcmp(svar_names[k], "stress_out"))
                     analy->old_shell_stresses = TRUE;
-
+                
                 if ( nodal )
                 {
                     if ( strcmp( svar_names[k], "nodpos" ) == 0 )
@@ -2468,6 +2468,14 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     /* If this is a vector array result, attach element set */
     if( p_pr->var->agg_type == VEC_ARRAY )
         attach_element_set( analy, p_subr_obj, p_pr->short_name );
+    
+    /* Check for hex strains and update flag in Analysis struct. */
+    if( strcmp(p_pr->short_name, "strain") == 0 ){
+        for(i = 0; i < p_pr->qty_subrecs; i++){
+            if( p_pr->subrecs[i]->p_object_class->superclass == G_HEX )
+                analy->have_hex_strains = TRUE;
+        }
+    }
 
     /* Check for sand flag. */
     p_sand_var = ( db_type == EXODUS ) ? "STATUS" : "sand";
@@ -2910,7 +2918,7 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
         {
             p_subrec_list = (Subrec_obj **) p_dr->subrecs;
 
-            /* Loop over all subrecords currently associated with this primal_result */
+            /* Loop over all subrecords currently associated with this derived_result */
             for(k = 0; k < p_dr->qty_subrecs; k++)
             {
                 /* Check if subrecord already in list */
@@ -2918,7 +2926,12 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
                     break;
 
                 /* Check if "shared" */
-                if(strcmp(p_subrec_list[k]->subrec.class_name, p_subrec->subrec.class_name) != 0)
+                /* If the superclass is Node, do not mark as shared -- No nodal results are shared and
+                 * this prevents results derived from nodal positions (strains) from incorrectly being
+                 * put in the shared menu. */
+                if( p_subrec_list[k]->p_object_class->superclass != G_NODE
+                    && p_subrec->p_object_class->superclass != G_NODE
+                    && strcmp(p_subrec_list[k]->subrec.class_name, p_subrec->subrec.class_name) != 0)
                 {
                     // If new element class name, this result is shared
                     p_dr->is_shared = TRUE;

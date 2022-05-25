@@ -1,11 +1,31 @@
+# Time series data
+#
+#---------------------------------------------------------------------
+# Griz Version Info:
+#
+#	Griz4-V22_01
+# 	Built: 	Thu May 19 11:15:29 2022 on Linux #1 SMP Wed Apr 6 12:39:56 PDT 2022 3.10.0-1160.62.1.1chaos.ch6.x86_64 x86_64 by rhathaw
+# 	Configure: ./configure linux gnu
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V21_02
+#		Mili Database-Library Version: 		V21_02
+#		Mili Database-Host: 			rzgenie27
+#		Mili Database-Arch: 			Linux + 3.10.0-1160.59.1.1chaos.ch6.x86_64rzgenie27
+#		Mili Database-Timestamp: 		Thu Mar 31 13:53:13 2022
+#
+#---------------------------------------------------------------------
+# Database path/name: m52_plate.plt
+# Description: Plate Pressure Loaded  Material Model 52
+# Output date: 05/19/22
+#
+
 #
 # Curve 1 - Shells 1
 # Time reference surface: middle
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      X Stress
 # Shells - 1: X Stress
@@ -117,8 +137,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 10: X Stress
@@ -230,8 +249,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      X Stress
 # Shells - 12: X Stress
@@ -343,8 +361,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      X Stress
 # Shells - 13: X Stress
@@ -456,8 +473,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 27: X Stress
@@ -569,8 +585,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      X Stress
 # Shells - 31: X Stress
@@ -682,8 +697,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      X Stress
 # Shells - 34: X Stress
@@ -795,8 +809,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 49: X Stress
@@ -908,8 +921,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 55: X Stress
@@ -1021,8 +1033,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 67: X Stress
@@ -1134,8 +1145,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 73: X Stress
@@ -1247,8 +1257,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 85: X Stress
@@ -1360,8 +1369,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 91: X Stress
@@ -1473,8 +1481,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      X Stress
 # Shells - 100: X Stress
@@ -1586,8 +1593,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      X Stress
 # Shells - 1: X Stress
@@ -1699,8 +1705,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 10: X Stress
@@ -1812,8 +1817,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      X Stress
 # Shells - 12: X Stress
@@ -1925,8 +1929,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      X Stress
 # Shells - 13: X Stress
@@ -2038,8 +2041,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 27: X Stress
@@ -2151,8 +2153,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      X Stress
 # Shells - 31: X Stress
@@ -2264,8 +2265,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      X Stress
 # Shells - 34: X Stress
@@ -2377,8 +2377,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 49: X Stress
@@ -2490,8 +2489,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 55: X Stress
@@ -2603,8 +2601,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 67: X Stress
@@ -2716,8 +2713,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 73: X Stress
@@ -2829,8 +2825,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 85: X Stress
@@ -2942,8 +2937,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 91: X Stress
@@ -3055,8 +3049,7 @@
 # Time reference frame: global
 # X Stress reference surface: middle
 # X Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      X Stress
 # Shells - 100: X Stress
@@ -3168,8 +3161,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 1: Z Stress
@@ -3281,8 +3273,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 10: Z Stress
@@ -3394,8 +3385,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 12: Z Stress
@@ -3507,8 +3497,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 13: Z Stress
@@ -3620,8 +3609,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 27: Z Stress
@@ -3733,8 +3721,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 31: Z Stress
@@ -3846,8 +3833,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 34: Z Stress
@@ -3959,8 +3945,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 49: Z Stress
@@ -4072,8 +4057,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 55: Z Stress
@@ -4185,8 +4169,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 67: Z Stress
@@ -4298,8 +4281,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 73: Z Stress
@@ -4411,8 +4393,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 85: Z Stress
@@ -4524,8 +4505,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 91: Z Stress
@@ -4637,8 +4617,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Z Stress
 # Shells - 100: Z Stress
@@ -4750,8 +4729,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 1: Z Stress
@@ -4863,8 +4841,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 10: Z Stress
@@ -4976,8 +4953,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 12: Z Stress
@@ -5089,8 +5065,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 13: Z Stress
@@ -5202,8 +5177,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 27: Z Stress
@@ -5315,8 +5289,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 31: Z Stress
@@ -5428,8 +5401,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 34: Z Stress
@@ -5541,8 +5513,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 49: Z Stress
@@ -5654,8 +5625,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 55: Z Stress
@@ -5767,8 +5737,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 67: Z Stress
@@ -5880,8 +5849,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 73: Z Stress
@@ -5993,8 +5961,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 85: Z Stress
@@ -6106,8 +6073,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 91: Z Stress
@@ -6219,8 +6185,7 @@
 # Time reference frame: global
 # Z Stress reference surface: middle
 # Z Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Z Stress
 # Shells - 100: Z Stress
@@ -6332,8 +6297,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 1: ZX Stress
@@ -6445,8 +6409,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 10: ZX Stress
@@ -6558,8 +6521,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 12: ZX Stress
@@ -6671,8 +6633,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 13: ZX Stress
@@ -6784,8 +6745,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 27: ZX Stress
@@ -6897,8 +6857,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 31: ZX Stress
@@ -7010,8 +6969,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 34: ZX Stress
@@ -7123,8 +7081,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 49: ZX Stress
@@ -7236,8 +7193,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 55: ZX Stress
@@ -7349,8 +7305,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 67: ZX Stress
@@ -7462,8 +7417,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 73: ZX Stress
@@ -7575,8 +7529,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 85: ZX Stress
@@ -7688,8 +7641,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 91: ZX Stress
@@ -7801,8 +7753,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time     ZX Stress
 # Shells - 100: ZX Stress
@@ -7914,8 +7865,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 1: ZX Stress
@@ -8027,8 +7977,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 10: ZX Stress
@@ -8140,8 +8089,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 12: ZX Stress
@@ -8253,8 +8201,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 13: ZX Stress
@@ -8366,8 +8313,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 27: ZX Stress
@@ -8479,8 +8425,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 31: ZX Stress
@@ -8592,8 +8537,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 34: ZX Stress
@@ -8705,8 +8649,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 49: ZX Stress
@@ -8818,8 +8761,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 55: ZX Stress
@@ -8931,8 +8873,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 67: ZX Stress
@@ -9044,8 +8985,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 73: ZX Stress
@@ -9157,8 +9097,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 85: ZX Stress
@@ -9270,8 +9209,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 91: ZX Stress
@@ -9383,8 +9321,7 @@
 # Time reference frame: global
 # ZX Stress reference surface: middle
 # ZX Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time     ZX Stress
 # Shells - 100: ZX Stress
@@ -9496,8 +9433,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 1: Equiv. Plastic Strain
@@ -9609,8 +9545,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 10: Equiv. Plastic Strain
@@ -9722,8 +9657,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 12: Equiv. Plastic Strain
@@ -9835,8 +9769,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 13: Equiv. Plastic Strain
@@ -9948,8 +9881,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 27: Equiv. Plastic Strain
@@ -10061,8 +9993,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 31: Equiv. Plastic Strain
@@ -10174,8 +10105,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 34: Equiv. Plastic Strain
@@ -10287,8 +10217,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 49: Equiv. Plastic Strain
@@ -10400,8 +10329,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 55: Equiv. Plastic Strain
@@ -10513,8 +10441,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 67: Equiv. Plastic Strain
@@ -10626,8 +10553,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 73: Equiv. Plastic Strain
@@ -10739,8 +10665,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 85: Equiv. Plastic Strain
@@ -10852,8 +10777,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 91: Equiv. Plastic Strain
@@ -10965,8 +10889,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Equiv. Plastic Strain
 # Shells - 100: Equiv. Plastic Strain
@@ -11078,8 +11001,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 1: Equiv. Plastic Strain
@@ -11191,8 +11113,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 10: Equiv. Plastic Strain
@@ -11304,8 +11225,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 12: Equiv. Plastic Strain
@@ -11417,8 +11337,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 13: Equiv. Plastic Strain
@@ -11530,8 +11449,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 27: Equiv. Plastic Strain
@@ -11643,8 +11561,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 31: Equiv. Plastic Strain
@@ -11756,8 +11673,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 34: Equiv. Plastic Strain
@@ -11869,8 +11785,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 49: Equiv. Plastic Strain
@@ -11982,8 +11897,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 55: Equiv. Plastic Strain
@@ -12095,8 +12009,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 67: Equiv. Plastic Strain
@@ -12208,8 +12121,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 73: Equiv. Plastic Strain
@@ -12321,8 +12233,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 85: Equiv. Plastic Strain
@@ -12434,8 +12345,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 91: Equiv. Plastic Strain
@@ -12547,8 +12457,7 @@
 # Time reference frame: global
 # Equiv. Plastic Strain reference surface: middle
 # Equiv. Plastic Strain reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Equiv. Plastic Strain
 # Shells - 100: Equiv. Plastic Strain
@@ -12660,8 +12569,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 1: Effective Stress
@@ -12773,8 +12681,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 10: Effective Stress
@@ -12886,8 +12793,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 12: Effective Stress
@@ -12999,8 +12905,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 13: Effective Stress
@@ -13112,8 +13017,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 27: Effective Stress
@@ -13225,8 +13129,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 31: Effective Stress
@@ -13338,8 +13241,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 34: Effective Stress
@@ -13451,8 +13353,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 49: Effective Stress
@@ -13564,8 +13465,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 55: Effective Stress
@@ -13677,8 +13577,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 67: Effective Stress
@@ -13790,8 +13689,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 73: Effective Stress
@@ -13903,8 +13801,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 85: Effective Stress
@@ -14016,8 +13913,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 91: Effective Stress
@@ -14129,8 +14025,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Effective Stress
 # Shells - 100: Effective Stress
@@ -14242,8 +14137,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 1: Effective Stress
@@ -14355,8 +14249,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 10: Effective Stress
@@ -14468,8 +14361,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 12: Effective Stress
@@ -14581,8 +14473,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 13: Effective Stress
@@ -14694,8 +14585,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 27: Effective Stress
@@ -14807,8 +14697,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 31: Effective Stress
@@ -14920,8 +14809,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 34: Effective Stress
@@ -15033,8 +14921,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 49: Effective Stress
@@ -15146,8 +15033,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 55: Effective Stress
@@ -15259,8 +15145,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 67: Effective Stress
@@ -15372,8 +15257,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 73: Effective Stress
@@ -15485,8 +15369,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 85: Effective Stress
@@ -15598,8 +15481,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 91: Effective Stress
@@ -15711,8 +15593,7 @@
 # Time reference frame: global
 # Effective Stress reference surface: middle
 # Effective Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Effective Stress
 # Shells - 100: Effective Stress
@@ -15824,8 +15705,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Pressure
 # Shells - 1: Pressure
@@ -15937,8 +15817,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 10: Pressure
@@ -16050,8 +15929,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Pressure
 # Shells - 12: Pressure
@@ -16163,8 +16041,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Pressure
 # Shells - 13: Pressure
@@ -16276,8 +16153,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 27: Pressure
@@ -16389,8 +16265,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Pressure
 # Shells - 31: Pressure
@@ -16502,8 +16377,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time      Pressure
 # Shells - 34: Pressure
@@ -16615,8 +16489,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 49: Pressure
@@ -16728,8 +16601,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 55: Pressure
@@ -16841,8 +16713,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 67: Pressure
@@ -16954,8 +16825,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 73: Pressure
@@ -17067,8 +16937,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 85: Pressure
@@ -17180,8 +17049,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 91: Pressure
@@ -17293,8 +17161,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time      Pressure
 # Shells - 100: Pressure
@@ -17406,8 +17273,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Pressure
 # Shells - 1: Pressure
@@ -17519,8 +17385,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 10: Pressure
@@ -17632,8 +17497,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Pressure
 # Shells - 12: Pressure
@@ -17745,8 +17609,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Pressure
 # Shells - 13: Pressure
@@ -17858,8 +17721,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 27: Pressure
@@ -17971,8 +17833,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Pressure
 # Shells - 31: Pressure
@@ -18084,8 +17945,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time      Pressure
 # Shells - 34: Pressure
@@ -18197,8 +18057,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 49: Pressure
@@ -18310,8 +18169,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 55: Pressure
@@ -18423,8 +18281,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 67: Pressure
@@ -18536,8 +18393,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 73: Pressure
@@ -18649,8 +18505,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 85: Pressure
@@ -18762,8 +18617,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 91: Pressure
@@ -18875,8 +18729,7 @@
 # Time reference frame: global
 # Pressure reference surface: middle
 # Pressure reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time      Pressure
 # Shells - 100: Pressure
@@ -18988,8 +18841,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 1: Maximum Shear Stress
@@ -19101,8 +18953,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 10: Maximum Shear Stress
@@ -19214,8 +19065,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 12: Maximum Shear Stress
@@ -19327,8 +19177,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 13: Maximum Shear Stress
@@ -19440,8 +19289,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 27: Maximum Shear Stress
@@ -19553,8 +19401,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 31: Maximum Shear Stress
@@ -19666,8 +19513,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 2 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 34: Maximum Shear Stress
@@ -19779,8 +19625,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 49: Maximum Shear Stress
@@ -19892,8 +19737,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 55: Maximum Shear Stress
@@ -20005,8 +19849,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 67: Maximum Shear Stress
@@ -20118,8 +19961,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 73: Maximum Shear Stress
@@ -20231,8 +20073,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 85: Maximum Shear Stress
@@ -20344,8 +20185,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 91: Maximum Shear Stress
@@ -20457,8 +20297,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 1
-# Shells Integration point: 1
+# Material 1 Integration point: 1
 
 #         Time  Maximum Shear Stress
 # Shells - 100: Maximum Shear Stress
@@ -20570,8 +20409,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 1: Maximum Shear Stress
@@ -20683,8 +20521,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 10: Maximum Shear Stress
@@ -20796,8 +20633,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 12: Maximum Shear Stress
@@ -20909,8 +20745,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 13: Maximum Shear Stress
@@ -21022,8 +20857,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 27: Maximum Shear Stress
@@ -21135,8 +20969,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 31: Maximum Shear Stress
@@ -21248,8 +21081,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 2 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 34: Maximum Shear Stress
@@ -21361,8 +21193,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 49: Maximum Shear Stress
@@ -21474,8 +21305,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 55: Maximum Shear Stress
@@ -21587,8 +21417,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 67: Maximum Shear Stress
@@ -21700,8 +21529,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 73: Maximum Shear Stress
@@ -21813,8 +21641,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 85: Maximum Shear Stress
@@ -21926,8 +21753,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 91: Maximum Shear Stress
@@ -22039,8 +21865,7 @@
 # Time reference frame: global
 # Maximum Shear Stress reference surface: middle
 # Maximum Shear Stress reference frame: global
-# Shells Integration point: 2
-# Shells Integration point: 2
+# Material 1 Integration point: 2
 
 #         Time  Maximum Shear Stress
 # Shells - 100: Maximum Shear Stress

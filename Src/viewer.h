@@ -1027,6 +1027,8 @@ typedef struct _Analysis
     Hash_table *intPoints;
     Result_table_type result_source;
     Result_table_type prev_result_source;
+    Result_table_type preferred_primal_source; /* For derived results, do we prefer primal primals or derived primals */
+    Bool_type have_hex_strains;
     char **component_menu_specs;
     int component_spec_qty;
     State2 *state_p;
@@ -2347,12 +2349,24 @@ extern void compute_beam_axial_strain( Analysis *, float *, Bool_type );
 extern void set_diameter( float );
 extern void set_youngs_mod( float );
 
+extern void compute_strain_invariant_one( Analysis*, float*, Bool_type );
+extern void compute_strain_inv_one( Analysis*, float*, Bool_type );
+extern void compute_es_strain_inv_one( Analysis*, float*, Bool_type );
+extern void compute_strain_invariant_two( Analysis*, float*, Bool_type );
+extern void compute_strain_inv_two( Analysis*, float*, Bool_type );
+extern void compute_es_strain_inv_two( Analysis*, float*, Bool_type );
+extern void compute_principal_strain( Analysis*, float*, Bool_type );
+extern void compute_prin_strain( Analysis*, float*, Bool_type );
+extern void compute_es_prin_strain( Analysis*, float*, Bool_type );
+
 extern Bool_type is_primal_quad_strain_result( char *result_name );
 extern void      rotate_quad_result( Analysis *analy, char *primal, int result_cnt,
                                      float *result );
 
 
 /* stress.c */
+extern char* get_es_name(Primal_result* primal_result, int subrec);
+extern char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_vector_array_format, int component, Bool_type strain);
 extern void compute_hex_stress( Analysis *, float *, Bool_type );
 
 extern void compute_pressure( Analysis *, float *, Bool_type );
