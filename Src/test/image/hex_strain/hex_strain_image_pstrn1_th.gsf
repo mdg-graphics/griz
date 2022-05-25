@@ -1,0 +1,16 @@
+# hex_strain image test problem
+fracsz 8
+jpegqual 100
+sw interp
+
+# Set Viewing
+off all; on cmap; on title; on time; on coord; on box; on minmax;
+off path
+
+# Object selection
+select brick 1 2
+
+# Show result and output image
+show pstrn1
+plot
+outjpeg hex_strain_image_pstrn1_th.answ.jpg
