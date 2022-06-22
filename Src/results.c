@@ -2569,13 +2569,22 @@ char * construct_result_query_string(Analysis* analy){
                         break;
                     }
                 }
-                strcpy(query_string, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[l]);
-                if(p_subrec->element_set->tempIndex < 0)
-                    ipt_index = p_subrec->element_set->current_index+1;
+                
+                if( found )
+                {
+                    strcpy(query_string, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[l]);
+                    if(p_subrec->element_set->tempIndex < 0)
+                        ipt_index = p_subrec->element_set->current_index+1;
+                    else
+                        ipt_index = p_subrec->element_set->tempIndex+1;
+                    sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
+                            primal_result->owning_vector_result[i]->original_names_per_subrec[j], primal_result->short_name);
+                }
                 else
-                    ipt_index = p_subrec->element_set->tempIndex+1;
-                sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
-                        primal_result->owning_vector_result[i]->original_names_per_subrec[j], primal_result->short_name);
+                {
+                    strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                    sprintf(query_string, "%s[%s]" , query_string, p_result->name);
+                }
             }
             else if(p_subrec->element_set){
                 strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
