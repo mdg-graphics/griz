@@ -86,6 +86,69 @@ static GVec3D2P *reference_nodes = NULL;
 static float *strain_vel = NULL;
 static double *strain_vel_2p = NULL;
 
+typedef enum{
+    EX, EY, EZ, EXY, EYZ, EZX,
+    PRINCIPLE_DEVIATORIC_STRAIN_1,
+    PRINCIPLE_DEVIATORIC_STRAIN_2,
+    PRINCIPLE_DEVIATORIC_STRAIN_3,
+    MAX_TENSOR_SHEAR_STRAIN,
+    PRINCIPLE_STRAIN_1,
+    PRINCIPLE_STRAIN_2,
+    PRINCIPLE_STRAIN_3,
+    ENGR_STRAIN_XY,
+    ENGR_STRAIN_YZ,
+    ENGR_STRAIN_ZX,
+    INVALID
+} DERIVED_STRAIN_TYPE;
+
+
+/************************************************************
+ * TAG( get_derived_strain_type_from_name )
+ *
+ * Given the short name of a derived strain value, return the associated
+ * enumeration value.
+ */
+DERIVED_STRAIN_TYPE
+get_derived_strain_type_from_name(char *name){
+    DERIVED_STRAIN_TYPE strain_type;
+
+    if ( strcmp( name, "ex" ) == 0 )
+        strain_type = EX;
+    else if ( strcmp( name, "ey" ) == 0 )
+        strain_type = EY;
+    else if ( strcmp( name, "ez" ) == 0 )
+        strain_type = EZ;
+    else if ( strcmp( name, "exy" ) == 0 )
+        strain_type = EXY;
+    else if ( strcmp( name, "eyz" ) == 0 )
+        strain_type = EYZ;
+    else if ( strcmp( name, "ezx" ) == 0 )
+        strain_type = EZX;
+    else if ( strcmp( name, "pdstrn1" ) == 0 )
+        strain_type = PRINCIPLE_DEVIATORIC_STRAIN_1;
+    else if ( strcmp( name, "pdstrn2" ) == 0 )
+        strain_type = PRINCIPLE_DEVIATORIC_STRAIN_2;
+    else if ( strcmp( name, "pdstrn3" ) == 0 )
+        strain_type = PRINCIPLE_DEVIATORIC_STRAIN_3;
+    else if ( strcmp( name, "pshrstr" ) == 0 )
+        strain_type = MAX_TENSOR_SHEAR_STRAIN;
+    else if ( strcmp( name, "pstrn1" ) == 0 )
+        strain_type = PRINCIPLE_STRAIN_1;
+    else if ( strcmp( name, "pstrn2" ) == 0 )
+        strain_type = PRINCIPLE_STRAIN_2;
+    else if ( strcmp( name, "pstrn3" ) == 0 )
+        strain_type = PRINCIPLE_STRAIN_3;
+    else if ( strcmp( name, "gamxy" ) == 0 )
+        strain_type = ENGR_STRAIN_XY;
+    else if ( strcmp( name, "gamyz" ) == 0 )
+        strain_type = ENGR_STRAIN_YZ;
+    else if ( strcmp( name, "gamzx" ) == 0 )
+        strain_type = ENGR_STRAIN_ZX;
+    else
+        strain_type = INVALID;
+
+    return strain_type;
+}
 
 /************************************************************
  * TAG( free_static_strain_data )
@@ -154,7 +217,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     int (*connects)[8];
     Result *p_result;
     int class_qty, mat_qty, active_qty, elem_block_qty, qty;
-    int res_index, start, stop;
+    int start, stop;
     GVec3D *nodes3d, *onodes3d;
     float *nxv, *nyv, *nzv;          /* Nodal velocity arrays for rate calc. */
     double *nxv_2p, *nyv_2p, *nzv_2p; /* Double prec. arrays for rate calc. */
@@ -170,6 +233,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     Bool_type single_prec_pos, single_prec_vel;
     static Bool_type mixed_prec_warn = FALSE;
     Bool particle_class=FALSE;
+    DERIVED_STRAIN_TYPE strain_type;
 
     int status=OK;
 
@@ -189,38 +253,15 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
 
     /* Determine a result index. */
-    if ( strcmp( p_result->name, "ex" ) == 0 )
-        res_index = 0;
-    else if ( strcmp( p_result->name, "ey" ) == 0 )
-        res_index = 1;
-    else if ( strcmp( p_result->name, "ez" ) == 0 )
-        res_index = 2;
-    else if ( strcmp( p_result->name, "exy" ) == 0 )
-        res_index = 3;
-    else if ( strcmp( p_result->name, "eyz" ) == 0 )
-        res_index = 4;
-    else if ( strcmp( p_result->name, "ezx" ) == 0 )
-        res_index = 5;
-    else if ( strcmp( p_result->name, "pdstrn1" ) == 0 )
-        res_index = 6;
-    else if ( strcmp( p_result->name, "pdstrn2" ) == 0 )
-        res_index = 7;
-    else if ( strcmp( p_result->name, "pdstrn3" ) == 0 )
-        res_index = 8;
-    else if ( strcmp( p_result->name, "pshrstr" ) == 0 )
-        res_index = 9;
-    else if ( strcmp( p_result->name, "pstrn1" ) == 0 )
-        res_index = 10;
-    else if ( strcmp( p_result->name, "pstrn2" ) == 0 )
-        res_index = 11;
-    else if ( strcmp( p_result->name, "pstrn3" ) == 0 )
-        res_index = 12;
-    else if ( strcmp( p_result->name, "gamxy" ) == 0 )
-        res_index = 13;
-    else if ( strcmp( p_result->name, "gamyz" ) == 0 )
-        res_index = 14;
-    else if ( strcmp( p_result->name, "gamzx" ) == 0 )
-        res_index = 15;
+    strain_type = get_derived_strain_type_from_name( p_result->name );
+
+    /* If we are not calculating ex, ey, ez, exy, eyz, ezx AND */
+    if( strain_type > EZX ){
+        /* If we have both strain tensor and nodpos, check desired source for primals */
+        if( analy->have_hex_strains && analy->preferred_primal_source == PRIMAL )
+            return;
+    }
+
 
     /* Get node position data precision. */
     single_prec_pos = !(MESH_P( analy )->double_precision_nodpos);
@@ -857,13 +898,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                     if ( ref_frame == GLOBAL )
                     {
                         if ( analy->do_tensor_transform )
-                            if ( res_index >= 0 && res_index <= 5 )
+                            if ( strain_type >= EX && strain_type <= EZX )
                                 transform_tensors( 1, (double (*)[6]) &eps,
                                                    analy->tensor_transform_matrix );
                     }
                     else if ( ref_frame == LOCAL )
                     {
-                        if ( res_index >= 0 && res_index <= 5 )
+                        if ( strain_type >= EX && strain_type <= EZX )
                         {
                             hex_g2l_mtx( analy, p_hex_class, i, 0, 1, 3,
                                          localMat );
@@ -882,66 +923,65 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             elem_index = obj_ids[i];
                     }
 
-                    switch( res_index )
+                    switch( strain_type )
                     {
-                    case 0:
+                    case EX:
                         resultElem[elem_index] = (float) eps[0];
                         break;
-                    case 1:
+                    case EY:
                         resultElem[elem_index] = (float) eps[1];
                         break;
-                    case 2:
+                    case EZ:
                         resultElem[elem_index] = (float) eps[2];
                         break;
-                    case 3:
+                    case EXY:
                         resultElem[elem_index] = (float) eps[3];
                         break;
-                    case 4:
+                    case EYZ:
                         resultElem[elem_index] = (float) eps[4];
                         break;
-                    case 5:
+                    case EZX:
                         resultElem[elem_index] = (float) eps[5];
                         break;
-                    case 6:
+                    case PRINCIPLE_DEVIATORIC_STRAIN_1:
                         hex_principal_strain( eps, &meanStrain );
                         resultElem[elem_index] = (float) eps[0];
                         break;
-                    case 7:
+                    case PRINCIPLE_DEVIATORIC_STRAIN_2:
                         hex_principal_strain( eps, &meanStrain );
                         resultElem[elem_index] = (float) eps[1];
                         break;
-                    case 8:
+                    case PRINCIPLE_DEVIATORIC_STRAIN_3:
                         hex_principal_strain( eps, &meanStrain );
                         resultElem[elem_index] = (float) eps[2];
                         break;
-                    case 9:
+                    case MAX_TENSOR_SHEAR_STRAIN:
                         hex_principal_strain( eps, &meanStrain );
-                        resultElem[elem_index] = (float) (eps[0] - eps[2]);
+                        resultElem[elem_index] = (float) (eps[0] - eps[2]) * ONEHALF;
                         break;
-                    case 10:
+                    case PRINCIPLE_STRAIN_1:
                         hex_principal_strain( eps, &meanStrain );
                         resultElem[elem_index] = (float) (eps[0] - meanStrain);
                         break;
-                    case 11:
+                    case PRINCIPLE_STRAIN_2:
                         hex_principal_strain( eps, &meanStrain );
                         resultElem[elem_index] = (float) (eps[1] - meanStrain);
                         break;
-                    case 12:
+                    case PRINCIPLE_STRAIN_3:
                         hex_principal_strain( eps, &meanStrain );
                         resultElem[elem_index] = (float) (eps[2] - meanStrain);
                         break;
-                    case 13:
+                    case ENGR_STRAIN_XY:
                         resultElem[elem_index] = (float) eps[3] * 2.0;
                         break;
-                    case 14:
+                    case ENGR_STRAIN_YZ:
                         resultElem[elem_index] = (float) eps[4] * 2.0;
                         break;
-                    case 15:
+                    case ENGR_STRAIN_ZX:
                         resultElem[elem_index] = (float) eps[5] * 2.0;
                         break;
                     default:
-                        popup_dialog( WARNING_POPUP,
-                                      "Unknown strain result requested!" );
+                        popup_dialog( WARNING_POPUP, "Unknown strain result requested!" );
                     }
 
                 } /* elements in block loop */
@@ -958,10 +998,9 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     p_result->modifiers.use_flags.use_strain_variety = 1;
     p_result->modifiers.strain_variety = analy->strain_variety;
-    if ( analy->do_tensor_transform
-            && res_index >= 0 && res_index <= 5 )
+    if ( analy->do_tensor_transform && strain_type >= EX && strain_type <= EZX )
         p_result->modifiers.use_flags.coord_transform = 1;
-    if (  res_index >= 0 && res_index <= 5 )
+    if (  strain_type >= EX && strain_type <= EZX )
     {
         p_result->modifiers.use_flags.use_ref_frame = 1;
         p_result->modifiers.ref_frame = analy->ref_frame;
@@ -1093,6 +1132,945 @@ extract_strain_vec( double *strain, double F[9], Strain_type s_type )
     }
 }
 
+/************************************************************
+ * TAG( compute_strain_invariant_one )
+ *
+ * Determine which function should be used to compute the first strain
+ * invariant and call it.
+ */
+void
+compute_strain_invariant_one( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    Result* p_result;
+    int index;
+    int srec, subrec;
+    Subrec_obj* p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+
+    if( p_subrec->element_set != NULL){
+        compute_es_strain_inv_one(analy, resultArr, interpolate);
+    }
+    else{
+        compute_strain_inv_one(analy, resultArr, interpolate);
+    }
+}
+
+/************************************************************
+ * TAG( compute_strain_inv_one )
+ *
+ * Compute the first strain invariant.
+ *
+ * Requires a primal vector result "strain[ex, ey, ez, exy, eyz, ezx]",
+ * but only uses the first three components.
+ */
+void
+compute_strain_inv_one( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    float (*strain)[6];
+    int i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    MO_class_data* p_mo_class;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    p_mo_class = p_subrec->p_object_class;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                           primals, (void *) result_buf );
+
+    /* Compute pressure. */
+    strain = (float(*)[6]) result_buf;
+
+    if ( object_ids )
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[object_ids[i]] = (strain[i][0] + strain[i][1] + strain[i][2]);
+    else
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[i] = (strain[i][0] + strain[i][1] + strain[i][2]);
+
+    if ( interpolate ){
+        switch( p_mo_class->superclass)
+        {
+        case G_HEX:
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                        object_ids, analy );
+            break;
+        case G_QUAD:
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+            break;
+        case G_TRI:
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy );
+            break;
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_TET:
+            tet_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_PARTICLE:
+            particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                               object_ids, analy );
+            break;
+        }
+    }
+}
+
+/************************************************************
+ * TAG( compute_es_strain_inv_one )
+ *
+ * Compute the first strain invariant for a subrecord with an
+ * associated element set.
+ */
+void
+compute_es_strain_inv_one( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    int i, j, k, rval;
+    int ipt_index;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    MO_class_data* p_mo_class;
+    Primal_result* primal_result;
+    Htable_entry* p_hte;
+    char* es_name;
+    char* es_primals[2];
+    float *(strains)[3];
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
+ 
+    /* allocate memory for the result_buf arrays to hold the three primals 
+     * necessary to calculate pressure */
+    for(i = 0; i < 3; i++)
+    {
+        strains[i] = calloc(obj_qty, sizeof(float));
+        if(strains[i] == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_strain_inv_one, exiting\n");
+            parse_command("quit", analy);
+        }
+    }
+
+    // Look up element set and gather strain components
+    rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
+    if(rval == OK){
+        primal_result = (Primal_result*) p_hte->data;
+
+        es_name = get_es_name(primal_result, subrec);
+
+        // Gather all the stress components.
+        ipt_index = p_subrec->element_set->current_index + 1;
+        for( i = 0; i < 3; i++ ){
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, TRUE);
+            es_primals[1] = NULL;
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) strains[i] );
+        }
+    }
+
+    /* all three result buffers should now be populated with the raw data needed to calculate pressure
+     * compute pressure */
+    if(object_ids)
+    {
+        for(i = 0; i < obj_qty; i++)
+        {
+            resultElem[object_ids[i]] = ( strains[0][i] + strains[1][i] + strains[2][i] );
+        }
+    }
+    else
+    {
+        for(i = 0; i < obj_qty; i++)
+        {
+            resultElem[i] = ( strains[0][i] + strains[1][i] + strains[2][i] ) ;
+        }
+    }
+
+    if ( interpolate ){
+        switch( p_mo_class->superclass)
+        {
+        case G_HEX:
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                        object_ids, analy );
+            break;
+        case G_QUAD:
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+            break;
+        case G_TRI:
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy );
+            break;
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_TET:
+            tet_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_PARTICLE:
+            particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                               object_ids, analy );
+            break;
+        }
+    }
+
+    /* free strain result arrays */
+    for(i = 0; i < 3; i++)
+        free(strains[i]);
+
+    /* Free dynamically allocated strings */
+    if( es_primals[0] )
+        free(es_primals[0]);
+    if( es_name )
+        free(es_name);
+}
+
+/************************************************************
+ * TAG( compute_strain_invariant_two )
+ *
+ * Determine which function should be used to compute the second strain
+ * invariant and call it.
+ */
+void
+compute_strain_invariant_two( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    Result* p_result;
+    int index;
+    int srec, subrec;
+    Subrec_obj* p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+
+    if( p_subrec->element_set != NULL){
+        compute_es_strain_inv_two(analy, resultArr, interpolate);
+    }
+    else{
+        compute_strain_inv_two(analy, resultArr, interpolate);
+    }
+}
+
+/************************************************************
+ * TAG( compute_strain_inv_one )
+ *
+ * Compute the second strain invariant.
+ *
+ * Requires a primal vector result "strain[ex, ey, ez, exy, eyz, ezx]"
+ */
+void
+compute_strain_inv_two( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    float *strain;
+    float devStrain[3];
+    int i, j;
+    float *result_buf;
+    double trace_strain;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index, elem_idx;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    MO_class_data* p_mo_class;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    p_mo_class = p_subrec->p_object_class;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                           primals, (void *) result_buf );
+
+    for ( i = 0, strain = result_buf; i < obj_qty; i++, strain += 6 )
+    {
+        trace_strain = ( strain[0] +
+                         strain[1] +
+                         strain[2] ) * ONETHIRD;
+
+        for ( j = 0; j < 3; j++ )
+            devStrain[j] = strain[j] - trace_strain;
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        /*
+         * Calculate effective stress from deviatoric components.
+         * Updated derivation avoids negative square root operand
+         * (UNICOS, of course).
+         */
+        resultElem[elem_idx] = 0.5 * ( devStrain[0]*devStrain[0]
+                                       + devStrain[1]*devStrain[1]
+                                       + devStrain[2]*devStrain[2] )
+                               + strain[3]*strain[3]
+                               + strain[4]*strain[4]
+                               + strain[5]*strain[5] ;
+
+        resultElem[elem_idx] = sqrtf(3.0 * resultElem[elem_idx]);
+    }
+
+    if ( interpolate ){
+        switch( p_mo_class->superclass)
+        {
+        case G_HEX:
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                        object_ids, analy );
+            break;
+        case G_QUAD:
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+            break;
+        case G_TRI:
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy );
+            break;
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_TET:
+            tet_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_PARTICLE:
+            particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                               object_ids, analy );
+            break;
+        }
+    }
+}
+
+/************************************************************
+ * TAG( compute_es_strain_inv_two )
+ *
+ * Compute the second strain invariant for a subrecord with an
+ * associated element set.
+ */
+void
+compute_es_strain_inv_two( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    float *(strains)[6];
+    float devStrain[3];
+    float trace_strain;
+    int obj_qty;
+    int i, j, k, l;
+    int rval, ipt_index;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index, elem_idx;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    MO_class_data* p_mo_class;
+    Primal_result* primal_result;
+    Htable_entry* p_hte;
+    char* es_name;
+    char* es_primals[2];
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
+ 
+    /* allocate memory for the result_buf arrays to hold the six primals 
+     * necessary to calculate strain invariant one */
+    for(i = 0; i < 6; i++)
+    {
+        strains[i] = calloc(obj_qty, sizeof(float));
+        if(strains[i] == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_strain_inv_one, exiting\n");
+            parse_command("quit", analy);
+        }
+    }
+
+    // Look up element set and gather strain components
+    rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
+    if(rval == OK){
+        primal_result = (Primal_result*) p_hte->data;
+        es_name = get_es_name(primal_result, subrec);
+        // Gather all the stress components.
+        ipt_index = p_subrec->element_set->current_index + 1;
+        for( i = 0; i < 6; i++ ){
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, TRUE);
+            es_primals[1] = NULL;
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) strains[i] );
+        }
+    }
+
+    for(i = 0; i < obj_qty; i++)
+    {
+        trace_strain = ( strains[0][i] +
+                         strains[1][i] +
+                         strains[2][i] ) * ONETHIRD;
+
+        /* calculate deviatoric components of strain tensor */
+        for(j = 0; j < 3; j++)
+            devStrain[j] = strains[j][i] - trace_strain;
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+ 
+        /* calculate effective strain from deviatoric components. */
+        resultElem[elem_idx] = 0.5 * ( devStrain[0] * devStrain[0] +
+                                      devStrain[1] * devStrain[1] +
+                                      devStrain[2] * devStrain[2] )
+                               +   strains[3][i] * strains[3][i]
+                               +   strains[4][i] * strains[4][i]
+                               +   strains[5][i] * strains[5][i];
+        resultElem[elem_idx] = sqrtf(3.0 * resultElem[elem_idx]);
+    }
+
+    if ( interpolate ){
+        switch( p_mo_class->superclass)
+        {
+        case G_HEX:
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                        object_ids, analy );
+            break;
+        case G_QUAD:
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+            break;
+        case G_TRI:
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy );
+            break;
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_TET:
+            tet_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_PARTICLE:
+            particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                               object_ids, analy );
+            break;
+        }
+    }
+
+    /* free strain result arrays */
+    for(i = 0; i < 6; i++)
+        free(strains[i]);
+
+    /* Free dynamically allocated strings */
+    if( es_primals[0] )
+        free(es_primals[0]);
+    if( es_name )
+        free(es_name);
+}
+
+/************************************************************
+ * TAG( compute_principal_strain )
+ *
+ * Determine which function should be used to compute the principal
+ * strain and call it.
+ */
+void
+compute_principal_strain( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    Result* p_result;
+    int index;
+    int srec, subrec;
+    Subrec_obj* p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+
+    if( p_subrec->p_object_class->superclass == G_HEX && analy->preferred_primal_source == DERIVED )
+        return;
+
+    if( p_subrec->element_set != NULL){
+        compute_es_prin_strain(analy, resultArr, interpolate);
+    }
+    else{
+        compute_prin_strain(analy, resultArr, interpolate);
+    }
+}
+
+/************************************************************
+ * TAG( compute_prin_strain )
+ *
+ * Compute the principal strain.
+ *
+ * Requires a primal vector result "strain[ex, ey, ez, exy, eyz, ezx]"
+ */
+void
+compute_prin_strain( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;               /* Element results vector. */
+    float  *strainFlt;            /* Ptr to element strains. */
+
+    double strain[6];
+    double devStrain[3];             /* Deviatoric strains, only need diagonal terms. */
+    double Invariant[3];             /* Invariants of tensor. */
+    float  princStrain[3];           /* Principal values. */
+    double trace_strain;
+    float alpha, angle, value;
+    int i, j;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index, elem_idx;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    MO_class_data* p_mo_class;
+    DERIVED_STRAIN_TYPE strain_type;
+
+    double limit_check=0.0;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    p_mo_class = p_subrec->p_object_class;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    strain_type = get_derived_strain_type_from_name( p_result->name );
+
+    /* Just use analy->tmp_result[0] as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                           primals, (void *) result_buf );
+
+    /* Calculate deviatoric strains. */
+    for ( i = 0, strainFlt = result_buf; i < obj_qty; i++, strainFlt += 6 )
+    {
+        for ( j = 0; j < 6; j++ )
+            strain[j] = strainFlt[j];
+
+        /* Calculate trace strain. */
+        trace_strain =  ( strain[0] +
+                          strain[1] +
+                          strain[2] ) * ONETHIRD;
+
+        devStrain[0] = strain[0] - trace_strain;
+        devStrain[1] = strain[1] - trace_strain;
+        devStrain[2] = strain[2] - trace_strain;
+
+        /* Calculate invariants of deviatoric tensor.
+         * Invariant[0] = 0.0 */
+        Invariant[0] = devStrain[0] + devStrain[1] + devStrain[2];
+        Invariant[1] = 0.5 * ( devStrain[0] * devStrain[0]
+                               + devStrain[1] * devStrain[1]
+                               + devStrain[2] * devStrain[2] )
+                       + strain[3] * strain[3]
+                       + strain[4] * strain[4]
+                       + strain[5] * strain[5];
+        Invariant[2] = -devStrain[0] * devStrain[1] * devStrain[2]
+                       - 2.0 * strain[3] * strain[4]
+                       * strain[5]
+                       + devStrain[0] * strain[4] * strain[4]
+                       + devStrain[1] * strain[5] * strain[5]
+                       + devStrain[2] * strain[3] * strain[3];
+
+
+        /* Check to see if we can have non-zero divisor, if not
+         * set principal stress to 0. */
+        if (Invariant[1]>0.0)
+            limit_check = fabs(Invariant[2]/Invariant[1]);
+        else
+            limit_check = 0.0;
+
+        if ( limit_check >= 1e-12 )
+        {
+            alpha = -0.5*sqrt( (double)27.0/Invariant[1])*
+                    Invariant[2]/Invariant[1];
+            if ( alpha < 0 )
+                alpha = MAX( alpha, -1.0 );
+            else if ( alpha > 0 )
+                alpha = MIN( alpha, 1.0 );
+            angle = acos((double)alpha) * ONETHIRD;
+            value = 2.0 * sqrt( (double)Invariant[1] * ONETHIRD);
+            princStrain[0] = value*cos((double)angle);
+            angle = angle - 2.0*PI * ONETHIRD ;
+            princStrain[1] = value*cos((double)angle);
+            angle = angle + 4.0*PI * ONETHIRD;
+            princStrain[2] = value*cos((double)angle);
+        }
+        else
+        {
+            princStrain[0] = 0.0;
+            princStrain[1] = 0.0;
+            princStrain[2] = 0.0;
+        }
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        switch ( strain_type )
+        {
+        case PRINCIPLE_DEVIATORIC_STRAIN_1:
+            resultElem[elem_idx] = princStrain[0];
+            break;
+        case PRINCIPLE_DEVIATORIC_STRAIN_2:
+            resultElem[elem_idx] = princStrain[1];
+            break;
+        case PRINCIPLE_DEVIATORIC_STRAIN_3:
+            resultElem[elem_idx] = princStrain[2];
+            break;
+        case MAX_TENSOR_SHEAR_STRAIN:
+            resultElem[elem_idx] = (princStrain[0] - princStrain[2])  * ONEHALF;
+            break;
+        case PRINCIPLE_STRAIN_1:
+            resultElem[elem_idx] = princStrain[0] + trace_strain;
+            break;
+        case PRINCIPLE_STRAIN_2:
+            resultElem[elem_idx] = princStrain[1] + trace_strain;
+            break;
+        case PRINCIPLE_STRAIN_3:
+            resultElem[elem_idx] = princStrain[2] + trace_strain;
+            break;
+        case ENGR_STRAIN_XY:
+            resultElem[elem_idx] = 2.0 * strain[3];
+            break;
+        case ENGR_STRAIN_YZ:
+            resultElem[elem_idx] = 2.0 * strain[4];
+            break;
+        case ENGR_STRAIN_ZX:
+            resultElem[elem_idx] = 2.0 * strain[5];
+            break;
+        default:
+            popup_dialog( WARNING_POPUP, "Principal strain result index is invalid." );
+        }
+    }
+
+    if ( interpolate ){
+        switch( p_mo_class->superclass)
+        {
+        case G_HEX:
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                        object_ids, analy );
+            break;
+        case G_QUAD:
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+            break;
+        case G_TRI:
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy );
+            break;
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_TET:
+            tet_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_PARTICLE:
+            particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                               object_ids, analy );
+            break;
+        }
+    }
+}
+
+/************************************************************
+ * TAG( compute_es_prin_strain )
+ *
+ * Compute the principal strain for a subrecord with an
+ * associated element set.
+ */
+void
+compute_es_prin_strain( Analysis *analy,float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    float *(strains)[6];
+    float trace_strain, interm_result;
+    float Invariant[3];              /* Invariants of tensor. */
+    float princStrain[3];            /* Principal values. */
+    float alpha, angle, value;
+    float devStrain[3];
+    int i, j;
+    int rval, ipt_index;
+    Result *p_result;
+    char ** primals;
+    int subrec, srec;
+    int elem_idx;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    MO_class_data* p_mo_class;
+    Primal_result* primal_result;
+    Htable_entry* p_hte;
+    char* es_name;
+    char* es_primals[2];
+    DERIVED_STRAIN_TYPE strain_type;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
+ 
+    /* allocate memory for the result_buf arrays to hold the six primals 
+     * necessary to calculate principle strain. */
+    for(i = 0; i < 6; i++)
+    {
+        strains[i] = calloc(obj_qty, sizeof(float));
+        if(strains[i] == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_prin_strain, exiting\n");
+            parse_command("quit", analy);
+        }
+    }
+
+    // Look up element set and gather strain components
+    rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
+    if(rval == OK){
+        primal_result = (Primal_result*) p_hte->data;
+
+        es_name = get_es_name(primal_result, subrec);
+
+        // Gather all the strain components.
+        ipt_index = p_subrec->element_set->current_index + 1;
+        for( i = 0; i < 6; i++ ){
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, TRUE);
+            es_primals[1] = NULL;
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) strains[i] );
+        }
+    }
+ 
+    /* Map result onto a numeric index. */
+    strain_type = get_derived_strain_type_from_name( p_result->name );
+
+    /* Calculate deviatoric strains. */
+    for ( i = 0; i < obj_qty; i++ )
+    {
+        /* Calculate trace strain as intermediate variable needed for
+         * determining deviatoric components.
+         */
+        trace_strain = ( strains[0][i] +
+                         strains[1][i] +
+                         strains[2][i] ) * ONETHIRD;
+
+        /* Calculate deviatoric components of strain tensor. */
+        for ( j = 0; j < 3; j++ )
+            devStrain[j] = strains[j][i] - trace_strain;
+
+        /* Calculate invariants of deviatoric tensor. */
+        /* Invariant[0] = 0.0 */
+        Invariant[0] = devStrain[0] + devStrain[1] + devStrain[2];
+        Invariant[1] = 0.5 * ( devStrain[0] * devStrain[0]
+                               + devStrain[1] * devStrain[1]
+                               + devStrain[2] * devStrain[2] )
+                       + strains[3][i] * strains[3][i]
+                       + strains[4][i] * strains[4][i]
+                       + strains[5][i] * strains[5][i];
+        Invariant[2] = -devStrain[0] * devStrain[1] * devStrain[2]
+                       - 2.0 * strains[3][i] * strains[4][i] * strains[5][i]
+                       + devStrain[0] * strains[4][i] * strains[4][i]
+                       + devStrain[1] * strains[5][i] * strains[5][i]
+                       + devStrain[2] * strains[3][i] * strains[3][i];
+
+        /* Check to see if we can have non-zero divisor, if not
+         * set principal strain to 0.
+         */
+        if ( Invariant[1] >= 1e-12 )
+        {
+            alpha = -0.5 * sqrt( (double) 27.0 / Invariant[1] )
+                    * Invariant[2]/Invariant[1];
+            if ( alpha < 0 )
+                alpha = MAX( alpha, -1.0 );
+            else if ( alpha > 0 )
+                alpha = MIN( alpha, 1.0 );
+            angle = acos((double)alpha) * ONETHIRD;
+            value = 2.0 * sqrt( (double)Invariant[1] * ONETHIRD);
+            princStrain[0] = value*cos((double)angle);
+            angle = angle - 2.0*PI * ONETHIRD ;
+            princStrain[1] = value*cos((double)angle);
+            angle = angle + 4.0*PI * ONETHIRD;
+            princStrain[2] = value*cos((double)angle);
+        }
+        else
+        {
+            princStrain[0] = 0.0;
+            princStrain[1] = 0.0;
+            princStrain[2] = 0.0;
+        }
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        switch ( strain_type )
+        {
+        case PRINCIPLE_DEVIATORIC_STRAIN_1:
+            resultElem[elem_idx] = princStrain[0];
+            break;
+        case PRINCIPLE_DEVIATORIC_STRAIN_2:
+            resultElem[elem_idx] = princStrain[1];
+            break;
+        case PRINCIPLE_DEVIATORIC_STRAIN_3:
+            resultElem[elem_idx] = princStrain[2];
+            break;
+        case MAX_TENSOR_SHEAR_STRAIN:
+            resultElem[elem_idx] = (princStrain[0] - princStrain[2]) * ONEHALF;
+            break;
+        case PRINCIPLE_STRAIN_1:
+            resultElem[elem_idx] = princStrain[0] + trace_strain;
+            break;
+        case PRINCIPLE_STRAIN_2:
+            resultElem[elem_idx] = princStrain[1] + trace_strain;
+            break;
+        case PRINCIPLE_STRAIN_3:
+            resultElem[elem_idx] = princStrain[2] + trace_strain;
+            break;
+        case ENGR_STRAIN_XY:
+            resultElem[elem_idx] = 2.0 * strains[3][i];
+            break;
+        case ENGR_STRAIN_YZ:
+            resultElem[elem_idx] = 2.0 * strains[4][i];
+            break;
+        case ENGR_STRAIN_ZX:
+            resultElem[elem_idx] = 2.0 * strains[5][i];
+            break;
+        default:
+            popup_dialog( WARNING_POPUP, "Principal strain result index is invalid." );
+        }
+    }
+
+    if ( interpolate ){
+        switch( p_mo_class->superclass)
+        {
+        case G_HEX:
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                        object_ids, analy );
+            break;
+        case G_QUAD:
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+            break;
+        case G_TRI:
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy );
+            break;
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_TET:
+            tet_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                            object_ids, analy );
+            break;
+        case G_PARTICLE:
+            particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                               object_ids, analy );
+            break;
+        }
+    }
+
+    /* free strain result arrays */
+    for(i = 0; i < 6; i++)
+        free(strains[i]);
+
+    /* Free dynamically allocated strings */
+    if( es_primals[0] )
+        free(es_primals[0]);
+    if( es_name )
+        free(es_name);
+}
 
 /************************************************************
  * TAG( compute_hex_eff_strain )

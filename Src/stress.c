@@ -624,9 +624,9 @@ void
 compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;               /* Element results vector. */
-    float  *hexStressFlt;            /* Ptr to element stresses. */
+    float  *stressFlt;            /* Ptr to element stresses. */
 
-    double hexStress[6];
+    double stress[6];
     double devStress[3];             /* Deviatoric stresses,
                                         only need diagonal terms. */
     double Invariant[3];             /* Invariants of tensor. */
@@ -681,19 +681,19 @@ compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
                            primals, (void *) result_buf );
 
     /* Calculate deviatoric stresses. */
-    for ( i = 0, hexStressFlt = result_buf; i < obj_qty; i++, hexStressFlt += 6 )
+    for ( i = 0, stressFlt = result_buf; i < obj_qty; i++, stressFlt += 6 )
     {
         for ( j = 0; j < 6; j++ )
-            hexStress[j] = hexStressFlt[j];
+            stress[j] = stressFlt[j];
 
         /* Calculate pressure. */
-        pressure =  - ( hexStress[0] +
-                        hexStress[1] +
-                        hexStress[2] ) * ONETHIRD;
+        pressure =  - ( stress[0] +
+                        stress[1] +
+                        stress[2] ) * ONETHIRD;
 
-        devStress[0] = hexStress[0] + pressure;
-        devStress[1] = hexStress[1] + pressure;
-        devStress[2] = hexStress[2] + pressure;
+        devStress[0] = stress[0] + pressure;
+        devStress[1] = stress[1] + pressure;
+        devStress[2] = stress[2] + pressure;
 
         /* Calculate invariants of deviatoric tensor.
          * Invariant[0] = 0.0 */
@@ -701,15 +701,15 @@ compute_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
         Invariant[1] = 0.5 * ( devStress[0] * devStress[0]
                                + devStress[1] * devStress[1]
                                + devStress[2] * devStress[2] )
-                       + hexStress[3] * hexStress[3]
-                       + hexStress[4] * hexStress[4]
-                       + hexStress[5] * hexStress[5];
+                       + stress[3] * stress[3]
+                       + stress[4] * stress[4]
+                       + stress[5] * stress[5];
         Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
-                       - 2.0 * hexStress[3] * hexStress[4]
-                       * hexStress[5]
-                       + devStress[0] * hexStress[4] * hexStress[4]
-                       + devStress[1] * hexStress[5] * hexStress[5]
-                       + devStress[2] * hexStress[3] * hexStress[3];
+                       - 2.0 * stress[3] * stress[4]
+                       * stress[5]
+                       + devStress[0] * stress[4] * stress[4]
+                       + devStress[1] * stress[5] * stress[5]
+                       + devStress[2] * stress[3] * stress[3];
 
 
         /* Check to see if we can have non-zero divisor, if not
@@ -1092,6 +1092,7 @@ char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_
     return es_primal;
 }
 
+
 /************************************************************
  * TAG( compute_es_press )
  *
@@ -1102,7 +1103,8 @@ void
 compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
     float *resultElem;
-    int i, j, k, rval;
+    float *(stresses)[3];
+    int i, rval;
     int ipt_index;
     Result *p_result;
     char **primals;
@@ -1116,7 +1118,6 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
     Htable_entry* p_hte;
     char* es_name;
     char* es_primals[2];
-    float *(stresses)[3];
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -1210,6 +1211,10 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
             break;
         }
     }
+
+    /* free stress result arrays */
+    for(i = 0; i < 3; i++)
+        free(stresses[i]);
 
     /* Free dynamically allocated strings */
     if( es_primals[0] )
@@ -1326,11 +1331,11 @@ compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
 void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
-    float *stress;
+    float *(stresses)[6];
     float devStress[3];
     float pressure;
     int obj_qty;
-    int i, j, k, l;
+    int i, j;
     int rval, ipt_index;
     Result *p_result;
     char **primals;
@@ -1343,7 +1348,6 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     Htable_entry* p_hte;
     char* es_name;
     char* es_primals[2];
-    float *(stresses)[6];
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -1356,8 +1360,8 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     resultElem = p_subrec->p_object_class->data_buffer;
     p_mo_class = p_subrec->p_object_class;
  
-    /* allocate memory for the result_buf arrays to hold the three primals 
-     * necessary to calculate pressure */
+    /* allocate memory for the result_buf arrays to hold the six primals 
+     * necessary to calculate effective stress */
     for(i = 0; i < 6; i++)
     {
         stresses[i] = calloc(obj_qty, sizeof(float));
@@ -1437,6 +1441,10 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
             break;
         }
     }
+
+    /* free stress result arrays */
+    for(i = 0; i < 6; i++)
+        free(stresses[i]);
 
     /* Free dynamically allocated strings */
     if( es_primals[0] )
@@ -1566,12 +1574,13 @@ void
 compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate)
 {
     float *resultElem;
+    float *(stresses)[6];
     float pressure, interm_result;
     float Invariant[3];              /* Invariants of tensor. */
     float princStress[3];            /* Principal values. */
     float alpha, angle, value;
     float devStress[3];
-    int i, j, k, l, out_idx;
+    int i, j;
     int rval, ipt_index;
     Result *p_result;
     char ** primals;
@@ -1586,7 +1595,6 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
     Htable_entry* p_hte;
     char* es_name;
     char* es_primals[2];
-    float *(stresses)[6];
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -1606,7 +1614,7 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
         stresses[i] = calloc(obj_qty, sizeof(float));
         if(stresses[i] == NULL)
         {
-            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_press, exiting\n");
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_prin_stress, exiting\n");
             parse_command("quit", analy);
         }
     }
@@ -1675,7 +1683,7 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
         /* Check to see if we can have non-zero divisor, if not
          * set principal stress to 0.
          */
-        if ( Invariant[1] >= 1e-7 )
+        if ( Invariant[1] >= 1e-12 )
         {
             alpha = -0.5 * sqrt( (double) 27.0 / Invariant[1] )
                     * Invariant[2]/Invariant[1];
@@ -1759,6 +1767,10 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
             break;
         }
     }
+
+    /* free stress result arrays */
+    for(i = 0; i < 6; i++)
+        free(stresses[i]);
 
     /* Free dynamically allocated strings */
     if( es_primals[0] )

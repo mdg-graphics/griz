@@ -3058,7 +3058,7 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
     int        subrec=0, srec=0;
     Subrec_obj *p_subrec;
 
-    if ( extreme_result==FALSE && analy->extreme_result == TRUE )
+    if ( extreme_result == FALSE && analy->extreme_result == TRUE )
         return;
 
     p_r = analy->cur_result;

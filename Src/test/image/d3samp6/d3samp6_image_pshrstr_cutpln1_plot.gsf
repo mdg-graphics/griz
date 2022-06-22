@@ -35,10 +35,14 @@ rdhis d3samp6_V1.gsf
 select brick 36 18 20-24 30
 select mat 1
 
+disable shell 1-12
+
 # Images for variable pshrstr with a cutting plane
 sw mstat
 state 20
 l
+# Derive pshrstr from derived strain values, rather than primal strain tensor
+sw derived_from_derived
 show pshrstr
 sw gterp
 cutrpln .5 .5 .5 0 1 0

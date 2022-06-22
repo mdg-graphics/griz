@@ -68,3 +68,46 @@ select shell 1-15
 set_ipt 1
 show press
 outth shell_mat54_va.jansw
+
+# Shells - etrace - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show etrace
+outth shell_mat54_va.jansw
+
+# Shells - strinv2 - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show strinv2
+outth shell_mat54_va.jansw
+
+# Shells - pstrn2 - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show pstrn2
+outth shell_mat54_va.jansw
+
+# Shells - pshrstr - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show pshrstr
+outth shell_mat54_va.jansw
+
+# Shells - pdstrn1 - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show pdstrn1
+outth shell_mat54_va.jansw
+
+
+# Shells - gamyz - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show gamyz
+outth shell_mat54_va.jansw

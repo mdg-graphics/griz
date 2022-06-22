@@ -690,10 +690,10 @@
 # Curve 1 - brick 1
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 1: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 1: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.73124747e-04
   2.00000000e+00  3.45026812e-04
@@ -702,10 +702,10 @@
 # Curve 2 - brick 45
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 45: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 45: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.08917174e-03
   2.00000000e+00  2.11134437e-03
@@ -714,10 +714,10 @@
 # Curve 3 - brick 48
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 48: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 48: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  6.63394516e-04
   2.00000000e+00  1.29028922e-03
@@ -726,10 +726,10 @@
 # Curve 4 - brick 116
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 116: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 116: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.72233119e-05
   2.00000000e+00  8.07226388e-05
@@ -738,10 +738,10 @@
 # Curve 5 - brick 80
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 80: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 80: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  7.13308109e-05
   2.00000000e+00  1.38387331e-04
@@ -750,10 +750,10 @@
 # Curve 6 - brick 68
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 68: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 68: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.72233119e-05
   2.00000000e+00  8.07226388e-05
@@ -762,10 +762,10 @@
 # Curve 7 - brick 97
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 97: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 97: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  8.78507853e-05
   2.00000000e+00  1.95851026e-04
@@ -774,10 +774,10 @@
 # Curve 8 - brick 98
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 98: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 98: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  6.98480362e-05
   2.00000000e+00  1.65608522e-04
@@ -786,10 +786,10 @@
 # Curve 9 - brick 99
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 99: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 99: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  5.23249219e-05
   2.00000000e+00  1.37509007e-04
@@ -798,10 +798,10 @@
 # Curve 10 - brick 100
 # Time reference surface: middle
 # Time reference frame: global
-# Volumetric Strain reference frame: global
+# Logarithmic Volumetric Strain reference frame: global
 
-#           Time  Volumetric Strain
-# brick - 100: Volumetric Strain
+#           Time  Logarithmic Volumetric Strain
+# brick - 100: Logarithmic Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.72233119e-05
   2.00000000e+00  8.07226388e-05
