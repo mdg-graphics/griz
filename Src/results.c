@@ -1000,7 +1000,7 @@ Result_candidate possible_results[] =
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
-        compute_hex_stress,
+        compute_hex_stress_wrapper,
         NULL,
         "Stress",
         hex_stress_shorts,

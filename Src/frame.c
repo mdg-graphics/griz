@@ -404,6 +404,70 @@ transform_tensors_1p( int qty, float (*tensors)[6], float mat[][3] )
     }
 }
 
+/************************************************************
+ * TAG( transform_es_tensors_1p )
+ *
+ * Transform a single-precision input array of stress/strain
+ * tensors with a change-of-coordinates transformation matrix.
+ *
+ *                  t
+ *     sigma_new = A * sigma * A
+ *
+ * The tensor comes in as a vector.  The routine is hardcoded for
+ * the above matrix multiply.
+ */
+void
+transform_es_tensors_1p( int qty, float *p_sx, float *p_sy, float* p_sz,
+                         float *p_sxy, float *p_syz, float *p_szx, float mat[][3] )
+{
+    double new[6], sub1[3], sub2[3], sub3[3];
+    float *sx, *sy, *sz, *sxy, *syz, *szx;
+    int i, j;
+
+    for ( i = 0; i < qty; i++ )
+    {
+        sx = p_sx+i;   sy = p_sy+i;   sz = p_sz+i;
+        sxy = p_sxy+i; syz = p_syz+i; szx = p_szx+i;
+
+        /* Compute common sub-expressions. */
+        sub1[0] = (double) sx[0]*mat[0][0] + (double) sxy[0]*mat[1][0]
+                  + (double) szx[0]*mat[2][0];
+        sub1[1] = (double) sxy[0]*mat[0][0] + (double) sy[0]*mat[1][0]
+                  + (double) syz[0]*mat[2][0];
+        sub1[2] = (double) szx[0]*mat[0][0] + (double) syz[0]*mat[1][0]
+                  + (double) sz[0]*mat[2][0];
+
+        sub2[0] = (double) sx[0]*mat[0][1] + (double) sxy[0]*mat[1][1]
+                  + (double) szx[0]*mat[2][1];
+        sub2[1] = (double) sxy[0]*mat[0][1] + (double) sy[0]*mat[1][1]
+                  + (double) syz[0]*mat[2][1];
+        sub2[2] = (double) szx[0]*mat[0][1] + (double) syz[0]*mat[1][1]
+                  + (double) sz[0]*mat[2][1];
+
+        sub3[0] = (double) sx[0]*mat[0][2] + (double) sxy[0]*mat[1][2]
+                  + (double) szx[0]*mat[2][2];
+        sub3[1] = (double) sxy[0]*mat[0][2] + (double) sy[0]*mat[1][2]
+                  + (double) syz[0]*mat[2][2];
+        sub3[2] = (double) szx[0]*mat[0][2] + (double) syz[0]*mat[1][2]
+                  + (double) sz[0]*mat[2][2];
+
+        /* Get the transformed vector. */
+        new[0] = mat[0][0]*sub1[0] + mat[1][0]*sub1[1] + mat[2][0]*sub1[2];
+        new[1] = mat[0][1]*sub2[0] + mat[1][1]*sub2[1] + mat[2][1]*sub2[2];
+        new[2] = mat[0][2]*sub3[0] + mat[1][2]*sub3[1] + mat[2][2]*sub3[2];
+        new[3] = mat[0][0]*sub2[0] + mat[1][0]*sub2[1] + mat[2][0]*sub2[2];
+        new[4] = mat[0][1]*sub3[0] + mat[1][1]*sub3[1] + mat[2][1]*sub3[2];
+        new[5] = mat[0][0]*sub3[0] + mat[1][0]*sub3[1] + mat[2][0]*sub3[2];
+
+        *sx = new[0];
+        *sy = new[1];
+        *sz = new[2];
+        *sxy = new[3];
+        *syz = new[4];
+        *szx = new[5];
+    }
+}
+
 
 /************************************************************
  * TAG( transform_stress_strain )
@@ -444,5 +508,80 @@ transform_stress_strain( char **primals, int primal_index, Analysis *analy,
 }
 
 
+/************************************************************
+ * TAG( transform_es_stress_strain )
+ *
+ * Transform single-precision stress or strain tensors for hex or shell
+ * elements at the current state according to the currently
+ * defined coordinate transformation matrix.
+ *
+ * The transformed components are left in analy->tmp_result.
+ */
+Bool_type
+transform_es_stress_strain( char **primals, int primal_index, Analysis *analy,
+                         float trans_matrix[3][3], float *res_array )
+{
+    int i, qty;
+    int rval, temprval;
+    Result *p_res;
+    int subrec, srec;
+    int index, ipt_index;
+    char *es_name;
+    char *es_primals[2];
+    Primal_result *primal_result;
+    Subrec_obj *p_subrec;
+    Htable_entry *p_hte;
+    Bool_type isStrain = FALSE;
+    float *sx, *sy, *sz, *sxy, *syz, *szx;
+    char *name;
+    int comp_idx;
 
+    p_res = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_res->subrecs[index];
+    srec = p_res->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    name = p_res->name;
 
+    if ( name[0] == 'e' || name[0] == 's' )
+        comp_idx = (int) name[1] - (int) 'x' + (( name[2] ) ? 3 : 0);
+    else
+        return FALSE;
+
+    /* Load the tensors for the elements. */
+    rval = htable_search(analy->primal_results, primals[primal_index], FIND_ENTRY, &p_hte);
+
+    if( rval == OK ){
+        primal_result = (Primal_result*) p_hte->data;
+        es_name = get_es_name(primal_result, subrec);
+        ipt_index = p_subrec->element_set->current_index + 1;
+        for( i = 0; i < 6; i ++ ){
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, isStrain);
+            es_primals[1] = NULL;
+            temprval = analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) analy->tmp_result[i] );
+            rval = rval | temprval;
+        }
+    }
+
+    if(es_name)
+        free(es_name);
+
+    if ( rval != OK )
+        return FALSE;
+
+    /* Do it... */
+    qty = analy->srec_tree[p_res->srec_id].subrecs[subrec].subrec.qty_objects;
+
+    sx = analy->tmp_result[0];
+    sy = analy->tmp_result[1];
+    sz = analy->tmp_result[2];
+    sxy = analy->tmp_result[3];
+    syz = analy->tmp_result[4];
+    szx = analy->tmp_result[5];
+    transform_es_tensors_1p( qty, sx, sy, sz, sxy, syz, szx, trans_matrix );
+
+    /* Extract requested component. */
+    for( i = 0; i < qty; i++ ){
+        res_array[i] = analy->tmp_result[comp_idx][i];
+    }
+}
