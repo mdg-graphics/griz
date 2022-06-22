@@ -1608,6 +1608,11 @@ parse_single_command( char *buf, Analysis *analy )
 				{
 					strcpy( analy->ei_result_name,tokens[1] );
 				}
+                else
+                {
+                    /* Command is "show mat", need to deselect any materials */
+                    parse_command("clrsel mat", analy);
+                }
 
 				if ( parse_show_command( tokens[1], analy ) ){
 					// Reset result source
