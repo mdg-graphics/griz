@@ -2254,6 +2254,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     Subrec_obj **p_subrec;
     int i, j, k, l, array_index, dim_index, size;
     int *p_i;
+    int *p_owning_vec_map;
+    int mapped_index;
     int superclass;
     char *p_sand_var;
     const char * es_short_name = NULL;
@@ -2356,6 +2358,10 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         p_pr->subrecs[0] = p_subr_obj;
         p_pr->qty_subrecs = 1;
 
+        /* Initialize mapping of subrecord to owning_vector_result */
+        p_pr->owning_vec_map = NEW_N( int, 1, "PR owning vector result map" );
+        p_pr->owning_vec_map[0] = -1;
+
         /* Store primal result. */
         p_hte->data = (void *) p_pr;
         if(p_hte3 != NULL && rval2 == OK )
@@ -2416,6 +2422,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
 
         /* Also update list of Subrec_objs and check if primal_result is "shared" */
         p_subrec = (Subrec_obj **) p_pr->subrecs;
+        p_owning_vec_map = (int*) p_pr->owning_vec_map;
 
         /* Loop over all subrecords currently associated with this primal_result */
         for(i = 0; i < p_pr->qty_subrecs; i++){
@@ -2434,33 +2441,14 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         if(i == p_pr->qty_subrecs){
             p_subrec = RENEW_N(Subrec_obj*, p_subrec, i, 1, "Extend Subrec_obj list");
             p_subrec[i] = p_subr_obj;
+
+            /* Expand mapping of subrecord to owning_vector_result */
+            p_owning_vec_map = RENEW_N( int, p_owning_vec_map, i, 1, "PR owning vector result map" );
+            p_owning_vec_map[i] = -1;
+
             /* Assign back in case realloc moved the array */
             p_pr->subrecs = p_subrec;
-            p_pr->qty_subrecs++;
-        }
-
-        /* Also update list of Subrec_objs and check if primal_result is "shared" */
-        p_subrec = (Subrec_obj **) p_pr->subrecs;
-
-        /* Loop over all subrecords currently associated with this primal_result */
-        for(i = 0; i < p_pr->qty_subrecs; i++){
-            /* Check if subrecord already in list */
-            if(strcmp(p_subrec[i]->subrec.name, p_subr_obj->subrec.name) == 0)
-                break;
-
-            /* Check if "shared" */
-            if(strcmp(p_subrec[i]->subrec.class_name, p_subr_obj->subrec.class_name) != 0){
-                // If new element class name, this result is shared
-                p_pr->is_shared = TRUE;
-            }
-        }
-
-        /* if not in list... */
-        if(i == p_pr->qty_subrecs){
-            p_subrec = RENEW_N(Subrec_obj*, p_subrec, i, 1, "Extend Subrec_obj list");
-            p_subrec[i] = p_subr_obj;
-            /* Assign back in case realloc moved the array */
-            p_pr->subrecs = p_subrec;
+            p_pr->owning_vec_map = p_owning_vec_map;
             p_pr->qty_subrecs++;
         }
     }
@@ -2519,6 +2507,10 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 {
                     p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
                     p_pr->owning_vector_result[0] = (struct _primal_result*)owning_pr;
+                    /* Lookup subrec index and add to map */
+                    mapped_index = find_matching_subrec_index( subrec_id, p_pr );
+                    p_pr->owning_vec_map[mapped_index] = p_pr->owning_vec_count;
+                    /* Increment number of owning vectors */
                     p_pr->owning_vec_count++;
                 }else
                 {
@@ -2533,15 +2525,30 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                                                                 p_pr->owning_vec_count, 1,
                                                                 "Extending vector results");
                         p_pr->owning_vector_result[p_pr->owning_vec_count] = (struct _primal_result*)owning_pr;
+                        /* Lookup subrec index and add to map */
+                        mapped_index = find_matching_subrec_index( subrec_id, p_pr );
+                        p_pr->owning_vec_map[mapped_index] = p_pr->owning_vec_count;
+                        /* Increment number of owning vectors */
                         p_pr->owning_vec_count++;
+                    }
+                    else
+                    {
+                        mapped_index = find_matching_subrec_index( subrec_id, p_pr );
+                        p_pr->owning_vec_map[mapped_index] = l;
                     }
                 }
                 // If owning primal result is an element set mark this result as being in an element set
                 if( strncmp(owning_pr->short_name, "es_", 3) == 0 )
                     p_pr->in_vector_array = TRUE;
+                // Check owning pr to see if it is a renamed element set
+                for( l = 0; l < owning_pr->qty_subrecs; l++ ){
+                    if( strncmp(owning_pr->original_names_per_subrec[l], "es_", 3) == 0 )
+                        p_pr->in_vector_array = TRUE;
+                }
             }
         }
-    }else if ( p_sv->agg_type == ARRAY)
+    }
+    else if ( p_sv->agg_type == ARRAY)
     {
         // We just need to make sure that the show string given from the 
         // from the menu callback and the input line

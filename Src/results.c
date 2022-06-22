@@ -2490,6 +2490,9 @@ char * construct_result_query_string(Analysis* analy){
     Primal_result* primal_result;
     Htable_entry *table_result;
 
+    int owning_vec_idx, owning_owning_vec_idx;
+    Primal_result *owning_vec, *owning_owning_vec;
+
     char * query_string;
     query_string = NEW_N(char, 64, "Result query string");
 
@@ -2516,8 +2519,11 @@ char * construct_result_query_string(Analysis* analy){
         }
     }
 
+    /* Get index of subrecord from primal_result that is being queried */
+    i = find_matching_subrec_index(subrec, primal_result);
+
     target[0] = '\0';
-    if( primal_result->owning_vec_count > 0){
+    if( primal_result->owning_vec_count > 0 && primal_result->owning_vec_map[i] != -1 ){
         found = FALSE;
         if( is_old_shell_stress_result ){
             /* 2 Possibilities:
@@ -2548,46 +2554,44 @@ char * construct_result_query_string(Analysis* analy){
         }
 
         /* Find matching subrecord. Additionally if target is not an empty string match result short name. */
-        for( i = 0; i < primal_result->owning_vec_count; i++){
-            if( target[0] == '\0' || !strcmp(target, primal_result->owning_vector_result[i]->short_name) ){
-                j = find_matching_subrec_index(subrec, primal_result->owning_vector_result[i]);
-                if(j != primal_result->owning_vector_result[i]->qty_subrecs){
-                    found = TRUE;
-                    break;
-                }
+        owning_vec_idx = primal_result->owning_vec_map[i];
+        owning_vec = primal_result->owning_vector_result[owning_vec_idx];
+        if( target[0] == '\0' || !strcmp(target, owning_vec->short_name) ){
+            j = find_matching_subrec_index(subrec, owning_vec);
+            if(j != owning_vec->qty_subrecs){
+                found = TRUE;
             }
         }
 
         if( found ){
             /* Check for vector array containing the owning vector of the current result. */
             found = FALSE;
-            if( primal_result->owning_vector_result[i]->in_vector_array ){
-                for( k = 0; k < primal_result->owning_vector_result[i]->owning_vec_count; k++ ){
-                    l = find_matching_subrec_index(subrec, primal_result->owning_vector_result[i]->owning_vector_result[k]);
-                    if(l != primal_result->owning_vector_result[i]->owning_vector_result[k]->qty_subrecs){
-                        found = TRUE;
-                        break;
-                    }
+            if( primal_result->owning_vector_result[owning_vec_idx]->in_vector_array ){
+                owning_owning_vec_idx = owning_vec->owning_vec_map[j];
+                owning_owning_vec = owning_vec->owning_vector_result[owning_owning_vec_idx];
+                k = find_matching_subrec_index( subrec, owning_owning_vec );
+                if ( k != owning_owning_vec->qty_subrecs ){
+                    found = TRUE;
                 }
                 
                 if( found )
                 {
-                    strcpy(query_string, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[l]);
+                    strcpy(query_string, owning_owning_vec->original_names_per_subrec[k]);
                     if(p_subrec->element_set->tempIndex < 0)
                         ipt_index = p_subrec->element_set->current_index+1;
                     else
                         ipt_index = p_subrec->element_set->tempIndex+1;
                     sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
-                            primal_result->owning_vector_result[i]->original_names_per_subrec[j], primal_result->short_name);
+                            owning_vec->original_names_per_subrec[j], primal_result->short_name);
                 }
                 else
                 {
-                    strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                    strcpy(query_string, owning_vec->original_names_per_subrec[j]);
                     sprintf(query_string, "%s[%s]" , query_string, p_result->name);
                 }
             }
             else if(p_subrec->element_set){
-                strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                strcpy(query_string, owning_vec->original_names_per_subrec[j]);
                 if(p_subrec->element_set->tempIndex < 0)
                     ipt_index = p_subrec->element_set->current_index+1;
                 else
@@ -2597,7 +2601,7 @@ char * construct_result_query_string(Analysis* analy){
             /* If this is not an element set, we need to add in result name */
             else
             {
-                strcpy(query_string, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                strcpy(query_string, owning_vec->original_names_per_subrec[j]);
                 sprintf(query_string, "%s[%s]" , query_string, p_result->name);
             }
         }
@@ -2611,7 +2615,6 @@ char * construct_result_query_string(Analysis* analy){
     }
     else
     {
-        i = find_matching_subrec_index(subrec, primal_result);
         strcpy(query_string, primal_result->original_names_per_subrec[i]);
     }
 
