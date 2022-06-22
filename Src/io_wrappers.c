@@ -90,93 +90,93 @@ int mili_compare_labels( const void *label1, const void *label2 );
 const char *
 determine_naming( char *p_name , State_variable *p_sv)
 {
-   // Unfortunately we need to hard code what we are looking for
-   // in the database.  If another case appears it needs to be
-   // added here.
-   static const char* stress_str = "stress";
-   static const char* strain_str = "strain";
-   char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
-   char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
-   int int_array[6]={0};
-   int i,j;
-   int valid;
-   char *return_value = NULL;
+    // Unfortunately we need to hard code what we are looking for
+    // in the database.  If another case appears it needs to be
+    // added here.
+    static const char* stress_str = "stress";
+    static const char* strain_str = "strain";
+    char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
+    char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
+    int int_array[6]={0};
+    int i,j;
+    int valid;
+    char *return_value = NULL;
 
-   if(p_sv->agg_type != VEC_ARRAY && p_sv->agg_type != VECTOR)
-   {
-       return NULL;
-   }
-   if(!strcmp(p_name,stress_str) || !strcmp(p_name,strain_str))
-   {
-       return NULL;
-   }
-   if(strncmp(p_name,"es_",3)!=0)
-   {
-       return NULL;
-   }
-   /*lets check stresses first*/
-   for(i=0;i<6;i++)
-   {
-      for(j=0;j<p_sv->vec_size;j++)
-      {
-          if(!int_array[i] &&
-             !strcmp(stresses[i],p_sv->components[j]))
-          {
-              int_array[i] = 1;
-              break;
-          }
-      }
-   }
+    if(p_sv->agg_type != VEC_ARRAY && p_sv->agg_type != VECTOR)
+    {
+        return NULL;
+    }
+    if(!strcmp(p_name,stress_str) || !strcmp(p_name,strain_str))
+    {
+        return NULL;
+    }
+    if(strncmp(p_name,"es_",3) != 0)
+    {
+        return NULL;
+    }
 
-   valid = 1;
-   // Loop over the flags. If any are zero then it is not a match.
-   for(i=0;i<6;i++)
-   {
-       if(!int_array[i])
-       {
-         valid = 0;
-       }
-   }
+    /*lets check stresses first*/
+    for(i=0;i<6;i++)
+    {
+        for(j=0;j<p_sv->vec_size;j++)
+        {
+            if(!int_array[i] && !strcmp(stresses[i],p_sv->components[j]))
+            {
+                int_array[i] = 1;
+                break;
+            }
+        }
+    }
 
-   if(valid)
-   {
-       return stress_str;
-   }
+    valid = 1;
+    // Loop over the flags. If any are zero then it is not a match.
+    for(i=0;i<6;i++)
+    {
+        if(!int_array[i])
+        {
+          valid = 0;
+        }
+    }
 
-   /* Well we might as well check for strains if we made it this far. */
-   for(i=0;i<6;i++)
-   {
-       int_array[i]=0;
-   }
+    if(valid)
+    {
+        return stress_str;
+    }
 
-   for(i=0;i<6;i++)
-   {
-      for(j=0;j<p_sv->vec_size;j++)
-      {
-          if(!strcmp(strains[i],p_sv->components[j]))
-          {
-              int_array[i] = 1;
-              break;
-          }
-      }
-   }
+    /* Well we might as well check for strains if we made it this far. */
+    for(i=0;i<6;i++)
+    {
+        int_array[i]=0;
+    }
 
-   valid = 1;
+    for(i=0;i<6;i++)
+    {
+        for(j=0;j<p_sv->vec_size;j++)
+        {
+            if(!strcmp(strains[i],p_sv->components[j]))
+            {
+                int_array[i] = 1;
+                break;
+            }
+        }
+    }
 
-   for(i=0;i<6;i++)
-   {
-       if(!int_array[i])
-       {
-         valid = 0;
-       }
-   }
+    valid = 1;
 
-   if(valid)
-   {
-       return strain_str;
-   }
+    for(i=0;i<6;i++)
+    {
+        if(!int_array[i])
+        {
+          valid = 0;
+        }
+    }
 
-   return NULL;
+    if(valid)
+    {
+        return strain_str;
+    }
+
+    return NULL;
 }
 
 int
