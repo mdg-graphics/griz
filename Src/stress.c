@@ -25,6 +25,31 @@
 #define ONETHIRD .333333333333333333333333333333333333333
 #define ONEHALF  .5
 
+/************************************************************
+ * TAG( compute_hex_stress_wrapper )
+ *
+ * Wrapper function that determines in normal or element set
+ * version of compute hex stress should be called
+ */
+void
+compute_hex_stress_wrapper( Analysis *analy, float *resultArr, Bool_type interpolate ){
+    Result *p_result;
+    int index, subrec, srec;
+    Subrec_obj *p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+
+    if(p_subrec->element_set != NULL){
+        compute_hex_es_stress(analy, resultArr, interpolate);
+    }
+    else{
+        compute_hex_stress(analy, resultArr, interpolate);
+    }
+}
 
 /************************************************************
  * TAG( compute_hex_stress )
@@ -80,8 +105,7 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
      * If re-ordering or frame transformation is necessary, read into
      * a temp result buffer.
      */
-    result_buf = ( ref_frame == LOCAL || object_ids )
-                 ? analy->tmp_result[0] : resultElem;
+    result_buf = ( ref_frame == LOCAL || object_ids ) ? analy->tmp_result[0] : resultElem;
 
     if ( ref_frame == GLOBAL )
     {
@@ -160,6 +184,158 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
     if ( interpolate )
         hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                       object_ids, analy );
+}
+
+/************************************************************
+ * TAG( compute_hex_es_stress )
+ *
+ * Computes the stress at nodes for hex elements with an associated
+ * element set.
+ */
+void
+compute_hex_es_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+    Ref_frame_type ref_frame;
+    float *resultElem;
+    float localMat[3][3];
+    float *(sigma)[6];
+    int idx, i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    char primal_spec[32];
+    char *primal_list[1];
+    char* es_name;
+    char *es_primals[2];
+    MO_class_data *p_mo_class;
+    Subrec_obj *p_subrec;
+    int elem_idx;
+    int *object_ids;
+    int rval, ipt_index;
+    Htable_entry* p_hte;
+    Primal_result* primal_result;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    p_mo_class = p_subrec->p_object_class;
+    primals = p_result->primals[index];
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Hack to get an index on [0,5] from name, which is one of (in order): sx sy sz sxy syz szx. */
+    idx = (int) p_result->name[1] - (int) 'x' + (( p_result->name[2] ) ? 3 : 0);
+
+    ref_frame = analy->ref_frame;
+
+    /* If re-ordering or frame transformation is necessary, read into a temp result buffer. */
+    result_buf = ( ref_frame == LOCAL || object_ids ) ? analy->tmp_result[0] : resultElem;
+
+    if ( ref_frame == GLOBAL && analy->do_tensor_transform )
+    {
+        if ( !transform_es_stress_strain( p_result->primals[index], 0, analy, analy->tensor_transform_matrix,
+                                          result_buf ) )
+        {
+            popup_dialog( WARNING_POPUP, "Stress/strain coord transformation failed." );
+            return;
+        }
+        p_result->modifiers.use_flags.coord_transform = 1;
+        /* Re-order data if subrecord is non-proper. */
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+                resultElem[object_ids[i]] = result_buf[i];
+        }
+    }
+    else if( ref_frame == GLOBAL && !analy->do_tensor_transform ){
+        /* Build up component specification of vector result. */
+        strcpy( primal_spec, p_result->primals[index][0] );
+        rval = htable_search(analy->primal_results, primal_spec, FIND_ENTRY, &p_hte);
+
+        if( rval == OK ){
+            primal_result = (Primal_result*) p_hte->data;
+            es_name = get_es_name(primal_result, subrec);
+            ipt_index = p_subrec->element_set->current_index + 1;
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, idx, FALSE);
+            es_primals[1] = NULL;
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) result_buf );
+
+            /* Re-order data if subrecord is non-proper. */
+            if ( object_ids )
+            {
+                for ( i = 0; i < obj_qty; i++ )
+                    resultElem[object_ids[i]] = result_buf[i];
+            }
+        }
+
+    }
+    else if ( ref_frame == LOCAL )
+    {
+        /* Need to transform global quantities to local quantities.
+         * The full tensor must be transformed. */
+
+        /* Allocate memory for the result_buf arrays to hold the six primals */
+        for(i = 0; i < 6; i++)
+        {
+            sigma[i] = calloc(obj_qty, sizeof(float));
+            if(sigma[i] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function compute_hex_es_stress, exiting\n");
+                parse_command("quit", analy);
+            }
+        }
+
+        /* Load the tensors for the elements. */
+        strcpy( primal_spec, p_result->primals[index][0] );
+        rval = htable_search(analy->primal_results, primal_spec, FIND_ENTRY, &p_hte);
+
+        if( rval == OK ){
+            primal_result = (Primal_result*) p_hte->data;
+            es_name = get_es_name(primal_result, subrec);
+            ipt_index = p_subrec->element_set->current_index + 1;
+            for( i = 0; i < 6; i ++ ){
+                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
+                es_primals[1] = NULL;
+                analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) sigma[i] );
+            }
+        }
+
+        float *sx, *sy, *sz, *sxy, *syz, *szx;
+        sx = sigma[0];  sy = sigma[1];  sz = sigma[2];
+        sxy = sigma[3]; syz = sigma[4]; szx = sigma[5];
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                elem_idx = object_ids[i];
+                hex_g2l_mtx( analy, p_mo_class, elem_idx, 0, 1, 3, localMat );
+                transform_es_tensors_1p( 1, sx+i, sy+i, sz+i, sxy+i, syz+i, szx+i, localMat );
+                resultElem[elem_idx] = sigma[idx][i];
+            }
+        }
+        else
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                hex_g2l_mtx( analy, p_mo_class, i, 0, 1, 3, localMat );
+                transform_es_tensors_1p( 1, sx+i, sy+i, sz+i, sxy+i, syz+i, szx+i, localMat );
+                resultElem[i] = sigma[idx][i];
+            }
+        }
+    }
+
+    /* Update modifiers to indicate pertinent ones for this result. */
+    p_result->modifiers.use_flags.use_ref_frame = 1;
+    p_result->modifiers.ref_frame = analy->ref_frame;
+
+    if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, object_ids, analy );
 }
 
 /************************************************************

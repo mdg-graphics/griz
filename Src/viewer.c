@@ -986,6 +986,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->strain_variety = INFINITESIMAL;
     analy->ref_surf = MIDDLE;
     analy->ref_frame = GLOBAL;
+    analy->do_tensor_transform = FALSE;
     analy->show_plot_grid = TRUE;
     analy->show_plot_coords = TRUE;
     analy->color_plots = TRUE;
