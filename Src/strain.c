@@ -207,8 +207,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     double xv[8], yv[8], zv[8];      /* Current node velocities. */
     double px[8], py[8], pz[8];      /* Global derivates dN/dx,dN/dy,dN/dz. */
     double F[9];                     /* Element deformation gradient. */
-    double detF;                     /* Determinant of element
-                                        deformation gradient. */
+    double detF;                     /* Determinant of element deformation gradient. */
     double eps[6];                   /* Calculated strain. */
     float *resultElem;               /* Array for the element data. */
     double meanStrain;               /* Mean strain for an element. */
@@ -326,13 +325,8 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         }
 
         /* Capture velocity precision. */
-        single_prec_vel = ( ((Primal_result *)
-                             velx->original_result)->var->num_type
-                            == G_FLOAT4
-                            ||
-                            ((Primal_result *)
-                             velx->original_result)->var->num_type
-                            == G_FLOAT );
+        single_prec_vel = ( ((Primal_result *) velx->original_result)->var->num_type == G_FLOAT4
+                            || ((Primal_result *) velx->original_result)->var->num_type == G_FLOAT );
 
         if ( single_prec_pos )
         {
@@ -527,8 +521,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
 
     /* Prepare access to material data. */
-    p_mat_class = ((MO_class_data **)
-                   MESH( analy ).classes_by_sclass[G_MAT].list)[0];
+    p_mat_class = ((MO_class_data **) MESH( analy ).classes_by_sclass[G_MAT].list)[0];
     p_mats = p_mat_class->objects.materials;
     disable_mat = MESH( analy ).disable_material;
     mat_qty = analy->max_mesh_mat_qty;
@@ -539,8 +532,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     for ( l = 0; l < class_qty; l++ )
     {
-        p_hex_class = ((MO_class_data **)
-                       MESH( analy ).classes_by_sclass[G_HEX].list)[l];
+        p_hex_class = ((MO_class_data **) MESH( analy ).classes_by_sclass[G_HEX].list)[l];
 
         particle_class = FALSE;
         if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
