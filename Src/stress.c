@@ -1023,7 +1023,8 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 *************************************************************/
 char* get_es_name(Primal_result* primal_result, int subrec){
     int i, j, k;
-    char* es_name;
+    char* es_name = NULL;;
+    Primal_result *owning_vec;
     es_name = NEW_N(char, 32, "Element set name for result");
 
     // Match primal result subrec to results subrecord
@@ -1032,12 +1033,11 @@ char* get_es_name(Primal_result* primal_result, int subrec){
     if(i != primal_result->qty_subrecs){
         if(primal_result->in_vector_array){
             // New Format for vector array stress
-            for( j = 0; j < primal_result->owning_vec_count; j++ ){
-                k = find_matching_subrec_index(subrec, primal_result->owning_vector_result[j]);
-                if(k != primal_result->owning_vector_result[j]->qty_subrecs){
-                    strcpy(es_name, primal_result->owning_vector_result[j]->original_names_per_subrec[k]);
-                    break;
-                }
+            j = primal_result->owning_vec_map[i];
+            owning_vec = primal_result->owning_vector_result[j];
+            k = find_matching_subrec_index(subrec, owning_vec);
+            if(k != owning_vec->qty_subrecs){
+                strcpy(es_name, owning_vec->original_names_per_subrec[k]);
             }
         }
         else{

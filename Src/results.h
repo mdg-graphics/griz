@@ -160,6 +160,7 @@ typedef struct _primal_result
     Bool_type is_shared;        // Is the result shared by multiple element classes
     Bool_type in_vector_array;  // Is the result in a vector array. Used when creating menus.
     int owning_vec_count;
+    int* owning_vec_map; // map from subrecord to owning vector result index
     struct _primal_result **owning_vector_result;
     char **original_names_per_subrec;
     Bool_type in_menu;
