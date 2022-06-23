@@ -2551,62 +2551,86 @@ char * construct_result_query_string(Analysis* analy){
                 p_result->modifiers.use_flags.use_ref_frame = 1;
                 p_result->modifiers.ref_frame = analy->ref_frame;
             }
-        }
 
-        /* Find matching subrecord. Additionally if target is not an empty string match result short name. */
-        owning_vec_idx = primal_result->owning_vec_map[i];
-        owning_vec = primal_result->owning_vector_result[owning_vec_idx];
-        if( target[0] == '\0' || !strcmp(target, owning_vec->short_name) ){
+            /* There is a possibility that stress_in, stress_mid, and stress_out are all
+             * in the same subrecord which invalidates the owning_vec_map. Need to lookup
+             * correct owning vector */
+            found = FALSE;
+            for( j = 0; j < primal_result->owning_vec_count; j++ ){
+                owning_vec = primal_result->owning_vector_result[j];
+                if( target[0] == '\0' || !strcmp(target, owning_vec->short_name) ){
+                    k = find_matching_subrec_index( subrec, owning_vec );
+                    if ( k != owning_vec->qty_subrecs ){
+                        found = TRUE;
+                        break;
+                    }
+                }
+            }
+
+            if( found )
+            {
+                strcpy(query_string, owning_vec->original_names_per_subrec[k]);
+                sprintf(query_string, "%s[%s]" , query_string, p_result->name);
+            }
+            else
+            {
+                sprintf(query_string, "%s", p_result->name);
+            }
+        }
+        else
+        {
+            owning_vec_idx = primal_result->owning_vec_map[i];
+            owning_vec = primal_result->owning_vector_result[owning_vec_idx];
             j = find_matching_subrec_index(subrec, owning_vec);
             if(j != owning_vec->qty_subrecs){
                 found = TRUE;
             }
-        }
 
-        if( found ){
-            /* Check for vector array containing the owning vector of the current result. */
-            found = FALSE;
-            if( primal_result->owning_vector_result[owning_vec_idx]->in_vector_array ){
-                owning_owning_vec_idx = owning_vec->owning_vec_map[j];
-                owning_owning_vec = owning_vec->owning_vector_result[owning_owning_vec_idx];
-                k = find_matching_subrec_index( subrec, owning_owning_vec );
-                if ( k != owning_owning_vec->qty_subrecs ){
-                    found = TRUE;
+            if( found ){
+                /* Check for vector array containing the owning vector of the current result. */
+                found = FALSE;
+                if( primal_result->owning_vector_result[owning_vec_idx]->in_vector_array ){
+                    owning_owning_vec_idx = owning_vec->owning_vec_map[j];
+                    owning_owning_vec = owning_vec->owning_vector_result[owning_owning_vec_idx];
+                    k = find_matching_subrec_index( subrec, owning_owning_vec );
+                    if ( k != owning_owning_vec->qty_subrecs ){
+                        found = TRUE;
+                    }
+                    
+                    if( found )
+                    {
+                        strcpy(query_string, owning_owning_vec->original_names_per_subrec[k]);
+                        if(p_subrec->element_set->tempIndex < 0)
+                            ipt_index = p_subrec->element_set->current_index+1;
+                        else
+                            ipt_index = p_subrec->element_set->tempIndex+1;
+                        sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
+                                owning_vec->original_names_per_subrec[j], primal_result->short_name);
+                    }
+                    else
+                    {
+                        strcpy(query_string, owning_vec->original_names_per_subrec[j]);
+                        sprintf(query_string, "%s[%s]" , query_string, p_result->name);
+                    }
                 }
-                
-                if( found )
-                {
-                    strcpy(query_string, owning_owning_vec->original_names_per_subrec[k]);
+                else if(p_subrec->element_set){
+                    strcpy(query_string, owning_vec->original_names_per_subrec[j]);
                     if(p_subrec->element_set->tempIndex < 0)
                         ipt_index = p_subrec->element_set->current_index+1;
                     else
                         ipt_index = p_subrec->element_set->tempIndex+1;
-                    sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
-                            owning_vec->original_names_per_subrec[j], primal_result->short_name);
+                    sprintf(query_string,"%s[%d,%s]" , query_string, ipt_index, p_result->name);
                 }
+                /* If this is not an element set, we need to add in result name */
                 else
                 {
                     strcpy(query_string, owning_vec->original_names_per_subrec[j]);
                     sprintf(query_string, "%s[%s]" , query_string, p_result->name);
                 }
             }
-            else if(p_subrec->element_set){
-                strcpy(query_string, owning_vec->original_names_per_subrec[j]);
-                if(p_subrec->element_set->tempIndex < 0)
-                    ipt_index = p_subrec->element_set->current_index+1;
-                else
-                    ipt_index = p_subrec->element_set->tempIndex+1;
-                sprintf(query_string,"%s[%d,%s]" , query_string, ipt_index, p_result->name);
+            else{
+                sprintf(query_string, "%s", p_result->name);
             }
-            /* If this is not an element set, we need to add in result name */
-            else
-            {
-                strcpy(query_string, owning_vec->original_names_per_subrec[j]);
-                sprintf(query_string, "%s[%s]" , query_string, p_result->name);
-            }
-        }
-        else{
-            sprintf(query_string, "%s", p_result->name);
         }
     }
     else if(primal_result->var->agg_type == ARRAY)
