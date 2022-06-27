@@ -2509,22 +2509,27 @@ char * construct_result_query_string(Analysis* analy){
         primal_result = (Primal_result*)table_result->data;
     }
 
-    /* Check if we are trying to show an old shell stress result. */
-    if( analy->old_shell_stresses && primal_result->owning_vec_count > 0 ){
-        for( i = 0; i < primal_result->owning_vec_count; i++ ){
-            char* short_name = primal_result->owning_vector_result[i]->short_name;
-            if(!strcmp(short_name, "stress_in") || !strcmp(short_name, "stress_mid") || !strcmp(short_name, "stress_out") ){
-                is_old_shell_stress_result = TRUE;
-            }
-        }
-    }
-
     /* Get index of subrecord from primal_result that is being queried */
     i = find_matching_subrec_index(subrec, primal_result);
 
     target[0] = '\0';
     if( primal_result->owning_vec_count > 0 && primal_result->owning_vec_map[i] != -1 ){
+
+        /* Get the owning vector for this result */
+        owning_vec_idx = primal_result->owning_vec_map[i];
+        owning_vec = primal_result->owning_vector_result[owning_vec_idx];
+
+        /* Check if we are trying to show an old shell stress result. */
+        if( analy->old_shell_stresses ){
+            char* short_name = owning_vec->short_name;
+            if(!strcmp(short_name, "stress_in") || !strcmp(short_name, "stress_mid") || !strcmp(short_name, "stress_out") ){
+                is_old_shell_stress_result = TRUE;
+            }
+        }
+
         found = FALSE;
+
+        /* Handle stress_in, stress_mid, stress_out results */
         if( is_old_shell_stress_result ){
             /* 2 Possibilities:
              *    1. asked for stress_[in|mid|out][component]
@@ -2579,8 +2584,7 @@ char * construct_result_query_string(Analysis* analy){
         }
         else
         {
-            owning_vec_idx = primal_result->owning_vec_map[i];
-            owning_vec = primal_result->owning_vector_result[owning_vec_idx];
+            /* Get subrecord in owning vector that matches subrecord of component */
             j = find_matching_subrec_index(subrec, owning_vec);
             if(j != owning_vec->qty_subrecs){
                 found = TRUE;
