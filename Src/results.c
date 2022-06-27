@@ -2589,7 +2589,7 @@ char * construct_result_query_string(Analysis* analy){
             if( found ){
                 /* Check for vector array containing the owning vector of the current result. */
                 found = FALSE;
-                if( primal_result->owning_vector_result[owning_vec_idx]->in_vector_array ){
+                if( owning_vec->in_vector_array && owning_vec->owning_vec_map[j] != -1 ){
                     owning_owning_vec_idx = owning_vec->owning_vec_map[j];
                     owning_owning_vec = owning_vec->owning_vector_result[owning_owning_vec_idx];
                     k = find_matching_subrec_index( subrec, owning_owning_vec );
