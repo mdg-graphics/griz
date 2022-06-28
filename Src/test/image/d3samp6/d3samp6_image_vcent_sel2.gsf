@@ -11,6 +11,8 @@ alias staterange minst 1; maxst 100
 clrsel 
 switch mglob
 
+off mat_labels
+
 minst 1
 maxst 100
 on thsinglecol
