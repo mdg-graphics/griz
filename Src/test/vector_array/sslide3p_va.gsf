@@ -1,0 +1,81 @@
+
+# Append ouput to TH file
+on tha
+on thsinglecol
+
+# Shell SX - integration point 1
+clrsel
+select shell 1 14 20 24
+set_ipt 1 4
+set_ipt 1 7
+show sx
+outth sslide3p_va.jansw
+
+# Shell SX - integration point 3
+set_ipt 3 4
+set_ipt 3 7
+outth sslide3p_va.jansw
+
+# Shell SX - integration point 5
+set_ipt 5 4
+set_ipt 5 7
+outth sslide3p_va.jansw
+
+
+# Shell SZ - integration point 1
+clrsel
+select shell 1 14 20 24
+set_ipt 1 4
+set_ipt 1 7
+show sz
+outth sslide3p_va.jansw
+
+# Shell SZ - integration point 3
+set_ipt 3 4
+set_ipt 3 7
+outth sslide3p_va.jansw
+
+# Shell SZ - integration point 5
+set_ipt 5 4
+set_ipt 5 7
+outth sslide3p_va.jansw
+
+
+# Shell SYZ - integration point 1
+clrsel
+select shell 1 14 20 24
+set_ipt 1 4
+set_ipt 1 7
+show syz
+outth sslide3p_va.jansw
+
+# Shell SYZ - integration point 3
+set_ipt 3 4
+set_ipt 3 7
+outth sslide3p_va.jansw
+
+# Shell SYZ - integration point 5
+set_ipt 5 4
+set_ipt 5 7
+outth sslide3p_va.jansw
+
+
+# Brick SX
+clrsel
+select brick 4 23 40 48
+show sx
+outth sslide3p_va.jansw
+
+
+# Brick SZ
+clrsel
+select brick 4 23 40 48
+show sz
+outth sslide3p_va.jansw
+
+
+# Brick SYZ
+clrsel
+select brick 4 23 40 48
+show syz
+outth sslide3p_va.jansw

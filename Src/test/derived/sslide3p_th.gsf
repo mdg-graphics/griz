@@ -1,0 +1,51 @@
+
+# Append ouput to TH file
+on tha
+on thsinglecol
+
+# Shell SX - INNER
+clrsel
+select shell 1 14 20 24
+sw inner
+show sx
+outth sslide3p_th.jansw
+
+# Shell SX - MIDDLE
+sw middle
+outth sslide3p_th.jansw
+
+# Shell SX - OUTER
+sw outer
+outth sslide3p_th.jansw
+
+
+# Shell SZ - INNER
+clrsel
+select shell 1 14 20 24
+sw inner
+show sz
+outth sslide3p_th.jansw
+
+# Shell SZ - MIDDLE
+sw middle
+outth sslide3p_th.jansw
+
+# Shell SZ - OUTER
+sw outer
+outth sslide3p_th.jansw
+
+
+# Shell SYZ - INNER
+clrsel
+select shell 1 14 20 24
+sw inner
+show syz
+outth sslide3p_th.jansw
+
+# Shell SYZ - MIDDLE
+sw middle
+outth sslide3p_th.jansw
+
+# Shell SYZ - OUTER
+sw outer
+outth sslide3p_th.jansw
