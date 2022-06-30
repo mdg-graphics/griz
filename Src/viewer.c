@@ -3266,3 +3266,23 @@ get_analy_ptr( )
 {
     return ((Analysis *) analy_ptr );
 }
+
+/************************************************************
+ * TAG( mili_compare_labels )
+ *
+ * Used by the qsort routine to sort Mili Labels.
+ */
+
+int
+mili_compare_labels(const void *in_label1, const void *in_label2 )
+{
+    MO_class_labels *label1 = (MO_class_labels *)in_label1;
+    MO_class_labels *label2 = (MO_class_labels *)in_label2;
+    if ( label1->label_num < label2->label_num )
+        return -1;
+
+    if ( label1->label_num > label2->label_num )
+        return 1;
+
+    return ( 0 );
+}

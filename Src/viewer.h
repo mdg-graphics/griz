@@ -143,7 +143,7 @@
 #endif
 
 #ifndef NOT_OK
-#define NOT_OK 0
+#define NOT_OK 1
 #endif
 
 /* A failure return value. */
@@ -186,6 +186,19 @@ typedef enum
     ALL
 } Result_table_type;
 
+
+/*****************************************************************
+ * TAG( ProcessorToGlobalMap )
+ *
+ * Maps processor node and element ids to global ids.
+ * Only used when using Python Mili reader parallel read.
+ */
+typedef struct _ProcessorToGlobalMap{
+    int ** node_map;
+    int * node_count;
+    int *** elem_map;
+    int ** elem_count;
+} ProcessorToGlobalMap;
 
 /*****************************************************************
  * TAG( RGB_raster_obj )
@@ -1464,6 +1477,10 @@ typedef struct _Analysis
     Bool_type auto_gray;
 
     Bool_type old_shell_stresses;
+
+    // Map local ids to global ids for Mili reader.
+    ProcessorToGlobalMap * index_map;
+    int qty_srec_fmt;
 }
 Analysis;
 
@@ -1866,6 +1883,7 @@ extern Environ env;
 #define TOKENLENGTH 100
 
 /* viewer.c */
+extern int mili_compare_labels(const void *in_label1, const void *in_label2);
 extern Bool_type load_analysis( char *fname, Analysis *analy, Bool_type reload );
 extern void close_analysis( Analysis *analy );
 extern void open_history_file( char *fname );
