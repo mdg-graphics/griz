@@ -1615,8 +1615,6 @@ parse_single_command( char *buf, Analysis *analy )
                 }
 
 				if ( parse_show_command( tokens[1], analy ) ){
-					// Reset result source
-					env.curr_analy->result_source = env.curr_analy->prev_result_source;
 					redraw = BINDING_MESH_VISUAL;
 				}
 				else

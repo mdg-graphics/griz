@@ -5,7 +5,7 @@ on tha
 on thsinglecol
 
 # Turn of primal results so we get derived stress values
-off primal
+sw derived_results
 # do_tensor_transform is set false and ref_frame is GLOBAL
 
 # tshell - SX - Integration point 1
