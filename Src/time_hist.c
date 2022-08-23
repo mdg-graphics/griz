@@ -2317,7 +2317,7 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
                 {
                     cleanse_result( p_r );
                     p_r = NEW( Result, "History result" );
-                    found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+                    found = find_result( analy, analy->result_source, FALSE, p_r, tokens[idx] );
                 }
             }
             else
@@ -2326,7 +2326,7 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
                 if(rval != OK){
                     /* If necessary, search among possible results for db. */
                     p_r = NEW( Result, "History result" );
-                    found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+                    found = find_result( analy, analy->result_source, FALSE, p_r, tokens[idx] );
                 }
             }
 
@@ -2450,7 +2450,7 @@ build_oper_result_list( int token_qty, char tokens[][TOKENLENGTH],
         {
             /* If necessary, search among possible results for db. */
             p_r = NEW( Result, "History result" );
-            found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+            found = find_result( analy, analy->result_source, FALSE, p_r, tokens[idx] );
         }
 
         if ( !found )
@@ -2969,7 +2969,7 @@ parse_abscissa_spec( int token_qty, char tokens[][TOKENLENGTH],
             
             
 
-            found = find_result( analy, ALL, FALSE, abscissa_result,
+            found = find_result( analy, analy->result_source, FALSE, abscissa_result,
                                  tokens[loop_idx] );
             if ( !found )
             {
