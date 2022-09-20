@@ -6003,13 +6003,6 @@ draw_plots( Analysis *analy )
         if ( mins < min_ord )
             min_ord = mins;
         
-        /* rescaling attempt by Bill Oliver 
-        if ( !analy->mm_result_set[1] && lastmax < maxs) 
-        {
-            lastmax = maxs; 
-            max_ord = maxs + (maxs - mins)*0.02;
-        } */  
-        
         if ( maxs > max_ord )
             max_ord = maxs;
 
@@ -6242,8 +6235,7 @@ draw_plots( Analysis *analy )
             max_ax[i] = EPS;
         }
 
-        if ( min_ax[i] == max_ax[i]
-                || fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
+        if ( min_ax[i] == max_ax[i] || fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
         {
             if ( min_ax[i] == 0.0 )
             {
@@ -6254,8 +6246,9 @@ draw_plots( Analysis *analy )
             else
             {
                 incr_ax[i] = (float) fabs( (double) min_ax[i] );
-                min_ax[i] = min_ax[i] - fabsf( max_ax[i] - min_ax[i] );
-                max_ax[i] = max_ax[i] + fabsf( max_ax[i] - min_ax[i]); 
+                // Make min/max +/- 10% of value when it is constant (but not 0.000...)
+                min_ax[i] = min_ax[i] - (0.1 * min_ax[i]);
+                max_ax[i] = max_ax[i] + (0.1 * max_ax[i]);
             }
             incr_cnt[i] = 2;
             /*continue; */
