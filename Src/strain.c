@@ -1306,7 +1306,8 @@ compute_es_strain_inv_one( Analysis *analy,float *resultArr, Bool_type interpola
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 3; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, TRUE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, TRUE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) strains[i] );
         }
@@ -1565,7 +1566,8 @@ compute_es_strain_inv_two( Analysis *analy,float *resultArr, Bool_type interpola
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, TRUE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, TRUE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) strains[i] );
         }
@@ -1924,7 +1926,8 @@ compute_es_prin_strain( Analysis *analy,float *resultArr, Bool_type interpolate 
         // Gather all the strain components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, TRUE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, TRUE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) strains[i] );
         }
@@ -2125,11 +2128,10 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr, Bool_type interpolate 
                                    (void *) e1 );
 
             st_num = analy->cur_state;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
-                             NULL, (void *) &time0 );
+            time0 = analy->state_times[st_num-1];
+
             st_num++;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
-                             NULL, (void *) &time1 );
+            time1 = analy->state_times[st_num-1];
 
             dt1_inv = 1.0 / ((double) time1 - time0);
 
@@ -2141,10 +2143,7 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr, Bool_type interpolate 
              * need to consider any max state constraint the user may
              * have specified.
              */
-            analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-                             &last_st );
-            last_st--;
-
+            last_st = analy->state_count - 1;
             if ( cur_st != last_st )
             {
                 /*
@@ -2158,8 +2157,7 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr, Bool_type interpolate 
                                        (void *) e2 );
 
                 st_num++;
-                analy->db_query( analy->db_ident, QRY_STATE_TIME,
-                                 (void *) &st_num, NULL, (void *) &time2 );
+                time2 = analy->state_times[st_num-1];
                 dt2_inv = 1.0 / ((double) time2 - time1);
 
                 for ( i = 0; i < obj_qty; i++ )
@@ -2478,26 +2476,10 @@ load_reference_node_pos( Analysis *analy )
      * current state.
      */
     i = 1;
-    rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
-                            (void *) &i, NULL, (void *) &srec_id );
-    if ( rval != 0 )
-    {
-        popup_dialog( WARNING_POPUP, "Database query (srec id) failed "
-                      "during reference nodpos load; aborted" );
-        return;
-    }
-
-    rval = analy->db_query( analy->db_ident, QRY_SREC_MESH,
-                            (void *) &srec_id, NULL,
-                            (void *) &mesh_id );
-    if ( rval != 0 )
-    {
-        popup_dialog( WARNING_POPUP, "Database query (mesh id) failed "
-                      "during reference nodpos load; aborted" );
-        return;
-    }
+    srec_id = analy->state_srec_fmt_ids[i-1];
 
     p_sro = analy->srec_tree + srec_id;
+    mesh_id = p_sro->mesh_id;
     p_md = analy->mesh_table + mesh_id;
 
     qty = p_md->node_geom->qty;
@@ -3033,11 +3015,10 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
                                    subrec, 1, primals, (void *) e1 );
 
             st_num = analy->cur_state;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
-                             NULL, (void *) &time0 );
+            time0 = analy->state_times[st_num-1];
+
             st_num++;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
-                             NULL, (void *) &time1 );
+            time1 = analy->state_times[st_num-1];
 
             dt1_inv = 1.0 / ((double) time1 - time0);
 
@@ -3049,10 +3030,7 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
              * need to consider any max state constraint the user may
              * have specified.
              */
-            analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-                             &last_st );
-            last_st--;
-
+            last_st = analy->state_count - 1;
             if ( cur_st != last_st )
             {
                 /*
@@ -3065,8 +3043,7 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
                                        subrec, 1, primals, (void *) e2 );
 
                 st_num++;
-                analy->db_query( analy->db_ident, QRY_STATE_TIME,
-                                 (void *) &st_num, NULL, (void *) &time2 );
+                time2 = analy->state_times[st_num-1];
                 dt2_inv = 1.0 / ((double) time2 - time1);
 
                 for ( i = 0; i < obj_qty; i++ )

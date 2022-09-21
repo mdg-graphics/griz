@@ -290,9 +290,7 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
              */
             if ( p_mesh == NULL )
             {
-                analy->db_query( analy->db_ident, QRY_SREC_MESH,
-                                 (void *) &p_res->srec_id, NULL,
-                                 (void *) &mesh );
+                mesh = analy->srec_tree[p_res->srec_id].mesh_id;
                 p_mesh = analy->mesh_table + mesh;
             }
 
@@ -480,8 +478,7 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
     }
 
     /* No results if no states in db... */
-    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-                     (void *) &qty_states );
+    qty_states = analy->state_count;
     if ( qty_states == 0 )
     {
         popup_dialog( INFO_POPUP, "No state data present." );
@@ -1529,11 +1526,10 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     mat_max_row = maxs;
     mat_max_id = max_ids;
 
-    query_ints[0] = min_state + 1;
-    query_ints[1] = max_state + 1;
     state_times = NEW_N( float, qty_states, "state times array" );
-    analy->db_query( analy->db_ident, QRY_SERIES_TIMES, query_ints, NULL,
-                     (void *) state_times );
+    for( i = min_state; i <= max_state; i++ ){
+        state_times[i] = analy->state_times[i];
+    }
 
     /* Loop over materials, dumping all states per material. */
     for ( i = 0; i < req_mat_qty; i++ )

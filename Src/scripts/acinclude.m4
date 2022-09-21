@@ -1058,6 +1058,71 @@ AC_DEFUN([CONFIGURE_MILI],
    AC_SUBST(MILI_INCLUDE_PATHS)
 ])
 
+AC_DEFUN([CONFIGURE_PYTHON_MILI_READER],
+  [       
+        #
+        # Set options for the Parallel read with Mili reader
+        #
+        MILI_READER_HOME="/g/g16/rhathaw/all_codes/mili-python"
+
+        AC_ARG_WITH([mili_reader],
+               AC_HELP_STRING(
+	            [--with-mili-reader=[PATH]],
+                    [Use given base PATH for the Python Mili Reader]),
+	            MILI_READER_HOME="${withval}" &&
+                    CONFIG_OPTIONS="$CONFIG_OPTIONS --with-mili-reader=$MILI_READER_HOME " &&
+	            AC_MSG_RESULT("Using Mili Python Reader Path : $withval")
+                   )
+
+        MILI_READER_SRC="${MILI_READER_HOME}/src"
+        MILI_READER_VENV="${MILI_READER_HOME}/embedded_python_c/lib/python3.7/site-packages"
+
+        #  Mili Reader Options
+        AC_SUBST(MILI_READER_SRC)
+        AC_SUBST(MILI_READER_VENV)
+  ])
+
+AC_DEFUN([CONFIGURE_PYTHON],
+  [
+        #
+        # Look for python 3.7
+        #
+        AC_MSG_CHECKING(for Python 3.7 for Mili reader)
+        GRIZ_PARALLEL_SUPPORT="False"
+        GRIZ_PYTHON_INCLUDE_PATH=""
+        GRIZ_PYTHON_LIBRARY_PATH=""
+        GRIZ_PYTHON_LIBRARY=""
+        GRIZ_PYTHON_CONFIG="`(which python3.7-config) 2> /dev/null`"
+        if test "$GRIZ_PYTHON_CONFIG" != ""; then
+
+            GRIZ_PARALLEL_SUPPORT="True"
+
+            # Get python compile flags
+            GRIZ_PYTHON_INCLUDE_PATH=`("$GRIZ_PYTHON_CONFIG" --cflags | cut -d' ' -f1)`
+            if test "$GRIZ_PYTHON_INCLUDE_PATH" = ""; then
+                GRIZ_PARALLEL_SUPPORT="False"
+            fi
+
+            # Get Library path and library
+            GRIZ_PYTHON_LIBRARY_PATH="`($GRIZ_PYTHON_CONFIG --ldflags | cut -d' ' -f2) 2> /dev/null`"
+            if test "$GRIZ_PYTHON_LIBRARY_PATH" = ""; then
+                GRIZ_PARALLEL_SUPPORT="False"
+            fi
+            
+            if test "$GRIZ_PARALLEL_SUPPORT" = "True"; then
+                GRIZ_PYTHON_LIBRARY="-lpython3.7m -lpthread -ldl -lutil -lm -Xlinker -export-dynamic"
+            fi
+        fi
+
+        AC_SUBST(GRIZ_PARALLEL_SUPPORT)
+        if test "$GRIZ_PARALLEL_SUPPORT" = "True"; then
+            AC_DEFINE(HAVE_PYTHON, 1, [Python Library])
+        fi 
+        AC_SUBST(GRIZ_PYTHON_INCLUDE_PATH)
+        AC_SUBST(GRIZ_PYTHON_LIBRARY_PATH)
+        AC_SUBST(GRIZ_PYTHON_LIBRARY)
+        AC_MSG_RESULT(Support for Griz Parallel read =$GRIZ_PARALLEL_SUPPORT)
+  ])
 
 AC_DEFUN([CONFIGURE_PAPI],
   [       
@@ -1709,6 +1774,7 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
   ])
 
 
+
 AC_DEFUN([CONFIGURE_COMPILER_FLAGS],
   [
         #
@@ -1734,6 +1800,7 @@ AC_DEFUN([CONFIGURE_COMPILER_FLAGS],
 			CC_INCLUDE_PATHS="$CC_INCLUDE_PATHS $PNG_INCLUDE_PATH "
 		fi
         CC_INCLUDE_PATHS="$CC_INCLUDE_PATHS $MILI_INCLUDE_PATHS \
+                $GRIZ_PYTHON_INCLUDE_PATH
                 $MESA_INCLUDE_PATHS \
                 $BITMAPS_INCLUDE_PATHS \
                 $EXO_INCLUDE_PATHS \

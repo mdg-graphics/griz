@@ -684,8 +684,7 @@ gen_cuts( Analysis *analy )
     {
         /* Get the current state record format and its mesh. */
         st_num = analy->cur_state + 1;
-        analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &st_num, NULL,
-                         &srec_id );
+        srec_id = analy->state_srec_fmt_ids[st_num-1];
 
         if ( analy->last_state <= 0 )
             mesh_id = analy->cur_mesh_id;

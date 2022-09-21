@@ -58,6 +58,9 @@
 /* Mili library */
 #undef HAVE_MILI
 
+/* Python Parallel Read */
+#undef HAVE_PYTHON
+
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 

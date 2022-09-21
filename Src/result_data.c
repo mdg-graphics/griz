@@ -686,8 +686,7 @@ elem_get_minmax( float *val_elem, int qty, Analysis *analy )
     class_long_name = p_elem_class->long_name;
     sclass = p_elem_class->superclass;
     elem_qty = p_so->subrec.qty_objects;
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL,
-                     (void *) &mesh );
+    mesh = analy->srec_tree[srec].mesh_id;
     p_mesh = analy->mesh_table + mesh;
     mats = p_elem_class->objects.elems->mat;
     activity = analy->state_p->sand_present
@@ -784,8 +783,7 @@ unit_get_minmax( float *val_unit, Analysis *analy )
     class_long_name = p_so->p_object_class->long_name;
     sclass = p_so->p_object_class->superclass;
     unit_qty = p_so->subrec.qty_objects;
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL,
-                     (void *) &mesh );
+    mesh = analy->srec_tree[srec].mesh_id;
 
     /* Prepare to extract unit min/max (values init'd in load_result()). */
     mm_val   = analy->tmp_elem_mm.object_minmax;
@@ -859,8 +857,7 @@ mat_get_minmax( float *val_mat, Analysis *analy )
     class_long_name = p_so->p_object_class->long_name;
     sclass = p_so->p_object_class->superclass;
     mat_qty = p_so->subrec.qty_objects;
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL,
-                     (void *) &mesh );
+    mesh = analy->srec_tree[srec].mesh_id;
     p_mesh = analy->mesh_table + mesh;
 
     /* Prepare to extract material min/max (values init'd in load_result()). */
@@ -931,8 +928,7 @@ mesh_get_minmax( float *val_mesh, Analysis *analy )
     idx = analy->result_index;
     subrec_idx = p_result->subrecs[idx];
     p_so = analy->srec_tree[srec].subrecs + subrec_idx;
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL,
-                     (void *) &mesh );
+    mesh = analy->srec_tree[srec].mesh_id;
 
     /* Prepare to extract material min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
@@ -1129,24 +1125,10 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     /* Set the next line to FALSE to compare with TAURUS output. */
     volume_average = analy->vol_averaging;
 
-    /*
-     * ORIGINAL:
-     *
-    p_result = analy->cur_result;
-    srec = p_result->srec_id;
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL,
-                     (void *) &mesh );
-    p_mesh = analy->mesh_table + mesh;
-     *
-     * REPLACEMENT:
-     */
-
     if ( is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name ) )
         particle_class = TRUE;
 
     p_mesh = MESH_P( analy );
-
-    /* END REPLACEMENT */
 
     p_node_geom = p_mesh->node_geom;
 
@@ -1164,9 +1146,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
     nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
 
-    for ( i=0;
-            i<p_node_geom->qty;
-            i++ )
+    for ( i = 0; i < p_node_geom->qty; i++ )
     {
         val_nodal_input[i] = val_nodal[i];
         nodes_updated[i]   = FALSE;
@@ -1184,9 +1164,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
             ei_nodal_weight[i] = 0.0;
         }
 
-        for ( i = 0;
-                i <  hex_qty;
-                i++ )
+        for ( i = 0; i < hex_qty; i++ )
             ei_elem[i] = 0.0;
     }
 
@@ -1196,11 +1174,9 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
      */
     if ( analy->free_nodes_enabled || (analy->particle_nodes_enabled && particle_class) )
     {
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
-        if (status==0)
-        {
+        free_nodes_vol = analy->free_nodes_vol;
+        if( free_nodes_vol != NULL )
             fn_vol_found = TRUE;
-        }
     }
 
     /*
@@ -1683,7 +1659,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
      */
     if (analy->free_nodes_enabled || analy->particle_nodes_enabled)
     {
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
+        status = analy->get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
         if (status==0)
         {
             fn_vol_found = TRUE;

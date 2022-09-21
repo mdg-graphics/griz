@@ -70,10 +70,6 @@ static int create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
                                State_variable **pp_svar );
 static int create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec_id,
                                    Result_candidate *p_rc, Hash_table *p_ht );
-static void gen_material_data( MO_class_data *, Mesh_data * );
-static void check_degen_hexs( MO_class_data *p_hex_class );
-static void check_degen_quads( MO_class_data *p_quad_class );
-static void check_degen_tris( MO_class_data *p_tri_class );
 extern void fix_title( char *title );
 char        *get_subrecord( Analysis *analy, int num );
 
@@ -180,41 +176,47 @@ determine_naming( char *p_name , State_variable *p_sv)
 int
 attach_element_set(Analysis *analy,Subrec_obj *subrec_obj,char *name)
 {
-   if(strncmp(name,"es_",3))
-   {
-       return OK;
-   }
-   int i,k=0;
-   char c;
-   int mat_id;
-   char SetName[32];
-   SetName[0] = '\0';
-   Htable_entry *p_hte;
-   int status; 
+    if(strncmp(name,"es_",3))
+    {
+        return OK;
+    }
+    int i,k=0;
+    char c;
+    int mat_id;
+    char SetName[32];
+    SetName[0] = '\0';
+    Htable_entry *p_hte;
+    int status; 
    
-   mat_id = 0;
-   for(i= strlen(name)-1;i>=0; i--)
-   {
-       if(isdigit(name[i]))
-       {
-           c = name[i];
-           mat_id += atoi(&c)*pow(10,k);
-           k++;
-       }
-   }
+    mat_id = 0;
+    for(i= strlen(name)-1;i>=0; i--)
+    {
+        if(isdigit(name[i]))
+        {
+            c = name[i];
+            mat_id += atoi(&c)*pow(10,k);
+            k++;
+        }
+    }
    
-   sprintf(SetName,"IntLabel_es_%d", mat_id);
+    if( analy->parallel_read ){
+        /* Mili reader has different naming */
+        sprintf(SetName,"es_%d", mat_id);
+    }
+    else{
+        sprintf(SetName,"IntLabel_es_%d", mat_id);
+    }
    
-   status = htable_search( analy->Element_sets, SetName, FIND_ENTRY, &p_hte );
+    status = htable_search( analy->Element_sets, SetName, FIND_ENTRY, &p_hte );
    
-   if(status != OK)
-   {
-      return 1;
-   }
+    if(status != OK)
+    {
+       return 1;
+    }
    
-   subrec_obj->element_set = (ElementSet*) p_hte->data; 
+    subrec_obj->element_set = (ElementSet*) p_hte->data; 
    
-   return OK;
+    return OK;
 }
 
 
@@ -300,10 +302,9 @@ mili_db_open( char *path_root, int *p_dbid )
 
 
 extern int
-mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
+mili_db_get_geom( Analysis *analy )
 {
     Hash_table *p_ht;
-    Mesh_data *mesh_array;
     Htable_entry *p_hte;
     MO_class_data *p_mocd, *p_node_class=NULL;
     MO_class_data **mo_classes;
@@ -317,6 +318,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int idx, index;
     int int_args[3];
     int dims;
+    int dbid;
     static int elem_sclasses[] =
     {
         M_TRUSS,
@@ -350,14 +352,14 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int block_qty=0, block_index=0, block_range_index=0,
         *block_range=NULL, elem_sclass=0, mat_index=0;
 
-    Analysis *p_analysis;
-
-    if ( *p_mtable != NULL )
+    if ( analy->mesh_table != NULL )
     {
         popup_dialog( WARNING_POPUP,
                       "Mesh table pointer not NULL at initialization." );
         return 1;
     }
+
+    dbid = analy->db_ident;
 
     /* Get dimensionality of data. */
     rval = mc_query_family( dbid, QTY_DIMENSIONS, NULL, NULL, (void *) &dims );
@@ -366,6 +368,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
         mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
         return GRIZ_FAIL;
     }
+    analy->dimension = dims;
 
     /* Get number of meshes in family. */
     rval = mc_query_family( dbid, QTY_MESHES, NULL, NULL, (void *) &mesh_qty );
@@ -374,16 +377,17 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
         mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
         return GRIZ_FAIL;
     }
+    analy->mesh_qty = mesh_qty;
 
     /* Allocate array of pointers to mesh geom hash tables. */
-    mesh_array = NEW_N( Mesh_data, mesh_qty, "Mesh data array" );
+    analy->mesh_table = NEW_N( Mesh_data, mesh_qty, "Mesh data array" );
 
     qty_esclasses = sizeof( elem_sclasses ) / sizeof( elem_sclasses[0] );
 
     for ( i = 0; i < mesh_qty; i++ )
     {
         /* Allocate a hash table for the mesh geometry. */
-        p_md = mesh_array + i;
+        p_md = analy->mesh_table + i;
         p_ht = htable_create( 151 );
         p_md->class_table = p_ht;
 
@@ -515,17 +519,11 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                     }
 
                     /* Sort the labels */
-
-                    /*qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                          (void *) mili_compare_labels); */
                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
                            mili_compare_labels);
 
                     /* Create a mapping for the 1-n label index */
-
-                    for (obj_id=0;
-                            obj_id<obj_qty;
-                            obj_id++)
+                    for (obj_id = 0; obj_id < obj_qty; obj_id++)
                         p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
                 }
                 else
@@ -569,17 +567,11 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                     }
 
                     /* Sort the labels */
-
-                    /*qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                          (void *) mili_compare_labels); */
-                    qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                           mili_compare_labels);
+                    qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), mili_compare_labels);
 
                     /* Create a mapping for the 1-n label index */
 
-                    for (obj_id=0;
-                            obj_id<obj_qty;
-                            obj_id++)
+                    for (obj_id = 0; obj_id < obj_qty; obj_id++)
                         p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
 
 
@@ -598,9 +590,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                     p_mocd->label_blocking.block_objects = NEW_N( Label_block_data, block_qty, "Node Class Label Block Objects" );
 
                     block_index = 0;
-                    for ( k=0;
-                            k<block_qty;
-                            k++ )
+                    for ( k = 0; k < block_qty; k++ )
                     {
                         /* Update min and max labels for this block */
                         if (block_range[block_index]<p_mocd->label_blocking.block_min)
@@ -658,7 +648,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             p_md->node_geom = p_mocd;
         }
 
-        mesh_array->hex_vol_sums = NULL;
+        analy->mesh_table->hex_vol_sums = NULL;
 
         /*
          * Load element connectivities.
@@ -1318,12 +1308,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
         }
     }
 
-    /* Pass back address of geometry hash table array. */
-    *p_mtable   = mesh_array;
-    *p_mesh_qty = mesh_qty;
-
-    p_analysis = get_analy_ptr();
-    status = get_hex_volumes( dbid, p_analysis );
+    status = get_hex_volumes( dbid, analy );
     return (OK);
 }
 
@@ -1333,7 +1318,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
  *
  * Analyze element classes to generate by-material data.
  */
-static void
+extern void
 gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
 {
     Material_data *p_mtld;
@@ -1527,7 +1512,7 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
  * which screws up the face drawing.  So this routine reorders the
  * nodes to a better ordering for face drawing.
  */
-static void
+extern void
 check_degen_hexs( MO_class_data *p_hex_class )
 {
     int i;
@@ -1576,7 +1561,7 @@ check_degen_hexs( MO_class_data *p_hex_class )
  * of 4-node quadrilaterals).  Reorder the nodes of triangular
  * quad elements so that the repeated node is last.
  */
-static void
+extern void
 check_degen_quads( MO_class_data *p_quad_class )
 {
     int tmp, shift, i, j, k;
@@ -1629,7 +1614,7 @@ check_degen_quads( MO_class_data *p_quad_class )
  *
  * Just flagging existence (for now?)...
  */
-static void
+extern void
 check_degen_tris( MO_class_data *p_tri_class )
 {
     int i;
@@ -1883,6 +1868,8 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
             return GRIZ_FAIL;
         }
         p_mesh = analy->mesh_table + mesh_id;
+
+        p_sro[i].mesh_id = mesh_id;
 
         /* Allocate a temporary working array for subrec node list creation. */
         mesh_node_qty = p_mesh->node_geom->qty;
@@ -2996,6 +2983,89 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
     return OK;
 }
 
+/************************************************************
+ * TAG( mili_db_load_state_data )
+ *
+ * Load in the number of states, times for each state,
+ * srec fmt id for each state and store in the Analysis struct.
+ */
+extern int
+mili_db_load_state_data( Analysis *analy )
+{
+    int i;
+    int rval;
+    int dbid;
+    int st_qty;
+    int state;
+    float st_time;
+    int srec_id;
+    float *state_times;
+    int *state_srecs;
+    int states_added;
+    int start = 0;
+
+    dbid = analy->db_ident;
+
+    /* Get the number of states in the database */
+    rval = mc_query_family( dbid, QTY_STATES, NULL, NULL, (void *) &st_qty );
+    if ( rval != 0 )
+    {
+        mc_print_error( "mili_db_load_state_times() call "
+                        "mc_query_family( QTY_STATES )", rval );
+        return GRIZ_FAIL;
+    }
+
+    if( analy->state_times == NULL ){
+        /* First time, so load up all states available */
+        /* Allocate memory to store all states times in the Analysis struct */
+        analy->state_times = NEW_N( float, st_qty, "State time array" );
+        analy->state_srec_fmt_ids = NEW_N( int, st_qty, "State srec fmt id array");
+        start = 0;
+    }
+    else if( analy->state_count != st_qty ){
+        /* Called the reload command, and there were new states to we need to update arrays */
+        states_added = st_qty - analy->state_count;
+        state_times = analy->state_times;
+        state_times = RENEW_N( float, state_times, analy->state_count, states_added, "Extend state_times array" );
+        analy->state_times = state_times;
+
+        state_srecs = analy->state_srec_fmt_ids;
+        state_srecs = RENEW_N( int, state_srecs, analy->state_count, states_added, "Extend state_srecs array" );
+        analy->state_srec_fmt_ids = state_srecs;
+        start = analy->state_count;
+    }
+    else{
+        /* Same number of states, no need to update */
+        return OK;
+    }
+
+    /* Store state qty in the Analysis struct */
+    analy->state_count = st_qty;
+
+    /* Loop through states we need to lookup and query the data */
+    for( i = start; i < st_qty; i++ ){
+        state = i + 1;
+
+        rval = mc_query_family( dbid, STATE_TIME, (void *) &state, NULL, (void *) &st_time );
+        if ( rval != 0 )
+        {
+            mc_print_error( "mili_db_load_state_data() call "
+                            "mc_query_family( STATE_TIME )", rval );
+            return GRIZ_FAIL;
+        }
+        analy->state_times[i] = st_time;
+
+        rval = mc_query_family( analy->db_ident, SREC_FMT_ID, &state, NULL, &srec_id );
+        if ( rval != 0 )
+        {
+            mc_print_error( "mili_db_load_state_data() call "
+                            "mc_query_family( SREC_FMT_ID )", rval );
+            return GRIZ_FAIL;
+        }
+        analy->state_srec_fmt_ids[i] = srec_id;
+    }
+    return OK;
+}
 
 /************************************************************
  * TAG( mili_db_get_state )
@@ -3030,34 +3100,13 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     char infoString[256];
     float *p_float;
 
-    /*
-     * Variables:  "nodes3d", "src_nodes3d",
-     *             "nodes2d", "src_nodes2d",
-     *             "sand_in", "sand_out"
-     *
-     * are declared but never referenced  LAS
-    GVec3D *nodes3d, *src_nodes3d;
-    GVec2D *nodes2d, *src_nodes2d;
-    float *sand_in, *sand_out;
-    */
-
     dbid = analy->db_ident;
 
-    rval = mc_query_family( dbid, QTY_STATES, NULL, NULL, (void *) &st_qty );
-    if ( rval != 0 )
-    {
-        mc_print_error( "mili_db_get_state() call "
-                        "mc_query_family( QTY_STATES )", rval );
-        return GRIZ_FAIL;
-    }
+    /* Get the number of states in the database */
+    st_qty = analy->state_count;
 
-    rval = mc_query_family( dbid, QTY_DIMENSIONS, NULL, NULL, (void *) &dims );
-    if ( rval != 0 )
-    {
-        mc_print_error( "mili_db_get_state() call "
-                        "mc_query_family( QTY_DIMENSIONS )", rval );
-        return GRIZ_FAIL;
-    }
+    /* Get dimensions of the mesh */
+    dims = analy->dimension;
 
     /* Pass back the current quantity of states in the db. */
     if ( state_qty != NULL )
@@ -3079,28 +3128,17 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
 
     if ( state_no < 0 || state_no >= st_qty )
     {
-        popup_dialog( WARNING_POPUP,
-                      "Get-state request for nonexistent state." );
+        popup_dialog( WARNING_POPUP, "Get-state request for nonexistent state." );
         *pp_new_st = p_st;
         return GRIZ_FAIL;
     }
     else
         st = state_no + 1;
 
-    rval = mc_query_family( dbid, SREC_FMT_ID, (void *) &st, NULL,
-                            (void *) &srec_id );
-    if ( rval != 0 )
-    {
-        mc_print_error( "mili_db_get_state() call "
-                        "mc_query_family( SREC_FMT_ID )", rval );
-        return GRIZ_FAIL;
-    }
-
+    srec_id = analy->state_srec_fmt_ids[st-1];
     p_sro = analy->srec_tree + srec_id;
     p_subrecs = p_sro->subrecs;
-
-    mesh_id = p_subrecs[0].p_object_class->mesh_id;
-
+    mesh_id = p_sro->mesh_id;
     p_md = analy->mesh_table + mesh_id;
 
     /* Update or create State2 struct. */
@@ -3108,15 +3146,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
 
     p_st->state_no = state_no;
 
-    rval = mc_query_family( dbid, STATE_TIME, (void *) &st, NULL,
-                            (void *) &st_time );
-    if ( rval != 0 )
-    {
-        mc_print_error( "mili_db_get_state() call "
-                        "mc_query_family( STATE_TIME )", rval );
-        return GRIZ_FAIL;
-    }
-
+    st_time = analy->state_times[state_no];
     p_st->time = st_time;
 
     /* Read node position array if it exists, re-ordering if necessary. */
@@ -3288,8 +3318,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
         p_subrec   = p_subrecs + p_st->sph_srec_id;
         object_ids = p_subrec->object_ids;
         subrec_size = p_subrec->subrec.qty_objects;
-        input_buf = get_st_input_buffer( analy, subrec_size,
-                                         TRUE, &ibuf );
+        input_buf = get_st_input_buffer( analy, subrec_size, TRUE, &ibuf );
         rval = mc_read_results( dbid, st, p_st->sph_srec_id, 1, &primal,
                                 input_buf );
         p_float = (float *) input_buf;
@@ -4179,7 +4208,7 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
     if ( p_sro != NULL )
     {
         p_subrecs = p_sro->subrecs;
-        mesh_id = p_subrecs[0].p_object_class->mesh_id;
+        mesh_id = p_sro->mesh_id;
         p_md = analy->mesh_table + mesh_id;
         elem_class_qty = p_md->elem_class_qty;
     }
@@ -4233,8 +4262,7 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
 
     for ( qty = 0; qty < p_sro->qty; qty++ )
     {
-        if ( nsubr < 0
-                && strcmp( p_subrecs[qty].subrec.class_name, "node" ) == 0 )
+        if ( nsubr < 0 && strcmp( p_subrecs[qty].subrec.class_name, "node" ) == 0 )
             nsubr = qty;
 
         if ( p_subrecs[qty].sand )
@@ -4244,15 +4272,15 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
         {
             if (p_subrecs[qty].subrec.qty_svars>0 )
             {
-                for ( j=0;
-                        j<p_subrecs[qty].subrec.qty_svars;
-                        j++ )
+                for ( j = 0; j < p_subrecs[qty].subrec.qty_svars; j++ )
+                {
                     if ( strcmp("sph_itype", p_subrecs[qty].subrec.svar_names[j])==0 )
                     {
                         p_state->sph_present = TRUE;
                         p_state->sph_srec_id = qty;
                         sph_qty = p_subrecs[qty].subrec.qty_objects;
                     }
+                }
             }
         }
     }
@@ -4309,12 +4337,16 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
                  * complete and proper subrecords as well as the case of class
                  * support distributed across several subrecords.
                  */
-                if ( pp_f[elem_class_index] == NULL )
-                    pp_f[elem_class_index] = NEW_N( float, p_class->qty,
-                                                    "State2 sand array" );
+                if ( pp_f[elem_class_index] == NULL ){
+                    pp_f[elem_class_index] = NEW_N( float, p_class->qty, "State2 sand array" );
+                }
 
                 if ( pp_f[elem_class_index] == NULL )
                     popup_fatal( "Can't allocate space for sand flags." );
+
+                /* Default to 1.0. This is needed for the parallel read. */
+                for( j = 0; j < p_class->qty; j++ )
+                    pp_f[elem_class_index][j] = 1.0;
             }
 
         p_state->elem_class_sand = pp_f;
@@ -4760,10 +4792,9 @@ taurus_db_open( char *path_root, int *p_dbid )
  * plotfile database family.
  */
 extern int
-taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
+taurus_db_get_geom( Analysis * analy )
 {
     Hash_table *p_ht;
-    Mesh_data *mesh_array;
     Htable_entry *p_hte;
     MO_class_data *p_mocd;
     MO_class_data **mo_classes;
@@ -4775,6 +4806,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int obj_qty;
     int i, j, k;
     int int_args[3];
+    int dbid;
     int dims;
     static int elem_sclasses[] =
     {
@@ -4790,13 +4822,14 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int start_ident, stop_ident;
     int rval;
 
-    if ( *p_mtable != NULL )
+    if ( analy->mesh_table != NULL )
     {
         popup_dialog( WARNING_POPUP,
                       "Mesh table pointer not NULL at initialization." );
         return 1;
     }
 
+    dbid = analy->db_ident;
     /* Get dimensionality of data. */
     rval = mc_query_family( dbid, QTY_DIMENSIONS, NULL, NULL, (void *) &dims );
     if ( rval != OK )
@@ -4805,6 +4838,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         rval );
         return GRIZ_FAIL;
     }
+    analy->dimension = dims;
 
     /* Get number of meshes in family. */
     rval = mc_query_family( dbid, QTY_MESHES, NULL, NULL, (void *) &mesh_qty );
@@ -4814,16 +4848,17 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         rval );
         return GRIZ_FAIL;
     }
+    analy->mesh_qty = mesh_qty;
 
     /* Allocate array of pointers to mesh geom hash tables. */
-    mesh_array = NEW_N( Mesh_data, mesh_qty, "Mesh data array" );
+    analy->mesh_table = NEW_N( Mesh_data, mesh_qty, "Mesh data array" );
 
     qty_esclasses = sizeof( elem_sclasses ) / sizeof( elem_sclasses[0] );
 
     for ( i = 0; i < mesh_qty; i++ )
     {
         /* Allocate a hash table for the mesh geometry. */
-        p_md = mesh_array + i;
+        p_md = analy->mesh_table + i;
         p_ht = htable_create( 151 );
         p_md->class_table = p_ht;
 
@@ -5307,10 +5342,6 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             p_hte->data = (void *) p_mocd;
         }
     }
-
-    /* Pass back address of geometry hash table array. */
-    *p_mtable = mesh_array;
-    *p_mesh_qty = mesh_qty;
 
     return (OK);
 }
@@ -5985,6 +6016,20 @@ mili_db_get_param_array( int dbid, char *name, void **data)
 
 
 /************************************************************
+ * TAG( mili_db_reload_states )
+ *
+ * Reload the state maps for the current mili database
+ */
+extern int
+mili_db_reload_states()
+{
+    Analysis * analy = get_analy_ptr();
+    int rval = mc_reload_states( analy->db_ident);
+    return rval;
+}
+
+
+/************************************************************
  * TAG( mili_get_class_ptr )
  *
  * Get a pointer to the specified class .
@@ -6125,7 +6170,7 @@ get_hex_volumes( int dbid, Analysis *analy )
     int status=OK;
 
     /* Get number of meshes in family. */
-    status = mc_query_family( dbid, QTY_MESHES, NULL, NULL, (void *) &mesh_qty );
+    mesh_qty = analy->mesh_qty;
     p_mesh = MESH_P( analy );
 
     p_node_class = p_mesh->node_geom;
@@ -6134,67 +6179,48 @@ get_hex_volumes( int dbid, Analysis *analy )
     if ( qty_nodes==0 )
         return OK;
 
-    for ( i = 0;
-            i < mesh_qty;
-            i++ )
+    for ( i = 0; i < mesh_qty; i++ )
     {
-        int_args[0] = i;
-        sclass = M_HEX;
-        int_args[1] = sclass;
-        status = mc_query_family( dbid, QTY_CLASS_IN_SCLASS,
-                                  (void *) int_args, NULL,
-                                  (void *) &qty_classes );
-        if ( status != OK )
-        {
-            mc_print_error( "taurus_db_get_geom() call mc_query_family()",
-                            status );
-            return GRIZ_FAIL;
+
+        /* Initialize hex vol sums array */
+        if ( p_mesh->hex_vol_sums == NULL ){
+            p_mesh->hex_vol_sums = NEW_N( float, qty_nodes, "Sum of vol for Hexes at nodes" );
+        }
+        else{
+            for ( i = 0; i < qty_nodes; i++ ){
+                p_mesh->hex_vol_sums[i] = 0.;
+            }
         }
 
-        if ( p_mesh->hex_vol_sums==NULL )
-            p_mesh->hex_vol_sums = NEW_N( float, qty_nodes, "Sum of vol for Hexes at nodes" );
-        else
-            for ( i = 0;
-                    i < qty_nodes;
-                    i++ )
-                p_mesh->hex_vol_sums[i] = 0.;
-
+        /* Get number of hex element classes */
+        sclass = M_HEX;
         qty_classes = p_mesh->classes_by_sclass[sclass].qty;
 
-        if ( qty_classes<=1 || p_mesh->classes_by_sclass[sclass].list == NULL )
+        if ( qty_classes <= 1 || p_mesh->classes_by_sclass[sclass].list == NULL )
             continue;
 
         mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[sclass].list;
 
-        if ( analy->state_p && analy->cur_state>0 )
+        if ( analy->state_p && analy->cur_state > 0 )
             coords = analy->state_p->nodes.nodes3d;
         else
             coords = (GVec3D *) p_node_class->objects.nodes;
 
-        for ( k = 0;
-                k < qty_classes;
-                k++ )
+        for ( k = 0; k < qty_classes; k++ )
         {
             p_mocd = mo_classes[k];
 
-            status = mc_get_class_info( dbid, i, sclass, k,
-                                        short_name, long_name, &obj_qty );
-            switch ( sclass )
+            if ( p_mocd->superclass == M_HEX )
             {
-            case M_HEX:
                 if ( p_mocd->objects.elems->volume==NULL )
                     p_mocd->objects.elems->volume = NEW_N( float, p_mocd->qty, "Volume for Hexes at nodes" );
 
                 connects = (int (*)[8]) p_mocd->objects.elems->nodes;
-                for ( hex_id=0;
-                        hex_id<p_mocd->qty;
-                        hex_id++ )
+                for ( hex_id = 0; hex_id < p_mocd->qty; hex_id++ )
                 {
 
                     /* Compute volume sums */
-                    for ( l = 0;
-                            l < 8;
-                            l++ )
+                    for ( l = 0; l < 8; l++ )
                     {
                         nd = connects[hex_id][l];
 
@@ -6207,19 +6233,12 @@ get_hex_volumes( int dbid, Analysis *analy )
                     p_mocd->objects.elems->volume[hex_id] = volume;
 
                     /* Compute volume sums */
-                    for ( l = 0;
-                            l < 8;
-                            l++ )
+                    for ( l = 0; l < 8; l++ )
                     {
                         nd = connects[hex_id][l];
                         p_mesh->hex_vol_sums[nd] += volume;
                     }
                 }
-                break;
-
-            default:
-                /* do nothing */
-                ;
             }
         }
     }

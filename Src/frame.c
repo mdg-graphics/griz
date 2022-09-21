@@ -556,7 +556,8 @@ transform_es_stress_strain( char **primals, int primal_index, Analysis *analy,
         es_name = get_es_name(primal_result, subrec);
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i ++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, isStrain);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, isStrain);
             es_primals[1] = NULL;
             temprval = analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) analy->tmp_result[i] );
             rval = rval | temprval;

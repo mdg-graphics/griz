@@ -509,15 +509,12 @@ gather_free_nodes( Analysis *analy,  int *num_fn, int mass_flag,
     fn_vol_ptr  = *free_nodes_data;
 
     /* If mass scaling option is enabled, then look for the nodal masses */
-    if (mass_flag==MASS)
-    {
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Mass",   (void *) &fn_mass_tmp);
-    }
+    if (mass_flag == MASS)
+        fn_mass_tmp = analy->free_nodes_mass;
 
     /* Read the nodal volumes if volume scaling is enabled */
-    if (mass_flag==VOL)
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &fn_vol_tmp);
-
+    if (mass_flag == VOL)
+        fn_vol_tmp = analy->free_nodes_vol;
 
     /* Make sure that this database has free node mass or volume data */
     if (fn_mass_tmp==NULL && fn_vol_tmp==NULL)
@@ -626,12 +623,6 @@ gather_free_nodes( Analysis *analy,  int *num_fn, int mass_flag,
                     fn_vol_ptr[i]  = fn_vol_tmp[i];
             }
 
-
-    if (fn_mass_tmp!=NULL)
-        free(fn_mass_tmp);
-
-    if (fn_vol_tmp!=NULL)
-        free(fn_vol_tmp);
 
     free(temp_activity);
 

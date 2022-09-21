@@ -117,9 +117,11 @@ parse_griz_init_file( void )
  * format.
  */
 Bool_type
-is_known_db( char *fname, Database_type_griz *p_db_type )
+is_known_db( char *fname, Database_type_griz *p_db_type , Bool_type parallel_read )
 {
-    if ( is_mili_db( fname ) )
+    /* If the user has specified parallel read, make the assumption that its a Mili file,
+     * If it isn't Griz will exit gracefully. */
+    if ( is_mili_db( fname ) || parallel_read )
     {
         *p_db_type = MILI;
     }
@@ -174,20 +176,43 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
     switch ( db_type )
     {
     case MILI:
-        analy->db_open = mili_db_open;
-        analy->db_get_geom = mili_db_get_geom;
-        analy->db_close = mili_db_close;
-        analy->db_get_st_descriptors = mili_db_get_st_descriptors;
-        analy->db_set_results = mili_db_set_results;
-        analy->db_get_state = mili_db_get_state;
-        analy->db_get_subrec_def = mili_db_get_subrec_def;
-        analy->db_cleanse_subrec = mili_db_cleanse_subrec;
-        analy->db_cleanse_state_var = mili_db_cleanse_state_var;
-        analy->db_get_results = mili_db_get_results;
-        analy->db_get_title = mili_db_get_title;
-        analy->db_get_dimension = mili_db_get_dimension;
-        analy->db_query = mili_db_query;
-        analy->db_set_buffer_qty = mili_db_set_buffer_qty;
+        if( !analy->parallel_read ){
+            analy->db_open = mili_db_open;
+            analy->db_get_geom = mili_db_get_geom;
+            analy->db_close = mili_db_close;
+            analy->db_get_st_descriptors = mili_db_get_st_descriptors;
+            analy->db_set_results = mili_db_set_results;
+            analy->db_get_state = mili_db_get_state;
+            analy->db_get_subrec_def = mili_db_get_subrec_def;
+            analy->db_cleanse_subrec = mili_db_cleanse_subrec;
+            analy->db_cleanse_state_var = mili_db_cleanse_state_var;
+            analy->db_get_results = mili_db_get_results;
+            analy->db_get_title = mili_db_get_title;
+            analy->db_get_dimension = mili_db_get_dimension;
+            analy->db_query = mili_db_query;
+            analy->db_set_buffer_qty = mili_db_set_buffer_qty;
+            analy->db_load_state_data = mili_db_load_state_data;
+            analy->db_reload_states = mili_db_reload_states;
+            analy->ti_read_string = mc_ti_read_string;
+            analy->ti_htable_wildcard_search = mc_ti_htable_search_wildcard;
+            analy->ti_read_array = mc_ti_read_array;
+            analy->get_param_array = mili_db_get_param_array;
+        }
+        else{
+            analy->db_open = mili_reader_db_open;
+            analy->db_get_geom = mili_reader_get_geom;
+            analy->db_get_st_descriptors = mili_reader_get_st_descriptors;
+            analy->db_set_results = mili_db_set_results;
+            analy->db_get_state = mili_reader_get_state;
+            analy->db_get_results = mili_reader_get_results;
+            analy->db_close = mili_reader_db_close;
+            analy->db_load_state_data = mili_reader_load_state_data;
+            analy->db_reload_states = mili_reader_reload_states;
+            analy->ti_read_string = mili_reader_read_string;
+            analy->ti_htable_wildcard_search = mili_reader_search_param_wildcard;
+            analy->ti_read_array = mili_reader_read_ti_array;
+            analy->get_param_array = mili_reader_read_param_array;
+        }
         break;
 
     case TAURUS:
@@ -208,6 +233,12 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
         analy->db_get_dimension = mili_db_get_dimension;
         analy->db_query = mili_db_query;
         analy->db_set_buffer_qty = mili_db_set_buffer_qty;
+        analy->db_load_state_data = mili_db_load_state_data;
+        analy->db_reload_states = mili_db_reload_states;
+        analy->ti_read_string = mc_ti_read_string;
+        analy->ti_htable_wildcard_search = mc_ti_htable_search_wildcard;
+        analy->ti_read_array = mc_ti_read_array;
+        analy->get_param_array = mili_db_get_param_array;
         break;
 
 #ifdef EXO_SUPPORT

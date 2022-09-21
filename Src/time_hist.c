@@ -1983,7 +1983,6 @@ new_time_tso( Analysis *analy )
 
     st_nums[0] = 1;
     st_nums[1] = analy->last_state + 1;
-
     qty_states = st_nums[1] - st_nums[0] + 1;
 
     p_tso = NEW( Time_series_obj, "New Time_series_obj" );
@@ -1994,8 +1993,9 @@ new_time_tso( Analysis *analy )
     p_tso->qty_blocks = 1;
     p_tso->qty_states = qty_states;
 
-    analy->db_query( analy->db_ident, QRY_SERIES_TIMES, (void *) st_nums, NULL,
-                     (void *) p_tso->data );
+    for( i = 0; i <= analy->last_state; i++ ){
+        p_tso->data[i] = analy->state_times[i];
+    }
 
     p_tso->min_val = p_tso->data[0];
     p_tso->min_val_state = 0;
@@ -2179,27 +2179,25 @@ check_for_global( Result *res_list, Specified_obj **p_so_list, Analysis *analy )
                     p_subrecs = analy->srec_tree[i].subrecs;
                     p_sr = (Subrecord_result *) p_pr->srec_map[i].list;
 
+                    /*
+                     * In case there's more than one mesh, make sure
+                     * we have the mesh for this state rec format.
+                     */
+                    mesh_id = analy->srec_tree[i].mesh_id;
+
                     for ( j = 0; j < p_dr->srec_map[i].qty; j++ )
                     {
                         if ( p_sr[j].superclass == G_MESH )
                         {
                             if ( p_sr[j].indirect )
                             {
-                                /*
-                                 * In case there's more than one mesh, make sure
-                                 * we have the mesh for this state rec format.
-                                 */
-                                analy->db_query( analy->db_ident, QRY_SREC_MESH,
-                                                 &i, NULL, &mesh_id );
-                                p_lh = analy->mesh_table[
-                                           mesh_id].classes_by_sclass + G_MESH;
+                                p_lh = analy->mesh_table[mesh_id].classes_by_sclass + G_MESH;
                                 p_class = ((MO_class_data **) p_lh->list)[0];
                                 global = TRUE;
                             }
                             else
                             {
-                                p_class =
-                                    p_subrecs[p_sr[j].subrec_id].p_object_class;
+                                p_class = p_subrecs[p_sr[j].subrec_id].p_object_class;
                                 global = TRUE;
                             }
 
@@ -4400,10 +4398,9 @@ update_srec_fmt_blocks( int min_state, int max_state, Analysis *analy )
 
         srec_fmts = NEW_N( int, max_state + 1, "Srec formats array" );
         analy->srec_formats = srec_fmts;
-        iarray[0] = 1; /* Get state formats from beginning of database. */
-        iarray[1] = max_state + 1;
-        analy->db_query( analy->db_ident, QRY_SERIES_SREC_FMTS, (void *) iarray,
-                         NULL, (void *) srec_fmts );
+        for( i = 0; i <= max_state; i++ ){
+            srec_fmts[i] = analy->state_srec_fmt_ids[i];
+        }
 
         analy->first_state = min_state;
         analy->last_state = max_state;

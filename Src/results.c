@@ -1447,14 +1447,13 @@ update_result( Analysis *analy, Result *p_result )
 
     /* Get srec format for current state. */
     st = analy->cur_state + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
-                     (void *) &st, NULL, (void *) &srec_id );
+    srec_id = analy->state_srec_fmt_ids[st-1];
 
     /* Update necessary only if state rec format has changed. */
     if ( srec_id != p_result->srec_id )
     {
-        analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id,
-                         NULL, &mesh_id );
+        /* Lookup mesh associated with this state record format */
+        mesh_id = analy->srec_tree[srec_id].mesh_id;
         p_result->mesh_id = mesh_id;
 
         /* Clean up shared allocations for previous srec format. */
@@ -1531,11 +1530,8 @@ update_result( Analysis *analy, Result *p_result )
             for ( i = 0; i < qty; i++ )
             {
                 p_result->subrecs[i] = p_i[i];
-                p_s = &(analy->srec_tree[srec_id].subrecs[p_i[i]].subrec);
+                p_result->superclasses[i] = analy->srec_tree[srec_id].subrecs[p_i[i]].p_object_class->superclass;
                 p_result->indirect_flags[i] = FALSE;
-                analy->db_query( analy->db_ident, QRY_CLASS_SUPERCLASS, NULL,
-                                 p_s->class_name,
-                                 (void *) (p_result->superclasses + i) );
                 p_result->result_funcs[i] = load_primal_result;
             }
         }
@@ -1693,8 +1689,9 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
     else
         strcpy( p_result->name, name );
 
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id,
-                     NULL, (void *) &mesh_id );
+    /* Look up mesh_id for this state record */
+    mesh_id = analy->srec_tree[srec_id].mesh_id;
+
     p_result->mesh_id = mesh_id;
     p_result->srec_id = srec_id;
     p_result->qty = qty;
@@ -1770,10 +1767,7 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
                                                 3, 1, indices[0]);
             }
 
-            p_s = &(analy->srec_tree[srec_id].subrecs[p_i[i]].subrec);
-            analy->db_query( analy->db_ident, QRY_CLASS_SUPERCLASS,
-                             (void *) &mesh_id, p_s->class_name,
-                             (void *) (p_result->superclasses + i) );
+            p_result->superclasses[i] = analy->srec_tree[srec_id].subrecs[p_i[i]].p_object_class->superclass;
             p_result->indirect_flags[i] = FALSE;
             p_result->result_funcs[i] = ( p_pr->var->num_type == G_FLOAT8 )
                                         ? load_primal_result_double
@@ -1877,7 +1871,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         return FALSE;
 
     /* No results if no states in db... */
-    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, (void *) &qty_states );
+    qty_states = analy->state_count;
     if ( qty_states == 0 )
         return FALSE;
 
@@ -1891,8 +1885,8 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
 
     /* Get srec format and mesh ident for current state. */
     st = analy->cur_state + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st, NULL, (void *) &srec_id );
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id, NULL, (void *) &mesh_id );
+    srec_id = analy->state_srec_fmt_ids[st-1];
+    mesh_id = analy->srec_tree[srec_id].mesh_id;
 
     found = FALSE;
     scalar = TRUE;
@@ -2513,6 +2507,7 @@ char * construct_result_query_string(Analysis* analy){
     i = find_matching_subrec_index(subrec, primal_result);
 
     target[0] = '\0';
+
     if( primal_result->owning_vec_count > 0 && primal_result->owning_vec_map[i] != -1 ){
 
         /* Get the owning vector for this result */
@@ -2582,7 +2577,7 @@ char * construct_result_query_string(Analysis* analy){
                 sprintf(query_string, "%s", p_result->name);
             }
         }
-        else
+        else if( !analy->parallel_read )
         {
             /* Get subrecord in owning vector that matches subrecord of component */
             j = find_matching_subrec_index(subrec, owning_vec);
@@ -2635,6 +2630,9 @@ char * construct_result_query_string(Analysis* analy){
             else{
                 sprintf(query_string, "%s", p_result->name);
             }
+        }
+        else{
+            strcpy(query_string, primal_result->original_names_per_subrec[i]);
         }
     }
     else if(primal_result->var->agg_type == ARRAY)
@@ -2758,7 +2756,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
                            primals, (void *) result_buf );
-
+    
     /* Re-order data if necessary. */
     if ( object_ids )
     {

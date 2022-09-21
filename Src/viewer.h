@@ -69,6 +69,8 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
+#define MILI_READER_SUPPORT
+
 #include <time.h>
 
 #include <limits.h>
@@ -84,6 +86,7 @@
 #include "mesh.h"
 #include "gahl.h"
 
+#include <Python.h>
 
 #define MAXPATHLENGTH 1024
 #define MAXFILENAMELENGTH 512
@@ -186,19 +189,6 @@ typedef enum
     ALL
 } Result_table_type;
 
-
-/*****************************************************************
- * TAG( ProcessorToGlobalMap )
- *
- * Maps processor node and element ids to global ids.
- * Only used when using Python Mili reader parallel read.
- */
-typedef struct _ProcessorToGlobalMap{
-    int ** node_map;
-    int * node_count;
-    int *** elem_map;
-    int ** elem_count;
-} ProcessorToGlobalMap;
 
 /*****************************************************************
  * TAG( RGB_raster_obj )
@@ -553,6 +543,7 @@ typedef struct _subrec_obj
  */
 typedef struct _state_rec_obj
 {
+    int mesh_id;
     int qty;
     Subrec_obj *subrecs;
     int node_pos_subrec;
@@ -975,6 +966,12 @@ typedef struct _Analysis
     int (*db_get_dimension)();
     int (*db_query)();
     int (*db_set_buffer_qty)();
+    int (*db_load_state_data)();
+    int (*db_reload_states)();
+    int (*ti_read_string)();
+    int (*ti_htable_wildcard_search)();
+    int (*ti_read_array)();
+    int (*get_param_array)();
 
     void (*update_display)( struct _Analysis * );
     void (*display_mode_refresh)( struct _Analysis * );
@@ -1002,6 +999,7 @@ typedef struct _Analysis
     int cur_state;
     int previous_state;
     float *state_times;
+    int * state_srec_fmt_ids;
     int reference_state;
     //mmHisEnt previous_MM_List[50];
 
@@ -1291,6 +1289,8 @@ typedef struct _Analysis
     int       free_nodes_mass_scaling;
     int       free_nodes_vol_scaling;
     float     free_nodes_cut_width;
+    float * free_nodes_mass;
+    float * free_nodes_vol;
 
     /*
      * Added March 22, 2005: IRC - Variables used for keep global mesh
@@ -1479,8 +1479,22 @@ typedef struct _Analysis
     Bool_type old_shell_stresses;
 
     // Map local ids to global ids for Mili reader.
-    ProcessorToGlobalMap * index_map;
-    int qty_srec_fmt;
+    int proc_count;
+    Bool_type parallel_read;
+    char * mili_reader_src_path;
+    char * mili_reader_venv_bin;
+    PyObject * py_MiliDB;
+    PyObject * py_MiliReaderModule;
+    PyObject * py_MiliParameters;
+    PyObject * py_Nodpos;
+    PyObject * py_Sand;
+
+    /* Prevent repeat queryies */
+    PyObject * py_PrevQuery;
+    char * prev_query_result_name;
+    char * prev_query_class_name;
+    int prev_query_state;
+    int prev_query_ipt;
 }
 Analysis;
 
@@ -1967,6 +1981,10 @@ extern void get_extents( Analysis *, Bool_type, Bool_type, float *, float * );
 
 
 /* io_wrappers.c */
+extern void gen_material_data( MO_class_data *, Mesh_data * );
+extern void check_degen_hexs( MO_class_data *p_hex_class );
+extern void check_degen_quads( MO_class_data *p_quad_class );
+extern void check_degen_tris( MO_class_data *p_tri_class );
 extern State2 *mk_state2( Analysis *, State_rec_obj *, int, int, int,
                           State2 * );
 extern void create_subrec_node_list( int *, int, Subrec_obj * );
@@ -1988,15 +2006,38 @@ extern void *get_st_input_buffer( Analysis *, int, Bool_type, void ** );
 
 extern int get_result_qty( Analysis *, int subrec_id );
 
+/* Mili Reader Wrappers - parallel_read.c */
+extern int griz_python_setup( Analysis * );
+extern int mili_reader_db_open( char *, int * );
+extern int mili_reader_get_title( Analysis*, char* );
+extern int mili_reader_get_geom( Analysis* );
+extern int mili_reader_get_st_descriptors( Analysis *, int );
+extern int mili_reader_get_state( Analysis *, int, State2 *, State2 **, int * );
+extern int mili_reader_get_results( int, int, int, int, char **, void * );
+extern int mili_reader_get_metadata( Analysis * analy );
+extern int mili_reader_load_parameters( Analysis * analy );
+extern int mili_reader_db_close( Analysis * analy );
+extern int mili_reader_load_state_data( Analysis * analy );
+extern int mili_reader_reload_states();
+extern int mili_reader_read_string( int, char*, char* );
+extern int mili_reader_search_param_wildcard( int, int, Bool_type, char*, char*, char*, char** );
+extern int mili_reader_read_ti_array( int, char*, void**, int* );
+extern int mili_reader_read_param_array( int, char*, void** );
+extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
+extern Bool_type combine_nodpos( Analysis*, int, void* );
+extern Bool_type combine_sand_flags( Analysis*, Subrec_obj*, int, void* );
+
 /* Mili wrappers. */
 extern int mili_db_open( char *, int * );
-extern int mili_db_get_geom( int, Mesh_data **, int * );
+extern int mili_db_get_geom( Analysis* );
 extern int mili_db_get_st_descriptors( Analysis *, int );
 extern int mili_db_set_results( Analysis * );
 extern int mili_db_get_state( Analysis *, int, State2 *, State2 **, int * );
 extern int mili_db_get_subrec_def( int, int, int, Subrecord * );
 extern int mili_db_cleanse_subrec( Subrecord * );
 extern int mili_db_cleanse_state_var( State_variable * );
+extern int mili_db_load_state_data( Analysis * analy );
+extern int mili_db_reload_states();
 
 extern int mili_db_get_results( int, int, int, int, char **, void * );
 extern int mili_db_get_results_allobjids( int, int, Analysis *,int *, int **);
@@ -2015,12 +2056,13 @@ extern int get_hex_volumes( int dbid, Analysis *analy );
 
 /* Taurus plotfile wrappers. */
 extern int taurus_db_open( char *, int * );
-extern int taurus_db_get_geom( int, Mesh_data **, int * );
+extern int taurus_db_get_geom( Analysis * );
 extern int taurus_db_get_subrec_def( int, int, int, Subrecord * );
 extern int taurus_db_close( Analysis * );
 extern int taurus_db_get_title( int, char * );
 
 /* misc.c */
+extern int get_state_at_time(Analysis*, float, int*);
 extern Bool_type is_operation_token( char token[TOKENLENGTH],
                                      Plot_operation_type * );
 extern Bool_type object_is_bound( int, MO_class_data *, Subrec_obj * );
@@ -2384,7 +2426,8 @@ extern void      rotate_quad_result( Analysis *analy, char *primal, int result_c
 
 /* stress.c */
 extern char* get_es_name(Primal_result* primal_result, int subrec);
-extern char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_vector_array_format, int component, Bool_type strain);
+extern char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_vector_array_format, int component,
+                                                 Bool_type parallel_read, Bool_type strain);
 extern void compute_hex_stress_wrapper( Analysis *, float *, Bool_type );
 extern void compute_hex_stress( Analysis *, float *, Bool_type );
 extern void compute_hex_es_stress( Analysis *, float *, Bool_type );
@@ -2442,7 +2485,7 @@ extern void report_exp_assoc( void );
 
 /* init_io.c */
 extern void parse_griz_init_file( void ); // maybe into interpret.c instead?
-extern Bool_type is_known_db( char *fname, Database_type_griz *p_db_type );
+extern Bool_type is_known_db( char *fname, Database_type_griz *p_db_type, Bool_type parallel_read);
 extern Bool_type init_db_io( Database_type_griz db_type, Analysis *analy );
 extern void reset_db_io( Database_type_griz db_type );
 

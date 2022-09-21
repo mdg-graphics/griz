@@ -262,6 +262,9 @@ main( int argc, char *argv[] )
     env.show_dialog          = TRUE;
     env.window_size_set_on_command_line = FALSE;
 
+    /* Assume serial read */
+    analy->parallel_read = FALSE;
+
     /* Scan command-line arguments, other initialization. */
     scan_args( argc, argv, analy );
 
@@ -511,7 +514,7 @@ scan_args( int argc, char *argv[], Analysis *analy )
     inname_set = FALSE;
     env.plotfile_name[0] = '\0';
 
-    env.ti_enable = TRUE;
+    env.ti_enable = FALSE;
     env.griz_id   = 0;
 
     env.bname = NULL;
@@ -609,6 +612,24 @@ scan_args( int argc, char *argv[], Analysis *analy )
         else if ( strcmp( argv[i], "-nohist" ) == 0 )
         {
             env.model_history_logging = FALSE;
+        }
+
+        /* Mili Reader parallel read arguments:
+         * Arguments to turn on parallel read, and set mili reader source and bin
+         */
+        else if ( strcmp( argv[i], "-pr") == 0 || strcmp( argv[i], "-parallel_read") == 0 )
+        {
+            analy->parallel_read = TRUE;
+        }
+        else if (  strcmp( argv[i], "-mili_reader_src") == 0 )
+        {
+            analy->mili_reader_src_path = strdup( argv[i+1] );
+            i++;
+        }
+        else if (  strcmp( argv[i], "-mili_reader_bin") == 0 )
+        {
+            analy->mili_reader_venv_bin = strdup( argv[i+1] );
+            i++;
         }
 
 #ifdef SERIAL_BATCH
@@ -805,7 +826,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
      */
 
     strcpy( temp_fname, fname );
-    if ( !is_known_db( fname, &db_type ) )
+    if ( !is_known_db( fname, &db_type, analy->parallel_read ) )
     {
 
         /* User may have typed the full filename string with 1 or 2 char extensions */
@@ -813,18 +834,18 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         if ( strlen(fname)>=3 )
         {
             temp_fname[strlen(temp_fname)-1]='\0';  /* Omit last character */
-            if ( !is_known_db( temp_fname, &db_type ) )
+            if ( !is_known_db( temp_fname, &db_type, analy->parallel_read ) )
             {
                 temp_fname[strlen(temp_fname)-1]='\0'; /* Omit last 2 characters */
             }
         }
     }
 
-    if ( !is_known_db( temp_fname, &db_type ) )
+    if ( !is_known_db( temp_fname, &db_type, analy->parallel_read ) )
         strcpy( temp_fname, fname );
 
     /* Initialize I/O functions by database type. */
-    if ( !is_known_db( temp_fname, &db_type ) )
+    if ( !is_known_db( temp_fname, &db_type, analy->parallel_read ) )
     {
         popup_dialog( WARNING_POPUP, "Unable to identify database type: %s.", temp_fname );
         return FALSE;
@@ -870,12 +891,21 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->show_title_path = FALSE;
 
     /* Enable reading of TI data if requested */
-    if ( env.ti_enable )
+    if ( env.ti_enable && !analy->parallel_read )
         mc_ti_enable( analy->db_ident ) ;
+
+    /* If this is a parallel read, Initialize python */
+    analy->py_MiliDB = NULL;
+    analy->py_MiliReaderModule = NULL;
+    if ( analy->parallel_read ){
+        if( !griz_python_setup( analy ) ){
+            popup_dialog( WARNING_POPUP, "Failed to load Mili Reader Module." );
+            return FALSE;
+        }
+    }
 
     /* Open the database. */
     stat = analy->db_open( temp_fname, &analy->db_ident );
-
     if ( stat != OK )
     {
         reset_db_io( db_type );
@@ -886,26 +916,42 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( verify_only )
         return TRUE;
 
-    stat = analy->db_get_title( analy->db_ident, analy->title );
-    if ( stat != OK )
-        popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
-
-    stat = analy->db_get_dimension( analy->db_ident, &analy->dimension );
-    if ( stat != OK )
-    {
-        popup_fatal( "open_analysis() - unable to get db dimension." );
-        return FALSE;
+    /* If parallel read with mili reader, load in parameters dict */
+    if ( analy->parallel_read ){
+        stat = mili_reader_load_parameters( analy );
+        if( stat != OK ){
+            popup_dialog( WARNING_POPUP, "Unable to load parameters from mili reader." );
+            return FALSE;
+        }
+        stat = mili_reader_get_title( analy, analy->title );
+        if ( stat != OK )
+            popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
     }
-    if(analy->dimension != 2 && analy->dimension !=3)
-    {
-        popup_fatal("open_analysis() db dimension should be 2 or 3.");
-        return FALSE;
+    else{
+        stat = analy->db_get_title( analy->db_ident, analy->title );
+        if ( stat != OK )
+            popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
+
+        /* These calls happen elsewhere when reading with the Mili Reader */
+        stat = analy->db_get_dimension( analy->db_ident, &analy->dimension );
+        if ( stat != OK )
+        {
+            popup_fatal( "open_analysis() - unable to get db dimension." );
+            return FALSE;
+        }
+
+        if(analy->dimension != 2 && analy->dimension !=3)
+        {
+            popup_fatal("open_analysis() db dimension should be 2 or 3.");
+            return FALSE;
+        }
+
+        if ( analy->dimension == 2 )
+            analy->limit_rotations = TRUE;
     }
 
-    if ( analy->dimension == 2 )
-        analy->limit_rotations = TRUE;
-
-    stat = analy->db_get_geom( analy->db_ident, &analy->mesh_table, &analy->mesh_qty );
+    /* Load in the mesh geometry */
+    stat = analy->db_get_geom( analy );
     if ( stat != OK )
     {
         /*
@@ -916,11 +962,18 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         return FALSE;
     }
 
+    /* Load in subrecords and state variables */
     stat = analy->db_get_st_descriptors( analy, analy->db_ident );
     if ( stat != OK )
         return FALSE;
 
+    /* Determine which derived results can be calculated */
     stat = analy->db_set_results( analy );
+    if ( stat != OK )
+        return FALSE;
+    
+    /* Load state count and list of state times */
+    stat = analy->db_load_state_data( analy );
     if ( stat != OK )
         return FALSE;
 
@@ -929,7 +982,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     manage_timer( 0, 0 );
 #endif
 
-    stat = analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &num_states );
+    /* Get the first state */
+    stat = analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, NULL );
     if ( stat != 0 )
         return FALSE;
 
@@ -938,14 +992,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     putc( (int) '\n', stdout );
 #endif
 
-    /* set state count in analysis struct */
-    analy->state_count = num_states;
-
+    num_states = analy->state_count;
     if ( num_states > 0 )
     {
         srec_id = analy->state_p->srec_id;
-        analy->cur_mesh_id =
-            analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
+        analy->cur_mesh_id = analy->srec_tree[srec_id].mesh_id;
     }
     else
         analy->cur_mesh_id = 0;
@@ -1052,7 +1103,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
 
     /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
-    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on);
+    stat = get_particles_on_flag( analy, &particles_on );
     // If "particles_on" paramter does not exist, default to off.
     if(stat != OK)
         particles_on = 0;
@@ -1065,54 +1116,58 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
     if ( env.ti_enable )
     {
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                      "*", "NULL", "NULL",
-                      NULL );
+        /* RHATHAW
+         * This appears to be unnecessary, analy->ti_vars is only used by a single function
+         * that is currently commented out. Need to talk to Kevin about this.
+         */
+        //num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+        //              "*", "NULL", "NULL",
+        //              NULL );
 
-        wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+        //wildcard_list=(char**) malloc( num_entries*sizeof(char *));
 
-        if(wildcard_list == NULL)
-        {
-            return ALLOC_FAILED;
-        }
+        //if(wildcard_list == NULL)
+        //{
+        //    return ALLOC_FAILED;
+        //}
 
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                      "M_", "NULL", "NULL",
-                      wildcard_list );
+        //num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+        //              "M_", "NULL", "NULL",
+        //              wildcard_list );
 
-        analy->ti_vars      = NULL;
-        analy->ti_var_count = num_entries;
-        analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
+        //analy->ti_vars      = NULL;
+        //analy->ti_var_count = num_entries;
+        //analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
 
-        for ( i = 0; i < num_entries; i++ )
-        {
-            /* Extract the long name (with class info in name)
-             * and short name of the TI variable.
-             */
-            status = mc_ti_get_metadata_from_name( wildcard_list[i],
-                                                   class, &meshid, &state,
-                                                   &matid, &superclass,
-                                                   &isMeshvar, &isNodal);
+        //for ( i = 0; i < num_entries; i++ )
+        //{
+        //    /* Extract the long name (with class info in name)
+        //     * and short name of the TI variable.
+        //     */
+        //    status = mc_ti_get_metadata_from_name( wildcard_list[i],
+        //                                           class, &meshid, &state,
+        //                                           &matid, &superclass,
+        //                                           &isMeshvar, &isNodal);
 
-            status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-                                         &datatype, &datalength );
+        //    status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+        //                                 &datatype, &datalength );
 
-            analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
-            analy->ti_vars[i].short_name = (char *) strdup( class );
-            analy->ti_vars[i].superclass = superclass;
-            analy->ti_vars[i].type       = datatype;
-            analy->ti_vars[i].length     = datalength;
-            analy->ti_vars[i].nodal      = isNodal;
-        }
+        //    analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
+        //    analy->ti_vars[i].short_name = (char *) strdup( class );
+        //    analy->ti_vars[i].superclass = superclass;
+        //    analy->ti_vars[i].type       = datatype;
+        //    analy->ti_vars[i].length     = datalength;
+        //    analy->ti_vars[i].nodal      = isNodal;
+        //}
 
-        analy->ti_data_found = TRUE;
+        //analy->ti_data_found = TRUE;
 
-        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-        free(wildcard_list);
-        wildcard_list = NULL;
+        //htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+        //free(wildcard_list);
+        //wildcard_list = NULL;
 
         /* Get particle element names count */
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+        num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE,
                       "particle_element", "NULL", "NULL",
                       NULL );
         if(num_entries > 0)
@@ -1125,20 +1180,19 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             }
 
             /* Load particle element names from list if available */
-            num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+            num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE,
                           "particle_element", "NULL", "NULL",
                           wildcard_list );
 
-            if ( num_entries>0 )
+            if ( num_entries > 0 )
             {
-                status = mc_ti_undef_class( analy->db_ident );
+                if( !analy->parallel_read )
+                    status = mc_ti_undef_class( analy->db_ident );
                 analy->mesh_table->particle_class_names = NEW_N( char *, num_entries, "Particle Class Titles" );
                 analy->mesh_table->num_particle_classes = num_entries;
-                for ( i=0;
-                        i<num_entries;
-                        i++ )
+                for ( i = 0; i < num_entries; i++ )
                 {
-                    status = mc_ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
+                    status = analy->ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
                     analy->mesh_table->particle_class_names[i] = (char *) strdup( particle_class_name );
                 }
                 htable_delete_wildcard_list( num_entries, wildcard_list ) ;
@@ -1149,14 +1203,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
 
         /* Get Modal analysis variables if they exist */
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+        num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE,
                       "analysis_type", "NULL", "NULL",
                       NULL );
 
         if ( num_entries==1 )
         {
             char tmp_string[256];
-            status = mc_ti_read_string( analy->db_ident, "analysis_type", tmp_string );
+            status = analy->ti_read_string( analy->db_ident, "analysis_type", tmp_string );
             if ( !strcmp( tmp_string, "modal" ) )
             {
                 analy->analysis_type = MODAL;
@@ -1164,14 +1218,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         }
 
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+        num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE,
                       "changevar_timestep", "NULL", "NULL",
                       NULL );
 
         if ( num_entries==1 )
         {
             char tmp_string[256];
-            status = mc_ti_read_string( analy->db_ident, "changevar_timestep", tmp_string );
+            status = analy->ti_read_string( analy->db_ident, "changevar_timestep", tmp_string );
             analy->time_name = strdup( tmp_string );
         }
         else
@@ -1388,9 +1442,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
             /* Initialize beam arrays */
 
-            for (i=0;
-                    i<beam_qty;
-                    i++)
+            for (i = 0; i < beam_qty; i++)
             {
                 p_md->hide_beam_elem[i]     = '\0';
                 p_md->disable_beam_elem[i]  = '\0';
@@ -1420,9 +1472,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
             /* Initialize Truss arrays */
 
-            for (i=0;
-                    i<truss_qty;
-                    i++)
+            for (i = 0; i < truss_qty; i++)
             {
                 p_md->hide_truss_elem[i]     = '\0';
                 p_md->disable_truss_elem[i]  = '\0';
@@ -1451,9 +1501,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                                                  "Particle-based element result exclution" );
             /* Initialize Particle arrays */
 
-            for (i=0;
-                    i<particle_qty;
-                    i++)
+            for (i = 0; i < particle_qty; i++)
             {
                 p_md->hide_particle_elem[i]     = '\0';
                 p_md->disable_particle_elem[i]  = '\0';
@@ -1466,9 +1514,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         p_md->by_class_select = NEW_N( Class_Select, elem_class_qty,
                                        "Class selection data" );
 
-        for ( i=0;
-                i<class_qty;
-                i++ )
+        for ( i = 0; i < class_qty; i++ )
         {
             sclass = class_array[i]->superclass;
             if ( IS_ELEMENT_SCLASS( sclass ) )
@@ -1479,9 +1525,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             if ( class_index>=elem_class_qty )
                 break;
         }
-        for ( i=0;
-                i< p_md->qty_class_selections;
-                i++ )
+        for ( i = 0; i < p_md->qty_class_selections; i++ )
         {
             int num_elems = p_md->by_class_select[i].p_class->qty;
             p_md->by_class_select[i].hide_class = NEW_N( unsigned char, cur_mesh_mat_qty,
@@ -1491,9 +1535,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             p_md->by_class_select[i].exclude_class = NEW_N( unsigned char, cur_mesh_mat_qty,
                     "Class-based result exclusion" );
 
-            for (j=0;
-                    j<cur_mesh_mat_qty;
-                    j++)
+            for (j = 0; j < cur_mesh_mat_qty; j++)
             {
                 p_md->by_class_select[i].hide_class[j]     = '\0';
                 p_md->by_class_select[i].disable_class[j]  = '\0';
@@ -1510,9 +1552,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
             /* Initialize class arrays */
 
-            for (j=0;
-                    j<num_elems;
-                    j++)
+            for (j = 0; j < num_elems; j++)
             {
                 p_md->by_class_select[i].hide_class_elem[j]     = '\0';
                 p_md->by_class_select[i].disable_class_elem[j]  = '\0';
@@ -1523,14 +1563,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         num_nodes = p_md->node_geom->qty;
 
         /* Allocate space for NODE disable array */
-
-        p_md->disable_nodes = NEW_N( short, p_md->node_geom->qty,
-                                     "Node result exclusion" );
+        p_md->disable_nodes = NEW_N( short, p_md->node_geom->qty, "Node result exclusion" );
 
         /* Initialize Node array */
-        for (i=0;
-                i<p_md->node_geom->qty;
-                i++)
+        for (i = 0; i < p_md->node_geom->qty; i++)
         {
             p_md->disable_nodes[i] = FALSE;
         }
@@ -1539,9 +1575,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         /* Initialize per-material arrays */
 
-        for (i=0;
-                i<cur_mesh_mat_qty;
-                i++)
+        for (i = 0; i < cur_mesh_mat_qty; i++)
         {
             if ( p_md->brick_qty>0)
             {
@@ -1580,13 +1614,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         }
 
         for ( i = 0; i < 3; i++ )
-            p_md->mtl_trans[i] = NEW_N( float, cur_mesh_mat_qty,
-                                        "Material translations" );
+            p_md->mtl_trans[i] = NEW_N( float, cur_mesh_mat_qty, "Material translations" );
         p_md->material_qty = cur_mesh_mat_qty;
 
 
-        analy->free_nodes_mats = NEW_N( int, cur_mesh_mat_qty,
-                                        "Free Node material list" );
+        analy->free_nodes_mats = NEW_N( int, cur_mesh_mat_qty, "Free Node material list" );
         memset( analy->free_nodes_mats, 0, cur_mesh_mat_qty );
         analy->free_nodes_scale_factor      = 2.0;
         analy->free_nodes_sphere_res_factor = 4;
@@ -1850,7 +1882,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     	analy->banned_names = malloc(100 * sizeof(char*));
     	analy->num_banned_names = 0;
     	//predefined names
-    	char *tempnames[16] = {"vis","invis","enable","disable","include","exclude","hilite","select","mat","all","amb","diff","spec","spotdir","spot","exp"};
+    	char *tempnames[16] = {"vis","invis","enable","disable","include","exclude","hilite",
+                               "select","mat","all","amb","diff","spec","spotdir","spot","exp"};
     	int tempcount = 16;
     	int tmppos = 0;
     	for(tmppos = 0; tmppos < tempcount; tmppos++){
@@ -1901,7 +1934,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			char *test2;
 			test = malloc(label_length * sizeof(char));
 			test2 = malloc(label_length * sizeof(char));
-			status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
+            status = analy->ti_read_string( analy->db_ident, teststr, (void*) test );
 			char *str;
 			char *str2;
 			str = malloc(10 * sizeof(char));
@@ -2004,20 +2037,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     	int tmppos2 = 0;
     	for(tmppos2 = 0; tmppos2 < tempcount2; tmppos2++){
     		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
-    		strcpy(analy->banned_names[analy->num_banned_names],tempnames2[tmppos2]);
+    		strcpy(analy->banned_names[analy->num_banned_names], tempnames2[tmppos2]);
     		analy->num_banned_names++;
     	}
-
-    	//class names
-//        int  qty_classes=0;
-//        char *class_names[2000];
-//        int  superclasses[2000];
-//    	status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
-//    	for(tmppos = 0; tmppos < qty_classes; tmppos++){
-//    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
-//    		strcpy(analy->banned_names[analy->num_banned_names],class_names[tmppos]);
-//    		analy->num_banned_names++;
-//    	}
 
 		Hash_table *forNames;
 		Hash_table *revNames;
@@ -2040,16 +2062,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		char temp[label_length];
 		char message[120];
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
-			//check if name exists
-			//teststr[0] = '\0';
-			int num_items_read = 0;
-			int status = 0;
-			//sprintf(teststr,"MAT_NAME_%d",pos2+1);
 			char *test;
 			char *test2;
 			test = malloc(label_length * sizeof(char));
 			test2 = malloc(label_length * sizeof(char));
-			//status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
 			char *str;
 			char *str2;
 			str = malloc(10 * sizeof(char));
@@ -2253,8 +2269,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
 
     /* Get the metadata from the A file */
-    mc_get_metadata( analy->db_ident,  analy->mili_version,   analy->mili_host,
-                     analy->mili_arch, analy->mili_timestamp, analy->xmilics_version );
+    if ( analy->parallel_read ){
+        mili_reader_get_metadata( analy );
+    }
+    else{
+        mc_get_metadata( analy->db_ident,  analy->mili_version,   analy->mili_host,
+                         analy->mili_arch, analy->mili_timestamp, analy->xmilics_version );
+    }
 
     if ( env.model_history_logging )
     {
@@ -2296,6 +2317,27 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 }
 
 
+/************************************************************
+ * TAG( get_particles_on_flag )
+ *
+ * Query Mili database for "particles_on" flag.
+ */
+int get_particles_on_flag( Analysis *analy, int *particles_on )
+{
+    int stat;
+
+    if( analy->parallel_read ){
+        double result;
+        stat = mili_reader_get_double( analy->py_MiliParameters, "particles_on", &result );
+        if (stat == OK )
+            *particles_on = (int) result;
+    }
+    else{
+        stat = mc_read_scalar(analy->db_ident, "particles_on", particles_on);
+    }
+
+    return stat;
+}
 
 /************************************************************
  * TAG( close_analysis )
@@ -2427,7 +2469,7 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
         system(comment);
     }
 
-    if ( !is_known_db( fname, &db_type ) )
+    if ( !is_known_db( fname, &db_type, analy->parallel_read ) )
     {
         popup_dialog( INFO_POPUP, "Unable to open file %s", fname );
         return FALSE;

@@ -1626,15 +1626,7 @@ parse_single_command( char *buf, Analysis *analy )
 				analy->extreme_result = FALSE;
 			float st_time;
 			int st = analy->state_p->state_no+1;
-			rval = mc_query_family( analy->db_ident, STATE_TIME,
-								   (void *) &st, NULL,
-								(void *) &st_time );
-			if ( rval != 0 )
-			{
-				mc_print_error( "parse_single_command() call "
-								"mc_query_family( STATE_TIME )", rval );
-				return;
-			}
+			st_time = analy->state_times[st-1];
 			if(st_time != analy->state_p->time)
 			{
 			   change_time( analy->state_p->time, analy);
@@ -1830,9 +1822,11 @@ parse_single_command( char *buf, Analysis *analy )
 		{
             // There is no reason to load_analysis.  
             // Really just need to get the current states.
-            rval = mc_reload_states( analy->db_ident);
-            
-            redraw = BINDING_MESH_VISUAL;
+            rval = analy->db_reload_states( analy->db_ident);
+			if( rval == OK ){
+				analy->db_load_state_data( analy );
+				redraw = BINDING_MESH_VISUAL;
+			}
 		}
 		else if ( strcmp( tokens[0], "bufqty" ) == 0 )
 		{
@@ -6217,24 +6211,13 @@ parse_single_command( char *buf, Analysis *analy )
 			if ( token_cnt > 1 )
 				sscanf( tokens[1], "%f", &vec[0] );
 			else
-			{
-				ival = 1;
-				analy->db_query( analy->db_ident, QRY_STATE_TIME, &ival, NULL,
-								 &val );
-				vec[0] = val;
-			}
+				vec[0] = analy->state_times[0];
 
 			/* End time. */
 			if ( token_cnt > 2 )
 				sscanf( tokens[2], "%f", &vec[1] );
 			else
-			{
-				max_state = get_max_state( analy );
-				ival = max_state + 1;
-				analy->db_query( analy->db_ident, QRY_STATE_TIME, &ival, NULL,
-								 &val );
-				vec[1] = val;
-			}
+				vec[1] = analy->state_times[analy->state_count-1];
 
 			/* Time step size. */
 			if ( token_cnt > 3 )
@@ -6264,16 +6247,12 @@ parse_single_command( char *buf, Analysis *analy )
 					if ( ival < 1 || ival > max_state + 1 )
 						valid_command = FALSE;
 					else
-						analy->db_query( analy->db_ident, QRY_STATE_TIME, &ival,
-										 NULL, (void *) &vec[0] );
+						vec[0] = analy->state_times[ival-1];
 					break;
 				case 't':
 					val = atof( tokens[2] );
-					i_args[0] = 2;
-					i_args[1] = 1;
-					i_args[2] = max_state + 1;
-					analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES,
-									 (void *) i_args, NULL, (void *) pt );
+					pt[0] = analy->state_times[0];
+					pt[1] = analy->state_times[max_state];
 					if ( val < pt[0] || val > pt[1] )
 						valid_command = FALSE;
 					else
@@ -6391,9 +6370,7 @@ parse_single_command( char *buf, Analysis *analy )
 					sscanf( tokens[1], "%d", &ival );
 					ival--;
 					analy->limit_max_state = TRUE;
-					analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-									 &j );
-					j--;
+					j = analy->state_count - 1;
 					analy->max_state = MIN( ival, j );
 
 					if ( analy->cur_state > analy->max_state )
@@ -6546,9 +6523,7 @@ parse_single_command( char *buf, Analysis *analy )
 			}
 			else if ( strcmp( tokens[0], "p" ) == 0 )
 			{
-				ival = analy->cur_state + 1;
-				analy->db_query( analy->db_ident, QRY_STATE_TIME, &ival, NULL,
-								 &val );
+				val = analy->state_times[analy->cur_state];
 				if ( analy->state_p->time <= val )
 					if ( analy->cur_state > min_state )
 						analy->cur_state -= 1;
@@ -6568,11 +6543,9 @@ parse_single_command( char *buf, Analysis *analy )
 			if ( token_cnt == 2 )
 			{
 				max_state = get_max_state( analy );
-				i_args[0] = 2;
-				i_args[1] = GET_MIN_STATE( analy ) + 1;
-				i_args[2] = max_state + 1;
-				analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES,
-								 (void *) i_args, NULL, (void *) pt );
+				min_state = GET_MIN_STATE( analy );
+				pt[0] = analy->state_times[min_state];
+				pt[1] = analy->state_times[max_state];
 				sscanf( tokens[1], "%f", &val );
 				if ( val <= pt[0] )
 				{
@@ -7233,20 +7206,12 @@ parse_single_command( char *buf, Analysis *analy )
 
 	#ifdef TMAX
 			int i=0;
-			int state_num=1, qty_states=1;
-			Int_2tuple st_nums;
-			float *times;
-			st_nums[0] = 1;
-			st_nums[1] = analy->last_state + 1;
-			qty_states = st_nums[1] - st_nums[0] + 1;
-			times = NEW_N( float, qty_states, "Time series time array" );
-			analy->db_query( analy->db_ident, QRY_SERIES_TIMES, (void *) st_nums, NULL,
-							 (void *) times );
-			for( i=0;
-					i<qty_states;
-					i++ )
+			int state_num=1;
+			float time;
+			for( i = 0; i < analy->last_state; i++ )
 			{
-				if ( analy->time_mm[1]== times[i] )
+				time = analy->state_times[i];
+				if ( analy->time_mm[1] == time )
 				{
 					char cmd[64];
 					state_num = i+1;
@@ -11556,7 +11521,12 @@ int select_integration_pts(char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
     if(token_cnt > 2)
     {
         char target[20];
-        char *start = "IntLabel_es_";
+        char *start;
+		if( analy->parallel_read )
+			start = "es_";
+		else
+			start = "IntLabel_es_";
+
         for(i=2; i<token_cnt;i++)
         {
             parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);

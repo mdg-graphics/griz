@@ -130,15 +130,11 @@ tell_info( Analysis *analy )
 {
     int max_state;
     float pt[3];
-    int i_args[4];
 
     max_state = get_max_state( analy );
-    i_args[0] = 3;
-    i_args[1] = 1;
-    i_args[2] = analy->cur_state + 1;
-    i_args[3] = max_state + 1;
-    analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args,
-                     NULL, (void *) pt );
+    pt[0] = analy->state_times[0];
+    pt[1] = analy->state_times[analy->cur_state];
+    pt[2] = analy->state_times[max_state];
 
     wrt_text( "Database information:\n" );
     wrt_text( "    Path/name: %s\n    States: %d\n",
@@ -228,21 +224,19 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
 
     qty = max_state - min_state + 1;
     f_args = NEW_N( float, qty, "Times query data array" );
-    i_data = NEW_N( int, qty + 1, "Times query states array" );
-    i_data[0] = qty;
-    for ( i = 1; i <= qty; i++ )
-        i_data[i] = i + min_state;
-    analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_data,
-                     NULL, (void *) f_args );
+    i_data = NEW_N( int, qty, "Times query states array" );
+    for ( i = 0; i < qty; i++ ){
+        i_data[i] = i + min_state + 1;
+        f_args[i] = analy->state_times[min_state+i];
+    }
     wrt_text( "Database state times:\n" );
     wrt_text( "    State Num \t State Time \t Delta Time\n" );
     wrt_text( "    --------- \t ---------- \t ----------\n" );
-    wrt_text( "       %3d \t %.4e\n", i_data[1], f_args[0] );
+    wrt_text( "       %3d \t %.4e\n", i_data[0], f_args[0] );
     for (  i = 1; i < qty; i++ )
     {
         val = f_args[i] - f_args[i-1];
-        wrt_text( "       %3d \t %.4e \t %.4e\n", i_data[i + 1], f_args[i],
-                  val );
+        wrt_text( "       %3d \t %.4e \t %.4e\n", i_data[i], f_args[i], val );
     }
     wrt_text( "\n" );
     free( f_args );

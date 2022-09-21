@@ -272,6 +272,20 @@ typedef struct _edge_list_obj
 } Edge_list_obj;
 
 
+/*****************************************************************
+ * TAG( ProcessorToGlobalMap )
+ *
+ * Maps processor node and element ids to global ids.
+ * Only used when using Python Mili reader parallel read.
+ */
+typedef struct _ProcessorToGlobalMap{
+    int ** node_map;
+    int * node_count;
+    int *** elem_map;
+    int ** elem_count;
+} ProcessorToGlobalMap;
+
+
 typedef struct _mesh_data
 {
     Hash_table *class_table;                /* Hash table to store classes */
@@ -503,6 +517,9 @@ typedef struct _mesh_data
     int           num_elem_classes;
     MO_class_data **p_elem_classes;
     float *hex_vol_sums;
+
+    /* Used for python parallel read */
+    ProcessorToGlobalMap * index_map;
 } Mesh_data;
 
 

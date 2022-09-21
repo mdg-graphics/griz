@@ -470,6 +470,40 @@ manage_timer( int timer, int end_flag )
 
 
 /*****************************************************************
+ * TAG( get_state_at_time )
+ *
+ */
+int
+get_state_at_time( Analysis *analy, float time, int * state_nums )
+{
+    int i = 0;
+
+    while( i < analy->state_count && time >= analy->state_times[i] ){
+        i++;
+    }
+
+    if( i == 0 ){
+        return NOT_OK;
+    }
+    else if( i < analy->state_count ){
+        /* time is somewhere in the middle */
+        state_nums[0] = i;
+        state_nums[1] = i + 1;
+    }
+    else if(time == analy->state_times[i]){
+        /* time matches last state */
+        state_nums[0] = i - 1;
+        state_nums[1] = i;
+    }
+    else{
+        return NOT_OK;
+    }
+
+    return OK;
+}
+
+
+/*****************************************************************
  * TAG( griz_str_dup )
  *
  * Duplicate a string with space allocation. Return length of
@@ -1086,25 +1120,13 @@ int
 get_max_state( Analysis *analy )
 {
     int qty_states;
-    int rval;
 
-    rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-                            &qty_states );
-
+    qty_states = analy->state_count;
     if ( qty_states <= 0 )
         return 0;
 
-    /*
-     * Since this func returns the desired information and not status,
-     * pop a diagnostic if there's an error.
-     */
-    if ( rval != OK )
-        popup_dialog( WARNING_POPUP,
-                      "get_max_state() - unable to query QRY_QTY_STATES!" );
-
     if ( analy->limit_max_state )
-        return ( qty_states - 1 >= analy->max_state ) ? analy->max_state
-               : qty_states - 1;
+        return ( qty_states - 1 >= analy->max_state ) ? analy->max_state : qty_states - 1;
     else
         return qty_states - 1;
 }
@@ -1989,13 +2011,8 @@ void fr_state2( State2 *p_state, Analysis *analy )
 
         if ( p_state->sand_present )
         {
-            rval = analy->db_query( analy->db_ident, QRY_SREC_MESH,
-                                    (void *) &p_state->srec_id, NULL,
-                                    (void *) &mesh_id );
-            /* Error status not propagated up; pop a diagnostic. */
-            if ( rval != OK )
-                popup_dialog( WARNING_POPUP,
-                              "fr_state2() - unable to query QRY_SREC_MESH!" );
+            /* Look up mesh id for state record */
+            mesh_id = analy->srec_tree[p_state->srec_id].mesh_id;
 
             eclass_qty = analy->mesh_table[mesh_id].elem_class_qty;
 
@@ -2050,12 +2067,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
             /* Init arguments needed for load_nodpos(). */
 
             /* Get the state rec format of the requested state. */
-            rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
-                                    (void *) &first_state, NULL,
-                                    (void *) &srec_id );
-            if ( rval != 0 )
-                return;
-
+            srec_id = analy->state_srec_fmt_ids[first_state-1];
             p_sro = analy->srec_tree + srec_id;
             mesh_id = p_sro->subrecs[0].p_object_class->mesh_id;
             p_md = analy->mesh_table + mesh_id;
@@ -2066,8 +2078,15 @@ set_ref_state( Analysis *analy, int new_ref_state )
                                  "Tmp DP node cache" );
             }
 
-            load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
-                         FALSE, (void *) analy->cur_ref_state_dataDp );
+            if( !analy->parallel_read ){
+                load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
+                            FALSE, (void *) analy->cur_ref_state_dataDp );
+            }
+            #ifdef MILI_READER_SUPPORT
+            else{
+                combine_nodpos( analy, 1, (void*) analy->cur_ref_state_dataDp);
+            }
+            #endif
 
         }
     }
@@ -2097,11 +2116,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
         }
 
         /* Get the state rec format of the requested state. */
-        rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
-                                (void *) &new_ref_state, NULL,
-                                (void *) &srec_id );
-        if ( rval != 0 )
-            return;
+        srec_id = analy->state_srec_fmt_ids[new_ref_state];
 
         /* Init arguments needed for load_nodpos(). */
         p_sro = analy->srec_tree + srec_id;
@@ -2118,8 +2133,15 @@ set_ref_state( Analysis *analy, int new_ref_state )
 
         /* Go get it... */
         analy->reference_state = new_ref_state;
-        load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                     TRUE, analy->cur_ref_state_data );
+        if( !analy->parallel_read ){
+            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+                        TRUE, analy->cur_ref_state_data );
+        }
+        #ifdef MILI_READER_SUPPORT
+        else{
+            combine_nodpos( analy, new_ref_state, (void*) analy->cur_ref_state_data );
+        }
+        #endif
 
         /* Assign the reference pointer to the data that was just read in. */
 
@@ -2131,9 +2153,15 @@ set_ref_state( Analysis *analy, int new_ref_state )
                                  "Tmp DP node cache" );
             }
 
-            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                         FALSE, analy->cur_ref_state_dataDp );
-
+            if( !analy->parallel_read ){
+                load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+                            FALSE, analy->cur_ref_state_dataDp );
+            }
+            #ifdef MILI_READER_SUPPORT
+            else{
+                combine_nodpos( analy, new_ref_state, (void*) analy->cur_ref_state_dataDp );
+            }
+            #endif
         }
 
     }

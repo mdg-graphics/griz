@@ -262,7 +262,8 @@ compute_hex_es_stress( Analysis *analy, float *resultArr, Bool_type interpolate 
             primal_result = (Primal_result*) p_hte->data;
             es_name = get_es_name(primal_result, subrec);
             ipt_index = p_subrec->element_set->current_index + 1;
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, idx, FALSE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, idx,
+                                                                analy->parallel_read, FALSE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) result_buf );
 
@@ -300,7 +301,8 @@ compute_hex_es_stress( Analysis *analy, float *resultArr, Bool_type interpolate 
             es_name = get_es_name(primal_result, subrec);
             ipt_index = p_subrec->element_set->current_index + 1;
             for( i = 0; i < 6; i ++ ){
-                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
+                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                    analy->parallel_read, FALSE);
                 es_primals[1] = NULL;
                 analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) sigma[i] );
             }
@@ -1056,7 +1058,8 @@ char* get_es_name(Primal_result* primal_result, int subrec){
  * in an element set / vector array.
  *
 *************************************************************/
-char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_vector_array_format, int component, Bool_type strain){
+char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_vector_array_format, int component,
+                                          Bool_type parallel_read, Bool_type strain){
     char* es_primal;
     char ipt_str[5];
     const char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
@@ -1064,29 +1067,37 @@ char* build_es_stress_strain_query_string(char* es_name, int ipt, Bool_type new_
 
     es_primal = NEW_N(char, 64, "Stress/Strain component query string");
 
-    strcpy(es_primal, es_name);
-    strcat(es_primal, "[");
-    sprintf(ipt_str, "%d", ipt);
-    strcat(es_primal, ipt_str);
-    strcat(es_primal, ",");
-    if(new_vector_array_format){
-        if(strain){
-            strcat(es_primal, "strain[");
-            strcat(es_primal, strain_components[component] );
-        }
-        else{
-            strcat(es_primal, "stress[");
-            strcat(es_primal, stress_components[component] );
-        }
-        strcat(es_primal, "]]");
+    if( parallel_read ){
+        if(strain)
+            strcpy( es_primal, strain_components[component] );
+        else
+            strcpy( es_primal, stress_components[component] );
     }
     else{
-        //stress/strain componenet name here
-        if(strain)
-            strcat(es_primal, strain_components[component] );
-        else
-            strcat(es_primal, stress_components[component] );
-        strcat(es_primal, "]");
+        strcpy(es_primal, es_name);
+        strcat(es_primal, "[");
+        sprintf(ipt_str, "%d", ipt);
+        strcat(es_primal, ipt_str);
+        strcat(es_primal, ",");
+        if(new_vector_array_format){
+            if(strain){
+                strcat(es_primal, "strain[");
+                strcat(es_primal, strain_components[component] );
+            }
+            else{
+                strcat(es_primal, "stress[");
+                strcat(es_primal, stress_components[component] );
+            }
+            strcat(es_primal, "]]");
+        }
+        else{
+            //stress/strain componenet name here
+            if(strain)
+                strcat(es_primal, strain_components[component] );
+            else
+                strcat(es_primal, stress_components[component] );
+            strcat(es_primal, "]");
+        }
     }
 
     return es_primal;
@@ -1152,7 +1163,8 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 3; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, FALSE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
         }
@@ -1160,7 +1172,7 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
 
     /* all three result buffers should now be populated with the raw data needed to calculate pressure
      * compute pressure */
-    if(object_ids)
+    if( object_ids )
     {
         for(i = 0; i < obj_qty; i++)
         {
@@ -1380,7 +1392,8 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, FALSE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
         }
@@ -1629,7 +1642,8 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
         // Gather all the stress components.
         ipt_index = p_subrec->element_set->current_index + 1;
         for( i = 0; i < 6; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i, FALSE);
+            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                analy->parallel_read, FALSE);
             es_primals[1] = NULL;
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
         }

@@ -91,7 +91,7 @@ change_state( Analysis *analy )
     analy->db_get_state( analy, analy->cur_state, analy->state_p,
                          &analy->state_p, &st_qty );
 
-    if ( st_qty==0 )
+    if ( st_qty == 0 )
     {
         if ( warn_state )
         {
@@ -106,8 +106,7 @@ change_state( Analysis *analy )
 
     /* Update current mesh ident. */
     srec_id = analy->state_p->srec_id;
-    analy->cur_mesh_id =
-        analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
+    analy->cur_mesh_id = analy->srec_tree[srec_id].mesh_id;
 
     wrt_text( "State %d out of %d states.\n\n", analy->cur_state + 1, st_qty );
 
@@ -158,7 +157,7 @@ change_time( float time, Analysis *analy )
     float *result_a, *result_b;
     float t_a, t_b, interp, ninterp;
     Bool_type recompute_norms;
-    int st_num_a, st_num_b, st_num;
+    int st_num_a, st_num_b;
     int st_nums[2];
     int i;
     int st_qty;
@@ -193,14 +192,7 @@ change_time( float time, Analysis *analy )
      */
 
     st_nums[0] = st_nums[1] = -1;
-    analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &time,
-                     NULL, (void *) st_nums );
-
-    /*
-     * Note output of QRY_STATE_OF_TIME query above (in st_nums[]) is on
-     * [1, qty_states], but request to analy->db_get_state is on
-     * [0, qty_states - 1].
-     */
+    get_state_at_time( analy, time, st_nums );
 
     st_num_b = ( st_nums[1] > 1 ) ? st_nums[1] - 1 : 1;
     st_num_a = st_num_b - 1;
@@ -236,11 +228,8 @@ change_time( float time, Analysis *analy )
 
 
     /* OK to interpolate results if state rec formats are the same. */
-    st_num = st_num_a + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num, NULL, &srec_id_a );
-
-    st_num = st_num_b + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num, NULL, &srec_id_b );
+    srec_id_a = analy->state_srec_fmt_ids[st_num_a];
+    srec_id_b = analy->state_srec_fmt_ids[st_num_b];
 
     can_interp = ( srec_id_a == srec_id_b );
     interp_result = ( analy->cur_result != NULL && can_interp );
@@ -254,8 +243,7 @@ change_time( float time, Analysis *analy )
         warn_once = FALSE;
     }
 
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id_a, NULL, (void *) &mesh_id );
-
+    mesh_id = analy->srec_tree[srec_id_a].mesh_id;
     node_qty = analy->mesh_table[mesh_id].node_geom->qty;
     
     
@@ -487,13 +475,8 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
     {
         anim_info.interpolate = TRUE;
 
-        i_args[0] = 2;
-        i_args[1] = min_state + 1;
-        i_args[2] = max_state + 1;
-        analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args,
-                         NULL, (void *) time_bounds );
-
-        /* sscanf( tokens[1], "%d", &anim_info.num_frames ); */
+        time_bounds[0] = analy->state_times[min_state];
+        time_bounds[1] = analy->state_times[max_state];
 
         if ( token_cnt == 2 && strcmp(tokens[0], "animd") != 0)
         {
@@ -669,8 +652,7 @@ step_animate( Analysis *analy )
         if ( t > anim_info.state_b->time )
         {
             j = anim_info.st_num_b + 2;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &j, NULL,
-                             (void *) &next_t );
+            next_t = analy->state_times[j-1];
 
             if ( t <= next_t )
             {
@@ -699,8 +681,7 @@ step_animate( Analysis *analy )
             }
             else
             {
-                rval = analy->db_query( analy->db_ident, QRY_STATE_OF_TIME,
-                                        (void *) &t, NULL, (void *) st_bounds );
+                rval = get_state_at_time( analy, t, st_bounds );
                 if ( rval != 0
                         || st_bounds[1] - 1 > get_max_state( analy ) )
                 {

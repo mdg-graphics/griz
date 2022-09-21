@@ -1,38 +1,49 @@
-#define PARALLEL_READER_SUPPORT
-#ifdef PARALLEL_READER_SUPPORT
-
 #ifndef PARALLEL_READ_H
 #define PARALLEL_READ_H
 
-#include "misc.h"
-#include "viewer.h"
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
-#define ZERO_PROCESSOR 0
+#define OK 0
+#define NOT_OK 1
 
 /* Python program name */
 const char* PROGRAM_NAME = "Griz-mili-python-reader";
 
-const char* MILI_READER_MODULE_NAME = "mili.reader";
+/* Default paths to Mili reader src and site-packages. */
+const char * DEFAULT_SRC_PATH = "/g/g16/rhathaw/all_codes/mili-python/src/";
+const char * DEFAULT_VENV_BIN = "/g/g16/rhathaw/all_codes/mili-python/embedded_python_c/lib/python3.7/site-packages/";
 
-/* Mili Reader function names as constants */
-const char* OPEN_DATABASE = "open_database";
-const char* PARAMETER_GETTER = "get_parameter"; // NOTE: May not need. Definitely need to clean up
+/* Module to import for parallel read features */
+const char* MILI_READER_MODULE_NAME = "mili.grizinterface";
+
+/* Mili Reader GrizInterface function names as constants */
+const char* OPEN_DATABASE = "open_griz_interface";
+const char* PARAMETER_GETTER = "parameters";
+const char* PARAM_WILDCARD_SEARCH = "parameter_wildcard_search";
+const char* STATE_MAPS_GETTER = "state_maps";
 const char* QUERY_FUNCTION = "query";
+const char* QUERY_ALL_CLASSES = "query_all_classes";
+const char* RELOAD_FUNCTION = "reload";
+const char* FREE_NODE_DATA = "free_node_data";
 
 /* Griz Struct function calls */
 const char* GET_GEOM_CALL = "griz_get_geom_call";
 const char* GET_ST_DESCRIPTORS_CALL = "griz_get_st_descriptors_call";
 const char* GET_STATE_CALL = "griz_get_state_call";
-const char* STATE_QTY = "state_qty";
 
 const int QTY_CONNECTS[] = { 0, 0, 2, 3, 4, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10 };
 
-const int PROC_COUNT = 8; // FOR NOW...
+/* Error messages */
+const char * MR_FAILED_IMPORT = "\nFailed to import the Mili Reader module.\n";
+const char * MR_DEFAULT_FAILED = "\n%s calling Mili Python (%s) Failed.\n";
 
-/* Global reference to mili reader object */
-PyObject *mili_db = NULL;
-PyObject *mili_reader_module = NULL;
 
+/*****************************************************************
+ * TAG( bin_search_index )
+ *
+ * Binary search to find index of the target element in an array.
+ */
 int bin_search_index(int target, int* array, int size){
     int low = 0;
     int high = size - 1;
@@ -54,16 +65,17 @@ int bin_search_index(int target, int* array, int size){
 
 /* TAG( call_mili_module_function )
  *
- * Given a specified function name and a set of arguments, check that the function
+ * Given a specified function name from the mili module and a set of arguments, check that the function
  * exists in the mili module and call it. Returns the PyObject pointer returned from
- * calling the python function.
+ * calling the python function. If something goes wrong, returns Py_None.
  *
  */
 PyObject*
-call_mili_module_function(const char *function_name, PyObject *py_Arglist){
+call_mili_module_function(PyObject * mili_reader_module, const char *function_name, PyObject *py_Arglist){
     PyObject *py_Dict,
              *py_Func;
     PyObject *py_ReturnValue = Py_None;
+    Py_INCREF(Py_None);
 
     /* Check that mili_reader_module is not NULL */
     if(mili_reader_module != NULL){
@@ -74,18 +86,9 @@ call_mili_module_function(const char *function_name, PyObject *py_Arglist){
             py_Func = PyDict_GetItemString(py_Dict, function_name);
             if(py_Func != NULL && PyCallable_Check(py_Func)){
                 py_ReturnValue = PyObject_CallObject(py_Func, py_Arglist);
-                PyErr_Print();
-            }
-            else{
-                PyErr_Print();
+                Py_DECREF(Py_None);
             }
         }
-        else{
-            PyErr_Print();
-        }
-    }
-    else{
-        fprintf(stderr, "mili_reader_module is NULL\n");
     }
 
     return py_ReturnValue;
@@ -105,17 +108,20 @@ string_to_pyobject(const char *str){
 
 /* TAG( call_mili_reader_function_noargs )
  *
- * TODO: 
+ * Given a specified function name from the GrizInterface that takes no
+ * arguments, call the function and return the result.
  */
 PyObject*
-call_mili_reader_function_noargs(const char * function_name)
+call_mili_reader_function_noargs(PyObject * mili_db, const char * function_name)
 {
     PyObject * py_FuncName = string_to_pyobject( function_name );
+    /* Do Not Remove this: For some reason the above function call causes an error (sometimes),
+     * even though it correctly returns the expected pyobject*. We need to clear the error
+     * Indicator so that the next call does not fail because of it. */
+    PyErr_Clear();
     PyObject * py_Result = PyObject_CallMethodObjArgs( mili_db, py_FuncName, NULL );
-    PyErr_Print();
     return py_Result;
 }
-
 
 
 /* TAG( pyobject_as_string )
@@ -141,8 +147,11 @@ PyObject*
 get_pyobject_attribute( PyObject* object, char* attr )
 {
     PyObject * py_Attribute = Py_None;
-    if( PyObject_HasAttrString(object, attr) )
+    Py_INCREF(Py_None);
+    if( PyObject_HasAttrString(object, attr) ){
         py_Attribute = PyObject_GetAttrString( object, attr );
+        Py_DECREF(Py_None);
+    }
     return py_Attribute;
 }
 
@@ -150,7 +159,6 @@ get_pyobject_attribute( PyObject* object, char* attr )
 /* TAG( get_pyobject_attribute_as_string )
  *
  * Retrieve a specific attribute from a PyObject * as a string.
- * Does no error checking for performance.
  */
 char*
 get_pyobject_attribute_as_string( PyObject* object, const char* attr )
@@ -164,13 +172,11 @@ get_pyobject_attribute_as_string( PyObject* object, const char* attr )
 /* TAG( get_pyobject_attribute_as_int )
  *
  * Retrieve a specific attribute from a PyObject * as an int.
- * Does no error checking for performance.
  */
 int
 get_pyobject_attribute_as_int( PyObject* object, const char* attr )
 {
     PyObject * py_Attribute = PyObject_GetAttrString( object, attr );
-    PyErr_Print();
     int value = PyLong_AsLong(py_Attribute);
     return value;
 }
@@ -178,7 +184,6 @@ get_pyobject_attribute_as_int( PyObject* object, const char* attr )
 /* TAG( get_pyobject_attribute_as_double )
  *
  * Retrieve a specific attribute from a PyObject * as a double.
- * Does no error checking for performance.
  */
 double
 get_pyobject_attribute_as_double( PyObject* object, const char* attr )
@@ -198,9 +203,11 @@ integer_pointer_from_pyobject( PyObject * py_List, int size, int * values )
 {
     int i;
     PyObject * py_LongValue;
+    int value;
     for( i = 0; i < size; i++ ){
         py_LongValue = PySequence_GetItem(py_List, i);
-        *(values+i) = PyLong_AsLong(py_LongValue);
+        value = PyLong_AsLong(py_LongValue);
+        values[i] = value;
     }
 }
 
@@ -214,9 +221,11 @@ float_pointer_from_pyobject( PyObject * py_List, int size, float * values )
 {
     int i;
     PyObject * py_FloatValue;
+    float flt;
     for( i = 0; i < size; i++ ){
         py_FloatValue = PySequence_GetItem(py_List, i);
-        *(values+i) = PyFloat_AsDouble(py_FloatValue);
+        flt = (float) PyFloat_AsDouble(py_FloatValue);
+        values[i] = flt;
     }
 }
 
@@ -226,33 +235,26 @@ float_pointer_from_pyobject( PyObject * py_List, int size, float * values )
  *
  * Query a string parameter from the mili reader.
  */
-Bool_type
-mili_reader_get_string(char *parameter_name, char *str){
-    PyObject * py_FuncName,
-             * py_Arglist;
-    PyObject * py_ParameterName,
-             * py_ParameterStr,
-             * py_Parameter;
-
-    /* Build parameter name and processor arguments */
-    py_ParameterName = Py_BuildValue("s", parameter_name);
-
-    /* Build argument list */
-    py_Arglist = PyTuple_New(2);
-    PyTuple_SetItem( py_Arglist, 0, mili_db );
-    PyTuple_SetItem( py_Arglist, 1, py_ParameterName );
+int
+mili_reader_get_string(PyObject * py_Parameters, char *parameter_name, char *str){
+    char* res;
+    PyObject * py_Parameter;
+    PyObject * py_Name;
 
     /* Lookup parameter in mili and convert to string */
-    py_Parameter = call_mili_module_function( PARAMETER_GETTER, py_Arglist );
-
-    /* Get string representation of parameter */
-    if(py_Parameter != NULL){
-        str = pyobject_as_string( py_Parameter );
-        if ( str == NULL )
-            return FALSE;
+    py_Name = string_to_pyobject(parameter_name);
+    if( PyDict_Contains( py_Parameters, py_Name) ){
+        py_Parameter = PyDict_GetItem( py_Parameters, py_Name );
+        /* Get string representation of parameter */
+        if(py_Parameter != NULL){
+            res = pyobject_as_string( py_Parameter );
+            if ( res == NULL )
+                return NOT_OK;
+        }
     }
-
-    return FALSE;
+    // Copy out the result string
+    strcpy(str, res);
+    return OK;
 }
 
 
@@ -260,117 +262,22 @@ mili_reader_get_string(char *parameter_name, char *str){
  *
  * Query a double parameter from the mili reader.
  */
-Bool_type
-mili_reader_get_double(char *parameter_name, double *result){
-    PyObject * py_FuncName,
-             * py_Arglist;
-    PyObject * py_MiliParameter,
-             * py_ParameterName;
-
-    /* Build parameter name as a python string */
-    py_ParameterName = Py_BuildValue("s", parameter_name);
-
-    /* Build argument list */
-    py_Arglist = PyTuple_New(2);
-    PyTuple_SetItem( py_Arglist, 0, mili_db );
-    PyTuple_SetItem( py_Arglist, 1, py_ParameterName );
-
-    /* Lookup parameter in mili and convert to string */
-    py_MiliParameter = call_mili_module_function( PARAMETER_GETTER, py_Arglist );
-
-    /* Get double representation of parameter */
-    if(py_MiliParameter != NULL){
-        *result = PyFloat_AsDouble(py_MiliParameter);
-        return OK;
-    }
-
-    return NOT_OK;
-}
-
-/* TAG( mili_reader_get_int )
- *
- * Query an integer parameter from the mili reader.
- */
-Bool_type
-mili_reader_get_int(char *parameter_name, int *result){
-    PyObject * py_FuncName,
-             * py_Arglist;
-    PyObject * py_MiliParameter,
-             * py_ParameterName;
-
-    /* Build parameter name as a python string */
-    py_ParameterName = Py_BuildValue("s", parameter_name);
-
-    /* Build argument list */
-    py_Arglist = PyTuple_New(2);
-    PyTuple_SetItem( py_Arglist, 0, mili_db );
-    PyTuple_SetItem( py_Arglist, 1, py_ParameterName );
-
-    /* Lookup parameter in mili and convert to string */
-    py_MiliParameter = call_mili_module_function( PARAMETER_GETTER, py_Arglist );
-
-    /* Get double representation of parameter */
-    if(py_MiliParameter != NULL){
-        *result = PyLong_AsLong(py_MiliParameter);
-        return OK;
-    }
-
-    return NOT_OK;
-}
-
-
-/* TAG( mili_reader_db_open )
- *
- * Open the specified plot files with the mili reader and set mili_db to reference the newly created
- * python reader object.
- */
 int
-mili_reader_db_open( char *path_root, int *p_dbid );
-
-
-/* TAG( mili_reader_get_results )
- *
- * Query the Mili reader for some results
- */
-Bool_type
-mili_reader_get_results( int dbid, int state, int subrec_id, int qty,
-                         char **results, void *data );
-
-
-/* TAG( mili_reader_get_geom )
- *
- * Load in the geometry (mesh definition) data from the mili reader
- */
-Bool_type
-mili_reader_get_geom( Analysis * analy, int dbid, Mesh_data **p_mtable, int *p_mesh_qty );
-
-
-/* TAG( compute_label_blocking_data )
- *
- * For a given set of labels, compute the blocking data and return block_qty.
- */
-int *
-compute_label_blocking_data(int * labels, int qty, int * num_blocks);
-
-
-/* TAG( mili_reader_get_st_descriptors )
- *
- * Query mili reader and store information about the available
- * state record formats and referenced state variables.
- */
-Bool_type
-mili_reader_get_st_descriptors( Analysis *analy, int dbid );
-
-
-/* TAG( mili_reader_get_state )
- *
- * Move to a particular state in the Mili database and update
- * nodal positions for the mesh.
- */
-Bool_type
-mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_new_st, int *state_qty );
-
-
-#endif
+mili_reader_get_double(PyObject * py_Parameters, char *parameter_name, double *result){
+    PyObject * py_MiliParameter;
+    PyObject * py_Name;
+    /* Lookup parameter in mili and convert to double */
+    py_Name = string_to_pyobject(parameter_name);
+    if( PyDict_Contains( py_Parameters, py_Name) ){
+        py_MiliParameter = PyDict_GetItem( py_Parameters, py_Name );
+        /* Get double representation of parameter */
+        if(py_MiliParameter != NULL){
+            double value = PyFloat_AsDouble(py_MiliParameter);
+            *result = value;
+            return OK;
+        }
+    }
+    return NOT_OK;
+}
 
 #endif

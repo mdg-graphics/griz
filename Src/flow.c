@@ -1578,8 +1578,7 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
     node_cnt = MESH( analy ).node_geom->qty;
 
     /* Find the states which sandwich the desired time. */
-    rval = analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &time,
-                            NULL, (void *) bound_states );
+    rval = get_state_at_time( analy, time, bound_states );
     if ( rval != OK )
     {
         popup_dialog( WARNING_POPUP,
@@ -1587,11 +1586,10 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
         return;
     }
     state1 = bound_states[1];
-    analy->db_query( analy->db_ident, QRY_STATE_TIME, bound_states + 1, NULL,
-                     (void *) &t1 );
+    t1 = analy->state_times[state1-1];
+
     state2 = bound_states[0];
-    analy->db_query( analy->db_ident, QRY_STATE_TIME, bound_states, NULL,
-                     (void *) &t2 );
+    t2 = analy->state_times[state2-1];
 
     interp = (time-t1) / (t2-t1);
 
@@ -1603,12 +1601,10 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
 
     have_primal = FALSE;
 
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state1, NULL,
-                     (void *) &srec_id1 );
+    srec_id1 = analy->state_srec_fmt_ids[state1-1];
     subrec1 = analy->srec_tree[srec_id1].node_vel_subrec;
 
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state2, NULL,
-                     (void *) &srec_id2 );
+    srec_id2 = analy->state_srec_fmt_ids[state2-1];
     subrec2 = analy->srec_tree[srec_id2].node_vel_subrec;
 
     if ( subrec1 != -1 && subrec2 != -1 )
@@ -1739,14 +1735,15 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
     dims = analy->dimension;
 
     /* Bounds check on start time. */
-    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-                     (void *) &qty_states );
-    state = 1;
-    analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &state, NULL,
-                     (void *) &beg_t );
-    state = qty_states;
-    analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &state, NULL,
-                     (void *) &end_t );
+    qty_states = analy->state_count;
+
+    /* First state time */
+    beg_t = analy->state_times[0];
+
+    /* Last state time */
+    end_t = analy->state_times[qty_states-1];
+
+    /* Bound */
     t_zero = BOUND( beg_t, t_zero, end_t );
 
     /* Initialize particles. */
@@ -1764,8 +1761,7 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
     /* Move to the start state; this is to take care of other display stuff.
      * Ie vectors, isosurfs, & etc should get updated during the animation.
      */
-    analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &t_zero, NULL,
-                     (void *) bound_states );
+    get_state_at_time( analy, t_zero, bound_states );
     analy->cur_state = bound_states[0] - 1;
     change_state( analy );
 
@@ -1915,8 +1911,7 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
     else
     {
         /* Move to the last state. */
-        analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &t,
-                         NULL, (void *) bound_states );
+        get_state_at_time( analy, t, bound_states );
         state = bound_states[1] - 1;
 
         if ( state != analy->cur_state )
@@ -1925,9 +1920,7 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
             change_state( analy );
         }
         else
-            analy->db_query( analy->db_ident, QRY_STATE_TIME,
-                             (void *) (bound_states + 1), NULL,
-                             (void *) &analy->state_p->time );
+            analy->state_p->time = analy->state_times[state];
     }
 }
 

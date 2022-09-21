@@ -2202,10 +2202,10 @@ init_mesh_window( Analysis *analy )
 
         //test code
         int  num_entries = 0;
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
+        num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
         char **wildcard_list = NULL;
         wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
+        num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
         int testi = 0;
         for(testi = 0; testi < num_entries; testi++){
             char* teststr = wildcard_list[testi];
@@ -2214,7 +2214,7 @@ init_mesh_window( Analysis *analy )
             float* testset = NULL;
             testset = (float*)malloc(3*sizeof(float));
             int status = 0;
-            status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
+            status = analy->ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
             int testo = 0;
             for(testo = 0; testo < 3; testo++){
                 float val1 = testset[testo];
@@ -2253,7 +2253,7 @@ init_mesh_window( Analysis *analy )
                 int status = 0;
                 sprintf(teststr,"SetRGB_%d",dummy);
                 GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
-                status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
+                status = analy->ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
                 defaultColor[0][0] = test[0];
                 defaultColor[0][1] = test[1];
                 defaultColor[0][2] = test[2];
@@ -2276,8 +2276,6 @@ init_mesh_window( Analysis *analy )
 
         create_color_prop_arrays( &v_win->surfaces, sum);
         define_color_properties( &v_win->surfaces, NULL, sum, surface_colors, SURFACE_COLOR_CNT);
-        //create_color_prop_arrays( &v_win->surfaces, sum, analy, NULL );
-        //define_color_properties( &v_win->surfaces, NULL, sum, surface_colors, SURFACE_COLOR_CNT, NULL );
     }
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_PARTICLE].qty) > 0 )
@@ -2290,8 +2288,6 @@ init_mesh_window( Analysis *analy )
 
         create_color_prop_arrays( &v_win->particles, sum);
         define_color_properties( &v_win->particles, NULL, sum, particle_colors, PARTICLE_COLOR_CNT);
-        //create_color_prop_arrays( &v_win->particles, sum, analy, NULL );
-        //define_color_properties( &v_win->particles, NULL, sum, particle_colors, PARTICLE_COLOR_CNT, NULL );
     }
     /* Init lighting even if 2D db so a subsequent 3D db load will be OK. */
 
@@ -15851,23 +15847,20 @@ check_for_free_nodes( Analysis *analy )
     p_mesh       = MESH_P( analy );
 
     /* First check to see if we have free nodes */
-
-    status_mass = mili_db_get_param_array(analy->db_ident,     "Nodal Mass", (void *) &free_nodes_mass);
-    status_vol  = mili_db_get_param_array(analy->db_ident,   "Nodal Volume", (void *) &free_nodes_vol);
-
-    if ( status_mass )
-    {
-        if ( free_nodes_mass )
-            free ( free_nodes_mass );
+    if( analy->parallel_read ){
+        status_mass = mili_reader_get_free_node_data( analy, &free_nodes_mass, &free_nodes_vol );
+        status_vol = status_mass;
     }
-    if ( status_vol )
-    {
-        if ( free_nodes_vol )
-            free ( free_nodes_vol );
+    else{
+        status_mass = analy->get_param_array(analy->db_ident,     "Nodal Mass", (void *) &free_nodes_mass);
+        status_vol  = analy->get_param_array(analy->db_ident,   "Nodal Volume", (void *) &free_nodes_vol);
     }
 
-    if ( free_nodes_mass && free_nodes_vol )
+    if ( free_nodes_mass && free_nodes_vol ){
         analy->free_nodes_found = TRUE;
+        analy->free_nodes_mass = free_nodes_mass;
+        analy->free_nodes_vol = free_nodes_vol;
+    }
 
     /* Loop over each element superclass. */
     for ( i = 0; i < QTY_SCLASS; i++ )
@@ -15883,9 +15876,7 @@ check_for_free_nodes( Analysis *analy )
             mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[i].list;
 
             /* Loop over each class. */
-            for ( j = 0;
-                    j < p_lh->qty;
-                    j++ )
+            for ( j = 0; j < p_lh->qty; j++ )
             {
                 p_mo_class = mo_classes[j];
 
@@ -15901,8 +15892,9 @@ check_for_free_nodes( Analysis *analy )
     /* Until we fully test both free-nodes and particle-nodes in
      * same problem do not allow both concurrently.
      */
-    if ( analy->particle_nodes_found )
+    if ( analy->particle_nodes_found ){
         analy->free_nodes_found = FALSE;
+    }
 }
 
 /************************************************************
@@ -16048,23 +16040,17 @@ draw_free_nodes( Analysis *analy )
     /* If mass scaling option is enabled, then look for the nodal masses */
     if (analy->free_nodes_mass_scaling)
     {
-        status = mili_db_get_param_array(analy->db_ident, "Nodal Mass", (void *) &free_nodes_mass);
-        if (status==0)
-        {
-            mass_scaling = TRUE;
-            vol_scaling  = FALSE;
-        }
+        free_nodes_mass = analy->free_nodes_mass;
+        mass_scaling = TRUE;
+        vol_scaling  = FALSE;
     }
 
     /* Read the nodal volumes if volume scaling is enabled */
     if (analy->free_nodes_vol_scaling)
     {
-        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
-        if (status==0)
-        {
-            vol_scaling  = TRUE;
-            mass_scaling = FALSE; /* Vol scaling will override mass scaling */
-        }
+        free_nodes_vol = analy->free_nodes_vol;
+        vol_scaling  = TRUE;
+        mass_scaling = FALSE; /* Vol scaling will override mass scaling */
     }
 
     /* Set up for polygon drawing. */
@@ -16571,8 +16557,6 @@ draw_free_nodes( Analysis *analy )
     free(p_ml_classes);
     free(free_nodes_list);
     free(free_nodes_elem_list);
-    free(free_nodes_mass);
-    free(free_nodes_vol);
     free(part_nodes_list);
     free(part_nodes_result);
 }
@@ -17689,7 +17673,6 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
                 !strncmp( short_name_upper, "SPH", 3 )        ||
                 (!strncmp( short_name_upper, "DBC", 3 ) && superclass != G_QUAD && superclass != G_BEAM ))
             return ( TRUE );
-        return ( FALSE );
     }
 
     for ( i = 0; i < analy->mesh_table->num_particle_classes; i++ )

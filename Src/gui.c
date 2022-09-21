@@ -6639,11 +6639,6 @@ stride_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     stride_mod = (int*) client_data;
 
-    /**/
-    /* May prove too slow.  Could keep analy->num_states field for use in
-     * cases like this, and have it updated by other activities that call
-     * db_query() to get state quantity.
-     */
     max_state = get_max_state( env.curr_analy );
 
     switch ( *stride_mod )
@@ -8443,50 +8438,43 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     sprintf( temp_text, "\nData file: %s\n", env.curr_analy->root_name );
     start_text[cnt++] = (char *) strdup(temp_text) ;
 
-    rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, (void *) &qty_states );
-    if ( rval == OK )
+    qty_states = analy->state_count;
+    if ( qty_states > 0 )
     {
         sprintf( temp_text, "Number of states: %d\n", qty_states );
         start_text[cnt++] = (char *) strdup(temp_text) ;
         if ( qty_states > 0 )
         {
-            first = 1;
-            rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &first, NULL, (void *) &start_t );
-            if ( rval == OK )
-            {
-                sprintf( temp_text, "Start time: %.4e\n", start_t );
-                start_text[cnt++] = (char *) strdup(temp_text) ;
-            }
+            /* Get time of first state */
+            start_t = analy->state_times[0];
+            sprintf( temp_text, "Start time: %.4e\n", start_t );
+            start_text[cnt++] = (char *) strdup(temp_text) ;
 
-            rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &qty_states, NULL, (void *) &end_t );
-            if ( rval == OK )
-            {
-                sprintf( temp_text, "End time: %.4e\n", end_t );
-                start_text[cnt++] = (char *) strdup(temp_text) ;
-            }
+            /* Get time of the last state */
+            end_t = analy->state_times[qty_states-1];
+            sprintf( temp_text, "End time: %.4e\n", end_t );
+            start_text[cnt++] = (char *) strdup(temp_text) ;
 
         }
-        if ( rval == OK )
+
+        sprintf( temp_text, "\n--------------------------------------------------------------------\n" );
+        start_text[cnt++] = (char *) strdup(temp_text) ;
+
+        sprintf( temp_text, "\n\tMili Database-Library Version: \t%s\n", analy->mili_version );
+        start_text[cnt++] = (char *) strdup(temp_text) ;
+        sprintf( temp_text, "\tMili Database-Host: \t\t%s\n", analy->mili_host );
+        start_text[cnt++] = (char *) strdup(temp_text) ;
+        sprintf( temp_text, "\tMili Database-Arch: \t\t%s\n", analy->mili_arch );
+        start_text[cnt++] = (char *) strdup(temp_text) ;
+        sprintf( temp_text, "\tMili Database-Timestamp: \t%s\n\n", analy->mili_timestamp );
+        start_text[cnt++] = (char *) strdup(temp_text) ;
+        if ( strlen(analy->xmilics_version)>0 )
         {
-            sprintf( temp_text, "\n--------------------------------------------------------------------\n" );
-            start_text[cnt++] = (char *) strdup(temp_text) ;
-
-            sprintf( temp_text, "\n\tMili Database-Library Version: \t%s\n", analy->mili_version );
-            start_text[cnt++] = (char *) strdup(temp_text) ;
-            sprintf( temp_text, "\tMili Database-Host: \t\t%s\n", analy->mili_host );
-            start_text[cnt++] = (char *) strdup(temp_text) ;
-            sprintf( temp_text, "\tMili Database-Arch: \t\t%s\n", analy->mili_arch );
-            start_text[cnt++] = (char *) strdup(temp_text) ;
-            sprintf( temp_text, "\tMili Database-Timestamp: \t%s\n\n", analy->mili_timestamp );
-            start_text[cnt++] = (char *) strdup(temp_text) ;
-            if ( strlen(analy->xmilics_version)>0 )
-            {
-                sprintf( temp_text, "\tXmili Version: \t%s\n", analy->xmilics_version );
-                start_text[cnt++] = (char *) strdup(temp_text) ;
-            }
-            sprintf( temp_text, "--------------------------------------------------------------------\n\n" );
+            sprintf( temp_text, "\tXmili Version: \t%s\n", analy->xmilics_version );
             start_text[cnt++] = (char *) strdup(temp_text) ;
         }
+        sprintf( temp_text, "--------------------------------------------------------------------\n\n" );
+        start_text[cnt++] = (char *) strdup(temp_text) ;
     }
 
     /* Sum polygons to render by superclass. */
@@ -8551,13 +8539,10 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         if(p_state_rec->qty > 0)
         {
             analy->cur_state = 0;
-
-            analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &st_qty );
+            st_qty = analy->state_count;
 
             /* Loop over classes */
-            for ( j = 0;
-                    j < qty_classes;
-                    j++ )
+            for ( j = 0; j < qty_classes; j++ )
             {
 
                 strcpy( class_name, class_names[j] );
@@ -8926,9 +8911,7 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
     }
 
     /* First count the total number of blocks for memory allocation */
-    for ( i = 0;
-            i < p_state_rec->qty;
-            i++ )
+    for ( i = 0; i < p_state_rec->qty; i++ )
     {
         superclass = p_state_rec->subrecs[i].p_object_class->superclass;
 
@@ -8941,9 +8924,7 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
         num_blocks = p_subr->qty_blocks;
         num_blocks_total += num_blocks;
 
-        for ( j = 0;
-                j< num_blocks*2;
-                j++ )
+        for ( j = 0; j < num_blocks*2; j++ )
         {
             block_id = p_subr->mo_blocks[j];
             if ( block_id > block_max_id )
@@ -8953,18 +8934,14 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
 
     temp_blocks     = NEW_N( int, num_blocks_total*3, "Array of block numbers - TH Database");
     block_dup_check = NEW_N( int, block_max_id*2, "Array of block indexes used");
-    for ( i=0;
-            i<block_max_id;
-            i++ )
+    for ( i=0; i < block_max_id; i++ )
     {
         block_dup_check[i] = -1;
     }
 
     block_index = 0;
 
-    for ( i = 0;
-            i < p_state_rec->qty;
-            i++ )
+    for ( i = 0; i < p_state_rec->qty; i++ )
     {
         superclass = p_state_rec->subrecs[i].p_object_class->superclass;
 
@@ -8981,9 +8958,7 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
 
         mo_id_index = 0;
 
-        for ( j = 0;
-                j< num_blocks;
-                j++ )
+        for ( j = 0; j < num_blocks; j++ )
         {
             block_start = p_subr->mo_blocks[mo_id_index];
             block_end   = p_subr->mo_blocks[mo_id_index+1];
@@ -9006,31 +8981,25 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
         }
     }
 
-    for ( i=0;
-            i<block_count*2;
-            i++ )
+    for ( i = 0; i < block_count*2; i++ )
     {
         if ( temp_blocks[i] > block_max_id )
             block_max_id = temp_blocks[i];
     }
 
     blocks_list = NEW_N( int, block_max_id*2, "Array of block numbers");
-    for ( i=0;
-            i<block_max_id*2;
-            i++ )
+    for ( i = 0; i < block_max_id*2; i++ )
     {
         blocks_list[i] = -1;
     }
 
     blocks_to_list( block_count, temp_blocks, blocks_list, FALSE );
-    for ( i=0;
-            i<block_max_id*2;
-            i++ )
+    for ( i = 0; i < block_max_id*2; i++ )
     {
-        if ( blocks_list[i]<0 ) break;
+        if ( blocks_list[i]<0 )
+            break;
         else
             list_count++;
-
     }
 
     status = list_to_blocks( list_count, blocks_list, &pib, &num_blocks_total );

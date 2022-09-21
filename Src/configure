@@ -712,6 +712,10 @@ LIB_DIRS
 BIN_DIRS
 TOP_DIR
 GRIZ_HOME
+GRIZ_PYTHON_LIBRARY
+GRIZ_PYTHON_LIBRARY_PATH
+GRIZ_PYTHON_INCLUDE_PATH
+GRIZ_PARALLEL_SUPPORT
 HOSTNAME
 HOSTDIR
 PROCESSOR_TYPE
@@ -4331,6 +4335,51 @@ $as_echo "#define HAVE_MILI 1" >>confdefs.h
 
 
         #
+        # Look for python 3.7
+        #
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Python 3.7 for Mili reader" >&5
+$as_echo_n "checking for Python 3.7 for Mili reader... " >&6; }
+        GRIZ_PARALLEL_SUPPORT="False"
+        GRIZ_PYTHON_INCLUDE_PATH=""
+        GRIZ_PYTHON_LIBRARY_PATH=""
+        GRIZ_PYTHON_LIBRARY=""
+        GRIZ_PYTHON_CONFIG="`(which python3.7-config) 2> /dev/null`"
+        if test "$GRIZ_PYTHON_CONFIG" != ""; then
+
+            GRIZ_PARALLEL_SUPPORT="True"
+
+            # Get python compile flags
+            GRIZ_PYTHON_INCLUDE_PATH=`("$GRIZ_PYTHON_CONFIG" --cflags | cut -d' ' -f1)`
+            if test "$GRIZ_PYTHON_INCLUDE_PATH" = ""; then
+                GRIZ_PARALLEL_SUPPORT="False"
+            fi
+
+            # Get Library path and library
+            GRIZ_PYTHON_LIBRARY_PATH="`($GRIZ_PYTHON_CONFIG --ldflags | cut -d' ' -f2) 2> /dev/null`"
+            if test "$GRIZ_PYTHON_LIBRARY_PATH" = ""; then
+                GRIZ_PARALLEL_SUPPORT="False"
+            fi
+
+            if test "$GRIZ_PARALLEL_SUPPORT" = "True"; then
+                GRIZ_PYTHON_LIBRARY="-lpython3.7m -lpthread -ldl -lutil -lm -Xlinker -export-dynamic"
+            fi
+        fi
+
+
+        if test "$GRIZ_PARALLEL_SUPPORT" = "True"; then
+
+$as_echo "#define HAVE_PYTHON 1" >>confdefs.h
+
+        fi
+
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Support for Griz Parallel read =$GRIZ_PARALLEL_SUPPORT" >&5
+$as_echo "Support for Griz Parallel read =$GRIZ_PARALLEL_SUPPORT" >&6; }
+
+
+
+        #
         # Set the directory names and paths
         #
 	GRIZ_HOME="."
@@ -6229,6 +6278,7 @@ fi
 			CC_INCLUDE_PATHS="$CC_INCLUDE_PATHS $PNG_INCLUDE_PATH "
 		fi
         CC_INCLUDE_PATHS="$CC_INCLUDE_PATHS $MILI_INCLUDE_PATHS \
+                $GRIZ_PYTHON_INCLUDE_PATH
                 $MESA_INCLUDE_PATHS \
                 $BITMAPS_INCLUDE_PATHS \
                 $EXO_INCLUDE_PATHS \
@@ -7689,6 +7739,7 @@ fi
         if test "$OS_NAME" = "OSF1"; then
                 CC_DEFINES_HERSHEYLIB="$CC_DEFINES_HERSHEYLIB -DSGI"
         fi
+
 
 
 

@@ -2812,10 +2812,8 @@ reset_face_visibility( Analysis *analy )
     int state;
 
     /* Get the current state record format and its mesh. */
-    state = analy->cur_state + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state, NULL,
-                     &srec_id );
-
+    state = analy->cur_state;
+    srec_id = analy->state_srec_fmt_ids[state];
     p_mesh = MESH_P( analy );
 
 #ifdef NEWMILI
@@ -5562,16 +5560,18 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         if ( is_particle_class( analy, p_mo_class->superclass,  p_mo_class->short_name ) && p_mo_class->labels_found &&
                 analy->particle_nodes_enabled )
         {
-            p_mesh = MESH_P( analy );
-            select_meshless_elem( analy, p_mesh,
-                                  p_mo_class, node_near_num,
-                                  &p_near );
-            near_num = p_near;
+            if( !analy->parallel_read ){
+                p_mesh = MESH_P( analy );
+                select_meshless_elem( analy, p_mesh,
+                                    p_mo_class, node_near_num,
+                                    &p_near );
+                near_num = p_near;
 
-            if ( p_near<=0 )
-                return p_near;
+                if ( p_near<=0 )
+                    return p_near;
 
-            near_num = get_class_label( p_mo_class, p_near );
+                near_num = get_class_label( p_mo_class, p_near );
+            }
 
             analy->hilite_ml_node = node_near_num;
         }
