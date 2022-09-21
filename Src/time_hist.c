@@ -2315,7 +2315,7 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
                 {
                     cleanse_result( p_r );
                     p_r = NEW( Result, "History result" );
-                    found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+                    found = find_result( analy, analy->result_source, FALSE, p_r, tokens[idx] );
                 }
             }
             else
@@ -2324,7 +2324,7 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
                 if(rval != OK){
                     /* If necessary, search among possible results for db. */
                     p_r = NEW( Result, "History result" );
-                    found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+                    found = find_result( analy, analy->result_source, FALSE, p_r, tokens[idx] );
                 }
             }
 
@@ -2448,7 +2448,7 @@ build_oper_result_list( int token_qty, char tokens[][TOKENLENGTH],
         {
             /* If necessary, search among possible results for db. */
             p_r = NEW( Result, "History result" );
-            found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+            found = find_result( analy, analy->result_source, FALSE, p_r, tokens[idx] );
         }
 
         if ( !found )
@@ -2967,7 +2967,7 @@ parse_abscissa_spec( int token_qty, char tokens[][TOKENLENGTH],
             
             
 
-            found = find_result( analy, ALL, FALSE, abscissa_result,
+            found = find_result( analy, analy->result_source, FALSE, abscissa_result,
                                  tokens[loop_idx] );
             if ( !found )
             {
@@ -6000,13 +6000,6 @@ draw_plots( Analysis *analy )
         if ( mins < min_ord )
             min_ord = mins;
         
-        /* rescaling attempt by Bill Oliver 
-        if ( !analy->mm_result_set[1] && lastmax < maxs) 
-        {
-            lastmax = maxs; 
-            max_ord = maxs + (maxs - mins)*0.02;
-        } */  
-        
         if ( maxs > max_ord )
             max_ord = maxs;
 
@@ -6239,8 +6232,7 @@ draw_plots( Analysis *analy )
             max_ax[i] = EPS;
         }
 
-        if ( min_ax[i] == max_ax[i]
-                || fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
+        if ( min_ax[i] == max_ax[i] || fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
         {
             if ( min_ax[i] == 0.0 )
             {
@@ -6251,8 +6243,9 @@ draw_plots( Analysis *analy )
             else
             {
                 incr_ax[i] = (float) fabs( (double) min_ax[i] );
-                min_ax[i] = min_ax[i] - fabsf( max_ax[i] - min_ax[i] );
-                max_ax[i] = max_ax[i] + fabsf( max_ax[i] - min_ax[i]); 
+                // Make min/max +/- 10% of value when it is constant (but not 0.000...)
+                min_ax[i] = min_ax[i] - (0.1 * min_ax[i]);
+                max_ax[i] = max_ax[i] + (0.1 * max_ax[i]);
             }
             incr_cnt[i] = 2;
             /*continue; */

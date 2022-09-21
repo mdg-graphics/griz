@@ -5,7 +5,7 @@ on tha
 on thsinglecol
 
 # Turn of primal results so we get derived stress values
-off primal
+sw derived_results
 # Switch to LOCAL ref frame
 sw rloc
 

@@ -1865,10 +1865,6 @@ create_mtl_manager( Widget main_widg )
 
     key_trans = XtParseTranslationTable( trans );
 
-    //mtl_mgr_func_toggles = NEW_N( Widget, MTL_FUNC_QTY, "Mtl func toggle" );
-
-    //ctl_buttons[0] = mtl_mgr_func_toggles;
-    //ctl_buttons[1] = select_buttons;
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
 
     /* Use a Form widget to manage everything else. */
@@ -1996,7 +1992,6 @@ create_mtl_manager( Widget main_widg )
     XtAddCallback( color_comps[1], XmNdisarmCallback, col_comp_disarm_CB, &diffuse );
 
     prop_val_changed[1] = FALSE;
-    //property_vals[1] = NEW_N( GLfloat, 3, "Col comp val" );
 
     //Specular property
     color_comps[2] = XtVaCreateManagedWidget( comp_names[2], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
@@ -2006,7 +2001,6 @@ create_mtl_manager( Widget main_widg )
     XtAddCallback( color_comps[2], XmNdisarmCallback, col_comp_disarm_CB, &specular );
 
     prop_val_changed[2] = FALSE;
-    //property_vals[2] = NEW_N( GLfloat, 3, "Col comp val" );
 
     //Emissive property
     color_comps[3] = XtVaCreateManagedWidget( comp_names[3], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
@@ -2016,8 +2010,6 @@ create_mtl_manager( Widget main_widg )
     XtAddCallback( color_comps[3], XmNdisarmCallback, col_comp_disarm_CB, &emissive );
 
     prop_val_changed[3] = FALSE;
-    //property_vals[3] = NEW_N( GLfloat, 3, "Col comp val" );
-
 
     XtVaGetValues( color_editor, XmNforeground, &fg, XmNbackground, &bg, NULL );
     mtl_check = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizCheck_bits, GrizCheck_width, GrizCheck_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
@@ -2180,7 +2172,6 @@ create_mtl_manager( Widget main_widg )
 
     /* Init some globals associated with the color editor. */
     prop_val_changed[SHININESS] = FALSE;
-    //property_vals[SHININESS] = NEW( GLfloat, "Shine comp val" );
     cur_mtl_comp = MTL_PROP_QTY; /* Guaranteed to be a non-functional value. */
     cur_color[0] = 0.0;
     cur_color[1] = 0.0;
@@ -2195,8 +2186,6 @@ create_mtl_manager( Widget main_widg )
     XtOverrideTranslations( func_operate, key_trans );
 
     max_child_width = 0;
-
-    //op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
 
     //UNROLL
     static int op_preview0 = OP_PREVIEW;
@@ -2293,9 +2282,6 @@ create_mtl_manager( Widget main_widg )
     if ( width > max_child_width )
          max_child_width = width;
 
-
-
-
     /*
      * Now set the right offset so that the middle of the RowColumn
      * will be on the attach position.
@@ -2311,7 +2297,6 @@ create_mtl_manager( Widget main_widg )
      * toggles and bridge the widgets attached from the top and
      * the bottom of the form.
      */
-
     scroll_win = XtVaCreateManagedWidget( "mtl_scroll", xmScrolledWindowWidgetClass, mtl_base, XmNscrollingPolicy, XmAUTOMATIC, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, mtl_label, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, mtl_quick_select, NULL );
 
     XtVaGetValues( scroll_win, XmNverticalScrollBar, &vert_scroll, NULL );
@@ -7241,11 +7226,9 @@ update_swatch_label( void )
         sprintf( cbuf, "No mat"  );
     }
     else if ( mtl_select_list->next == NULL ){
-        //sprintf( cbuf, "Mat %s", mtl_select_list->mtl );
         sprintf( cbuf, "Mat %d", mtl_select_list->mtl );
     }
     else{
-        //sprintf( cbuf, "Mat %s...", mtl_select_list->mtl );
         sprintf( cbuf, "Mat %d...", mtl_select_list->mtl );
     }
 
@@ -7317,7 +7300,6 @@ set_scales_to_mtl( void )
     else
     {
         /* Get material index. */
-        /* idx = (mtl_select_list->mtl - 1) % MAX_MATERIALS; */
         Htable_entry *tempEnt;
         int status = htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[mtl_select_list->mtl - 1],FIND_ENTRY,&tempEnt);
         idx = atoi(tempEnt->data)-1;
@@ -7717,7 +7699,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
     {
         for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
         {
-            sprintf( p_dest, "%s ", env.curr_analy->sorted_labels[(p_mtl->mtl - 1)] );
+            sprintf( p_dest, "\"%s\" ", env.curr_analy->sorted_labels[(p_mtl->mtl - 1)] );
             p_dest += strlen( p_dest );
             t_cnt++;
         }
