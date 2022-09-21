@@ -1951,12 +1951,6 @@ combine_nodpos( Analysis *analy, int state_no, void * out_buffer ){
     PyObject * py_Nodes;
     PyObject * py_Coords;
 
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
-
     float* out_buf = (float*) out_buffer;
 
     dims = analy->dimension;
@@ -1979,11 +1973,6 @@ combine_nodpos( Analysis *analy, int state_no, void * out_buffer ){
             float_pointer_from_pyobject( py_Coords, dims, out_buf+out_idx);
         }
     }
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("   [combine_nodpos] elapsed = %f\n", elapsed);
-#endif
 
     return OK;
 }
@@ -2013,12 +2002,6 @@ combine_sand_flags( Analysis *analy, Subrec_obj * p_subrec, int state_no, void *
     PyObject * py_SandFlags;
     PyObject * py_Layout;
     PyObject * py_ClassSandData;
-
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
 
     float * out_buf = (float*) out_buffer;
 
@@ -2058,12 +2041,6 @@ combine_sand_flags( Analysis *analy, Subrec_obj * p_subrec, int state_no, void *
             }
         }
     }
-
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("   [combine_sand_flags] elapsed = %f\n", elapsed);
-#endif
 
     return OK;
 }
