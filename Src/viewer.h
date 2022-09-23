@@ -69,7 +69,7 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
-#define MILI_READER_SUPPORT
+#include "griz_config.h"
 
 #include <time.h>
 
@@ -86,7 +86,9 @@
 #include "mesh.h"
 #include "gahl.h"
 
+#ifdef HAVE_PARALLEL_READ
 #include <Python.h>
+#endif
 
 #define MAXPATHLENGTH 1024
 #define MAXFILENAMELENGTH 512
@@ -1478,9 +1480,9 @@ typedef struct _Analysis
 
     Bool_type old_shell_stresses;
 
-    // Map local ids to global ids for Mili reader.
     int proc_count;
     Bool_type parallel_read;
+#ifdef HAVE_PARALLEL_READ
     char * mili_reader_src_path;
     char * mili_reader_venv_bin;
     PyObject * py_MiliDB;
@@ -1495,6 +1497,7 @@ typedef struct _Analysis
     char * prev_query_class_name;
     int prev_query_state;
     int prev_query_ipt;
+#endif
 }
 Analysis;
 
@@ -2006,6 +2009,7 @@ extern void *get_st_input_buffer( Analysis *, int, Bool_type, void ** );
 
 extern int get_result_qty( Analysis *, int subrec_id );
 
+#ifdef HAVE_PARALLEL_READ
 /* Mili Reader Wrappers - parallel_read.c */
 extern int griz_python_setup( Analysis * );
 extern int mili_reader_db_open( char *, int * );
@@ -2026,6 +2030,7 @@ extern int mili_reader_read_param_array( int, char*, void** );
 extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
 extern Bool_type combine_nodpos( Analysis*, int, void* );
 extern Bool_type combine_sand_flags( Analysis*, Subrec_obj*, int, void* );
+#endif
 
 /* Mili wrappers. */
 extern int mili_db_open( char *, int * );

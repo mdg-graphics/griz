@@ -1058,40 +1058,107 @@ AC_DEFUN([CONFIGURE_MILI],
    AC_SUBST(MILI_INCLUDE_PATHS)
 ])
 
-AC_DEFUN([CONFIGURE_PYTHON_MILI_READER],
+AC_DEFUN([CONFIGURE_MILI_READER],
   [       
-        #
-        # Set options for the Parallel read with Mili reader
-        #
-        MILI_READER_HOME="/g/g16/rhathaw/all_codes/mili-python"
+    #
+    # Set options for the Parallel read with Mili reader
+    #
+    MILI_READER_HOME="/usr/apps/mdg"
+    DEFAULT_VENV_NAME="embedded_python_c"
+    VENV_NAME=""
+    MILI_READER_SUPPORT="False"
+    MILI_READER_SRC=""
+    MILI_READER_VENV=""
+    GRIZ_PYTHON_INCLUDE_PATH=""
+    GRIZ_PYTHON_LIBRARY_PATH=""
+    GRIZ_PYTHON_LIBRARY=""
 
-        AC_ARG_WITH([mili_reader],
-               AC_HELP_STRING(
-	            [--with-mili-reader=[PATH]],
-                    [Use given base PATH for the Python Mili Reader]),
-	            MILI_READER_HOME="${withval}" &&
-                    CONFIG_OPTIONS="$CONFIG_OPTIONS --with-mili-reader=$MILI_READER_HOME " &&
-	            AC_MSG_RESULT("Using Mili Python Reader Path : $withval")
-                   )
+    AC_ARG_WITH([venv_name],
+        AC_HELP_STRING(
+            [--with-venv-name=[NAME]],
+            [Specify the name of the Mili Python Reader Virtual Environment]
+        ),
+        [
+            VENV_NAME=${withval}
+        ],
+        [
+            VENV_NAME=${DEFAULT_VENV_NAME}
+        ]
+    )
 
-        MILI_READER_SRC="${MILI_READER_HOME}/src"
-        MILI_READER_VENV="${MILI_READER_HOME}/embedded_python_c/lib/python3.7/site-packages"
+    AC_ARG_WITH([mili_reader],
+        AC_HELP_STRING(
+            [--with-mili-reader=[PATH]],
+            [Use given base PATH for the Python Mili Reader]
+        ),
+        [
+            # Check for reader.py
+            AC_CHECK_FILE([${withval}/src/mili/reader.py],
+                [
+                    # Check for grizinterface.py
+                    AC_CHECK_FILE([${withval}/src/mili/grizinterface.py],
+                    [
+                        # Check for virtual environment
+                        AC_CHECK_FILE([${withval}/${VENV_NAME}/pyvenv.cfg],
+                        [
+                            MILI_READER_HOME=$withval
+                            MILI_READER_SUPPORT="True"
+                            AC_MSG_RESULT([Using Mili Reader Path: ${withval}])
+                        ],
+                        [
+                            AC_MSG_WARN([Mili Python Reader venv '${VENV_NAME}' NOT found at $withval/$VENV_NAME}])
+                        ]
+                        )
+                    ],
+                    [
+                        AC_MSG_WARN([No grizinterface.py found at $withval/src/mili/])
+                    ]
+                    )
+                ],
+                [
+                    AC_MSG_WARN([No reader.py found at ${withval}/src/mili])
+                ]
+            )
+        ],
+        [
+            # Check that everything exists at default location
+            # Check for reader.py
+            AC_CHECK_FILE([${MILI_READER_HOME}/src/mili/reader.py],
+                [
+                    # Check for grizinterface.py
+                    AC_CHECK_FILE([${MILI_READER_HOME}/src/mili/grizinterface.py],
+                    [
+                        # Check for virtual environment
+                        AC_CHECK_FILE([${MILI_READER_HOME}/${VENV_NAME}/pyvenv.cfg],
+                        [
+                            MILI_READER_SUPPORT="True"
+                            AC_MSG_RESULT([Using Mili Reader Path: ${MILI_READER_HOME}])
+                        ],
+                        [
+                            AC_MSG_WARN([Mili Python Reader venv '${VENV_NAME}' NOT found, No parallel read support available. 
+                                         Please set --with-mili-reader=PATH to correct Mili reader directory])
+                        ]
+                        )
+                    ],
+                    [
+                        AC_MSG_WARN([No grizinterface.py found, No parallel read support available. 
+                                     Please set --with-mili-reader=PATH to correct Mili reader directory])
+                    ]
+                    )
+                ],
+                [
+                    AC_MSG_WARN([No reader.py found, No parallel read support available. 
+                                 Please set --with-mili-reader=PATH to correct Mili reader directory])
+                ]
+            )
+        ]
+    )
 
-        #  Mili Reader Options
-        AC_SUBST(MILI_READER_SRC)
-        AC_SUBST(MILI_READER_VENV)
-  ])
-
-AC_DEFUN([CONFIGURE_PYTHON],
-  [
-        #
-        # Look for python 3.7
-        #
+    # Check that Python 3.7 exists on the system
+    # Only if we already found the mili reader
+    if test "$MILI_READER_SUPPORT" = "True"; then
         AC_MSG_CHECKING(for Python 3.7 for Mili reader)
         GRIZ_PARALLEL_SUPPORT="False"
-        GRIZ_PYTHON_INCLUDE_PATH=""
-        GRIZ_PYTHON_LIBRARY_PATH=""
-        GRIZ_PYTHON_LIBRARY=""
         GRIZ_PYTHON_CONFIG="`(which python3.7-config) 2> /dev/null`"
         if test "$GRIZ_PYTHON_CONFIG" != ""; then
 
@@ -1113,16 +1180,28 @@ AC_DEFUN([CONFIGURE_PYTHON],
                 GRIZ_PYTHON_LIBRARY="-lpython3.7m -lpthread -ldl -lutil -lm -Xlinker -export-dynamic"
             fi
         fi
+        if test "$GRIZ_PARALLEL_SUPPORT" = "False"; then
+            MILI_READER_SUPPORT="False"
+        fi
+    fi
 
-        AC_SUBST(GRIZ_PARALLEL_SUPPORT)
-        if test "$GRIZ_PARALLEL_SUPPORT" = "True"; then
-            AC_DEFINE(HAVE_PYTHON, 1, [Python Library])
-        fi 
+    # If mili reader exists and python exists, then support paralle read
+    if test "$MILI_READER_SUPPORT" = "True"; then
+        CONFIG_OPTIONS="$CONFIG_OPTIONS --with-mili-reader=$MILI_READER_HOME "
+        MILI_READER_SRC="${MILI_READER_HOME}/src"
+        MILI_READER_VENV="${MILI_READER_HOME}/${VENV_NAME}/lib/python3.7/site-packages"
+
+        #  Mili Reader Options
+        AC_DEFINE(HAVE_PARALLEL_READ, 1, [Parallel Read Support])
+        AC_DEFINE_UNQUOTED(MR_SRC, ["$MILI_READER_SRC"], [Mili Reader Source])
+        AC_DEFINE_UNQUOTED(MR_BIN, ["$MILI_READER_VENV"], [Mili Reader Venv Site-packages])
+        # Compilation options
         AC_SUBST(GRIZ_PYTHON_INCLUDE_PATH)
         AC_SUBST(GRIZ_PYTHON_LIBRARY_PATH)
         AC_SUBST(GRIZ_PYTHON_LIBRARY)
-        AC_MSG_RESULT(Support for Griz Parallel read =$GRIZ_PARALLEL_SUPPORT)
-  ])
+        AC_MSG_RESULT(Support for Griz Parallel read = $GRIZ_PARALLEL_SUPPORT)
+    fi
+])
 
 AC_DEFUN([CONFIGURE_PAPI],
   [       

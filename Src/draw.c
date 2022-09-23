@@ -15847,14 +15847,16 @@ check_for_free_nodes( Analysis *analy )
     p_mesh       = MESH_P( analy );
 
     /* First check to see if we have free nodes */
-    if( analy->parallel_read ){
-        status_mass = mili_reader_get_free_node_data( analy, &free_nodes_mass, &free_nodes_vol );
-        status_vol = status_mass;
-    }
-    else{
+    if( !analy->parallel_read ){
         status_mass = analy->get_param_array(analy->db_ident,     "Nodal Mass", (void *) &free_nodes_mass);
         status_vol  = analy->get_param_array(analy->db_ident,   "Nodal Volume", (void *) &free_nodes_vol);
     }
+#ifdef HAVE_PARALLEL_READ
+    else{
+        status_mass = mili_reader_get_free_node_data( analy, &free_nodes_mass, &free_nodes_vol );
+        status_vol = status_mass;
+    }
+#endif
 
     if ( free_nodes_mass && free_nodes_vol ){
         analy->free_nodes_found = TRUE;

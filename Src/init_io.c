@@ -198,6 +198,7 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
             analy->ti_read_array = mc_ti_read_array;
             analy->get_param_array = mili_db_get_param_array;
         }
+#ifdef HAVE_PARALLEL_READ
         else{
             analy->db_open = mili_reader_db_open;
             analy->db_get_geom = mili_reader_get_geom;
@@ -213,6 +214,7 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
             analy->ti_read_array = mili_reader_read_ti_array;
             analy->get_param_array = mili_reader_read_param_array;
         }
+#endif
         break;
 
     case TAURUS:

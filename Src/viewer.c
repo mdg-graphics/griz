@@ -615,23 +615,12 @@ scan_args( int argc, char *argv[], Analysis *analy )
         }
 
         /* Mili Reader parallel read arguments:
-         * Arguments to turn on parallel read, and set mili reader source and bin
+         * Arguments to turn on parallel read
          */
         else if ( strcmp( argv[i], "-pr") == 0 || strcmp( argv[i], "-parallel_read") == 0 )
         {
             analy->parallel_read = TRUE;
         }
-        else if (  strcmp( argv[i], "-mili_reader_src") == 0 )
-        {
-            analy->mili_reader_src_path = strdup( argv[i+1] );
-            i++;
-        }
-        else if (  strcmp( argv[i], "-mili_reader_bin") == 0 )
-        {
-            analy->mili_reader_venv_bin = strdup( argv[i+1] );
-            i++;
-        }
-
 #ifdef SERIAL_BATCH
         /*
          * do NOT establish utility panel for batch operations
@@ -895,6 +884,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         mc_ti_enable( analy->db_ident ) ;
 
     /* If this is a parallel read, Initialize python */
+#ifdef HAVE_PARALLEL_READ
     analy->py_MiliDB = NULL;
     analy->py_MiliReaderModule = NULL;
     if ( analy->parallel_read ){
@@ -903,6 +893,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             return FALSE;
         }
     }
+#endif
 
     /* Open the database. */
     stat = analy->db_open( temp_fname, &analy->db_ident );
@@ -916,18 +907,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( verify_only )
         return TRUE;
 
-    /* If parallel read with mili reader, load in parameters dict */
-    if ( analy->parallel_read ){
-        stat = mili_reader_load_parameters( analy );
-        if( stat != OK ){
-            popup_dialog( WARNING_POPUP, "Unable to load parameters from mili reader." );
-            return FALSE;
-        }
-        stat = mili_reader_get_title( analy, analy->title );
-        if ( stat != OK )
-            popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
-    }
-    else{
+    if ( !analy->parallel_read ){
         stat = analy->db_get_title( analy->db_ident, analy->title );
         if ( stat != OK )
             popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
@@ -949,6 +929,19 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         if ( analy->dimension == 2 )
             analy->limit_rotations = TRUE;
     }
+#ifdef HAVE_PARALLEL_READ
+    /* If parallel read with mili reader, load in parameters dict */
+    else{
+        stat = mili_reader_load_parameters( analy );
+        if( stat != OK ){
+            popup_dialog( WARNING_POPUP, "Unable to load parameters from mili reader." );
+            return FALSE;
+        }
+        stat = mili_reader_get_title( analy, analy->title );
+        if ( stat != OK )
+            popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
+    }
+#endif
 
     /* Load in the mesh geometry */
     stat = analy->db_get_geom( analy );
@@ -2269,13 +2262,15 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
 
     /* Get the metadata from the A file */
-    if ( analy->parallel_read ){
-        mili_reader_get_metadata( analy );
-    }
-    else{
+    if ( !analy->parallel_read ){
         mc_get_metadata( analy->db_ident,  analy->mili_version,   analy->mili_host,
                          analy->mili_arch, analy->mili_timestamp, analy->xmilics_version );
     }
+#ifdef HAVE_PARALLEL_READ
+    else{
+        mili_reader_get_metadata( analy );
+    }
+#endif
 
     if ( env.model_history_logging )
     {
@@ -2326,15 +2321,17 @@ int get_particles_on_flag( Analysis *analy, int *particles_on )
 {
     int stat;
 
-    if( analy->parallel_read ){
+    if( !analy->parallel_read ){
+        stat = mc_read_scalar(analy->db_ident, "particles_on", particles_on);
+    }
+#ifdef HAVE_PARALLEL_READ
+    else{
         double result;
         stat = mili_reader_get_double( analy->py_MiliParameters, "particles_on", &result );
         if (stat == OK )
             *particles_on = (int) result;
     }
-    else{
-        stat = mc_read_scalar(analy->db_ident, "particles_on", particles_on);
-    }
+#endif
 
     return stat;
 }

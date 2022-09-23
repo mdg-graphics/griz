@@ -715,7 +715,6 @@ GRIZ_HOME
 GRIZ_PYTHON_LIBRARY
 GRIZ_PYTHON_LIBRARY_PATH
 GRIZ_PYTHON_INCLUDE_PATH
-GRIZ_PARALLEL_SUPPORT
 HOSTNAME
 HOSTDIR
 PROCESSOR_TYPE
@@ -808,6 +807,8 @@ enable_option_checking
 enable_bits32
 with_mdgpath
 with_mili
+with_venv_name
+with_mili_reader
 with_install
 with_usrbuild
 enable_nojpeg
@@ -1463,6 +1464,9 @@ Optional Packages:
 
   --with-mili=PATH        Use given base PATH for MILI libraries and header
                           files
+  --with-venv-name=NAME   Specify the name of the Mili Python Reader Virtual
+                          Environment
+  --with-mili-reader=PATH Use given base PATH for the Python Mili Reader
   --install-path=PATH     Use given base PATH installing Griz4
   --with-usrbuild=PATH    Use given PATH for BUILD DIRECTORY
   --with-png=PATH         Use given base PATH for PNG libraries and header
@@ -4334,15 +4338,239 @@ $as_echo "#define HAVE_MILI 1" >>confdefs.h
 
 
 
-        #
-        # Look for python 3.7
-        #
+    #
+    # Set options for the Parallel read with Mili reader
+    #
+    MILI_READER_HOME="/usr/apps/mdg"
+    DEFAULT_VENV_NAME="embedded_python_c"
+    VENV_NAME=""
+    MILI_READER_SUPPORT="False"
+    MILI_READER_SRC=""
+    MILI_READER_VENV=""
+    GRIZ_PYTHON_INCLUDE_PATH=""
+    GRIZ_PYTHON_LIBRARY_PATH=""
+    GRIZ_PYTHON_LIBRARY=""
+
+
+# Check whether --with-venv_name was given.
+if test "${with_venv_name+set}" = set; then :
+  withval=$with_venv_name;
+            VENV_NAME=${withval}
+
+else
+
+            VENV_NAME=${DEFAULT_VENV_NAME}
+
+
+fi
+
+
+
+# Check whether --with-mili_reader was given.
+if test "${with_mili_reader+set}" = set; then :
+  withval=$with_mili_reader;
+            # Check for reader.py
+            as_ac_File=`$as_echo "ac_cv_file_${withval}/src/mili/reader.py" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${withval}/src/mili/reader.py" >&5
+$as_echo_n "checking for ${withval}/src/mili/reader.py... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "${withval}/src/mili/reader.py"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                    # Check for grizinterface.py
+                    as_ac_File=`$as_echo "ac_cv_file_${withval}/src/mili/grizinterface.py" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${withval}/src/mili/grizinterface.py" >&5
+$as_echo_n "checking for ${withval}/src/mili/grizinterface.py... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "${withval}/src/mili/grizinterface.py"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                        # Check for virtual environment
+                        as_ac_File=`$as_echo "ac_cv_file_${withval}/${VENV_NAME}/pyvenv.cfg" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${withval}/${VENV_NAME}/pyvenv.cfg" >&5
+$as_echo_n "checking for ${withval}/${VENV_NAME}/pyvenv.cfg... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "${withval}/${VENV_NAME}/pyvenv.cfg"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                            MILI_READER_HOME=$withval
+                            MILI_READER_SUPPORT="True"
+                            { $as_echo "$as_me:${as_lineno-$LINENO}: result: Using Mili Reader Path: ${withval}" >&5
+$as_echo "Using Mili Reader Path: ${withval}" >&6; }
+
+else
+
+                            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Mili Python Reader venv '${VENV_NAME}' NOT found at $withval/$VENV_NAME}" >&5
+$as_echo "$as_me: WARNING: Mili Python Reader venv '${VENV_NAME}' NOT found at $withval/$VENV_NAME}" >&2;}
+
+
+fi
+
+
+else
+
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No grizinterface.py found at $withval/src/mili/" >&5
+$as_echo "$as_me: WARNING: No grizinterface.py found at $withval/src/mili/" >&2;}
+
+
+fi
+
+
+else
+
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No reader.py found at ${withval}/src/mili" >&5
+$as_echo "$as_me: WARNING: No reader.py found at ${withval}/src/mili" >&2;}
+
+
+fi
+
+
+else
+
+            # Check that everything exists at default location
+            # Check for reader.py
+            as_ac_File=`$as_echo "ac_cv_file_${MILI_READER_HOME}/src/mili/reader.py" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${MILI_READER_HOME}/src/mili/reader.py" >&5
+$as_echo_n "checking for ${MILI_READER_HOME}/src/mili/reader.py... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "${MILI_READER_HOME}/src/mili/reader.py"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                    # Check for grizinterface.py
+                    as_ac_File=`$as_echo "ac_cv_file_${MILI_READER_HOME}/src/mili/grizinterface.py" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${MILI_READER_HOME}/src/mili/grizinterface.py" >&5
+$as_echo_n "checking for ${MILI_READER_HOME}/src/mili/grizinterface.py... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "${MILI_READER_HOME}/src/mili/grizinterface.py"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                        # Check for virtual environment
+                        as_ac_File=`$as_echo "ac_cv_file_${MILI_READER_HOME}/${VENV_NAME}/pyvenv.cfg" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${MILI_READER_HOME}/${VENV_NAME}/pyvenv.cfg" >&5
+$as_echo_n "checking for ${MILI_READER_HOME}/${VENV_NAME}/pyvenv.cfg... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "${MILI_READER_HOME}/${VENV_NAME}/pyvenv.cfg"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                            MILI_READER_SUPPORT="True"
+                            { $as_echo "$as_me:${as_lineno-$LINENO}: result: Using Mili Reader Path: ${MILI_READER_HOME}" >&5
+$as_echo "Using Mili Reader Path: ${MILI_READER_HOME}" >&6; }
+
+else
+
+                            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Mili Python Reader venv '${VENV_NAME}' NOT found, No parallel read support available.
+                                         Please set --with-mili-reader=PATH to correct Mili reader directory" >&5
+$as_echo "$as_me: WARNING: Mili Python Reader venv '${VENV_NAME}' NOT found, No parallel read support available.
+                                         Please set --with-mili-reader=PATH to correct Mili reader directory" >&2;}
+
+
+fi
+
+
+else
+
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No grizinterface.py found, No parallel read support available.
+                                     Please set --with-mili-reader=PATH to correct Mili reader directory" >&5
+$as_echo "$as_me: WARNING: No grizinterface.py found, No parallel read support available.
+                                     Please set --with-mili-reader=PATH to correct Mili reader directory" >&2;}
+
+
+fi
+
+
+else
+
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No reader.py found, No parallel read support available.
+                                 Please set --with-mili-reader=PATH to correct Mili reader directory" >&5
+$as_echo "$as_me: WARNING: No reader.py found, No parallel read support available.
+                                 Please set --with-mili-reader=PATH to correct Mili reader directory" >&2;}
+
+
+fi
+
+
+
+fi
+
+
+    # Check that Python 3.7 exists on the system
+    # Only if we already found the mili reader
+    if test "$MILI_READER_SUPPORT" = "True"; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Python 3.7 for Mili reader" >&5
 $as_echo_n "checking for Python 3.7 for Mili reader... " >&6; }
         GRIZ_PARALLEL_SUPPORT="False"
-        GRIZ_PYTHON_INCLUDE_PATH=""
-        GRIZ_PYTHON_LIBRARY_PATH=""
-        GRIZ_PYTHON_LIBRARY=""
         GRIZ_PYTHON_CONFIG="`(which python3.7-config) 2> /dev/null`"
         if test "$GRIZ_PYTHON_CONFIG" != ""; then
 
@@ -4364,18 +4592,38 @@ $as_echo_n "checking for Python 3.7 for Mili reader... " >&6; }
                 GRIZ_PYTHON_LIBRARY="-lpython3.7m -lpthread -ldl -lutil -lm -Xlinker -export-dynamic"
             fi
         fi
-
-
-        if test "$GRIZ_PARALLEL_SUPPORT" = "True"; then
-
-$as_echo "#define HAVE_PYTHON 1" >>confdefs.h
-
+        if test "$GRIZ_PARALLEL_SUPPORT" = "False"; then
+            MILI_READER_SUPPORT="False"
         fi
+    fi
+
+    # If mili reader exists and python exists, then support paralle read
+    if test "$MILI_READER_SUPPORT" = "True"; then
+        CONFIG_OPTIONS="$CONFIG_OPTIONS --with-mili-reader=$MILI_READER_HOME "
+        MILI_READER_SRC="${MILI_READER_HOME}/src"
+        MILI_READER_VENV="${MILI_READER_HOME}/${VENV_NAME}/lib/python3.7/site-packages"
+
+        #  Mili Reader Options
+
+$as_echo "#define HAVE_PARALLEL_READ 1" >>confdefs.h
+
+
+cat >>confdefs.h <<_ACEOF
+#define MR_SRC "$MILI_READER_SRC"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define MR_BIN "$MILI_READER_VENV"
+_ACEOF
+
+        # Compilation options
 
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Support for Griz Parallel read =$GRIZ_PARALLEL_SUPPORT" >&5
-$as_echo "Support for Griz Parallel read =$GRIZ_PARALLEL_SUPPORT" >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Support for Griz Parallel read = $GRIZ_PARALLEL_SUPPORT" >&5
+$as_echo "Support for Griz Parallel read = $GRIZ_PARALLEL_SUPPORT" >&6; }
+    fi
 
 
 

@@ -2082,7 +2082,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
                 load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
                             FALSE, (void *) analy->cur_ref_state_dataDp );
             }
-            #ifdef MILI_READER_SUPPORT
+            #ifdef HAVE_PARALLEL_READ
             else{
                 combine_nodpos( analy, 1, (void*) analy->cur_ref_state_dataDp);
             }
@@ -2137,7 +2137,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
             load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
                         TRUE, analy->cur_ref_state_data );
         }
-        #ifdef MILI_READER_SUPPORT
+        #ifdef HAVE_PARALLEL_READ
         else{
             combine_nodpos( analy, new_ref_state, (void*) analy->cur_ref_state_data );
         }
@@ -2157,7 +2157,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
                 load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
                             FALSE, analy->cur_ref_state_dataDp );
             }
-            #ifdef MILI_READER_SUPPORT
+            #ifdef HAVE_PARALLEL_READ
             else{
                 combine_nodpos( analy, new_ref_state, (void*) analy->cur_ref_state_dataDp );
             }

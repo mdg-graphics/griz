@@ -2,6 +2,10 @@
  *  IO wrappers for parallel reader using Mili Python Reader
  *
  */
+#include "griz_config.h"
+
+#ifdef HAVE_PARALLEL_READ
+
 #include <time.h>
 #include "parallel_read.h"
 #include "viewer.h"
@@ -36,16 +40,10 @@ griz_python_setup(Analysis * analy)
     Py_Initialize();
 
     /* Get correct path to mili reader source. */
-    if( analy->mili_reader_src_path )
-        py_SrcPath = string_to_pyobject( analy->mili_reader_src_path );
-    else
-        py_SrcPath = string_to_pyobject( DEFAULT_SRC_PATH );
+    py_SrcPath = string_to_pyobject( MR_SRC );
     
     /* Get correct path to mili reader's bin/site-packages */
-    if( analy->mili_reader_venv_bin )
-        py_SitePackagesPath = string_to_pyobject( analy->mili_reader_venv_bin );
-    else
-        py_SitePackagesPath = string_to_pyobject( DEFAULT_VENV_BIN );
+    py_SitePackagesPath = string_to_pyobject( MR_BIN );
 
     /* Update Python Path */
     PyObject *py_SysPath = PySys_GetObject("path");
@@ -2611,3 +2609,5 @@ mili_reader_get_free_node_data( Analysis * analy, float ** free_node_mass, float
 
     return 1;
 }
+
+#endif // HAVE_PARALLEL_READ

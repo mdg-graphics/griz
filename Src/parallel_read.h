@@ -1,6 +1,10 @@
 #ifndef PARALLEL_READ_H
 #define PARALLEL_READ_H
 
+#include "griz_config.h"
+
+#ifdef HAVE_PARALLEL_READ
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
@@ -9,10 +13,6 @@
 
 /* Python program name */
 const char* PROGRAM_NAME = "Griz-mili-python-reader";
-
-/* Default paths to Mili reader src and site-packages. */
-const char * DEFAULT_SRC_PATH = "/g/g16/rhathaw/all_codes/mili-python/src/";
-const char * DEFAULT_VENV_BIN = "/g/g16/rhathaw/all_codes/mili-python/embedded_python_c/lib/python3.7/site-packages/";
 
 /* Module to import for parallel read features */
 const char* MILI_READER_MODULE_NAME = "mili.grizinterface";
@@ -279,5 +279,7 @@ mili_reader_get_double(PyObject * py_Parameters, char *parameter_name, double *r
     }
     return NOT_OK;
 }
+
+#endif // HAVE_PARALLEL_READ
 
 #endif
