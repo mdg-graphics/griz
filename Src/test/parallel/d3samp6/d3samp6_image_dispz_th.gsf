@@ -1,0 +1,20 @@
+# Testing for d3samp6 problem with Griz Parallel Read
+# Time history output of result dispz
+switch mglob
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+on all
+off path
+
+# Object selection 
+select node 1-2 10 11 12 15 25 21 40 58-61 7 69 138 132 
+unselect node 10 60
+
+# Images for variable dispz
+show dispz; plot
+outjpeg d3samp6_image_dispz_th.answ.jpg
+
+# EndCase  
+

@@ -1,0 +1,47 @@
+# d3samp6 - Testing Griz parallel read
+# Min/Max Switch: global
+
+# Setup
+switch mglob
+minst 1
+maxst 81
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+on all
+off path; off date
+rview; ry -50; rz -185
+zf 2.1
+ty -0.75; tx -.491
+on edges
+edgwid 1.8
+dscalz 1.4
+rnf
+rdhis d3samp6_V1.gsf
+
+# Object selection 
+select brick 36 18 20-24 30
+select mat 1
+
+disable shell 1-12
+
+# Images for variable pshrstr with a cutting plane
+sw mstat
+state 20
+l
+# Derive pshrstr from derived strain values, rather than primal strain tensor
+sw derived_from_derived
+show pshrstr
+sw gterp
+cutrpln .5 .5 .5 0 1 0
+cutrpln .25 .25 .75 1 0 0
+on cut
+ty .40
+ry 90; rx 15
+rnf
+outjpeg d3samp6_image_pshrstr_cutpln1_plot.answ.jpg
+
+# EndCase 
+

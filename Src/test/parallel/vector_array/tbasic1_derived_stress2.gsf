@@ -1,0 +1,43 @@
+
+#########################################################
+# Testing of compute_hex_es_stress
+on tha
+on thsinglecol
+
+# Turn of primal results so we get derived stress values
+sw derived_results
+# Switch to LOCAL ref frame
+sw rloc
+
+# tshell - SX - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show sx
+outth tbasic1_derived_stress2.jansw
+
+# # tshell - SX - Integration point 2
+# set_ipt 2
+# outth tbasic1_derived_stress2.jansw
+
+# tshell - SY - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show sy
+outth tbasic1_derived_stress2.jansw
+
+# # tshell - SY - Integration point 2
+# set_ipt 2
+# outth tbasic1_derived_stress2.jansw
+
+# tshell - SZX - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show szx
+outth tbasic1_derived_stress2.jansw
+
+# # tshell - SZX - Integration point 2
+# set_ipt 2
+# outth tbasic1_derived_stress2.jansw

@@ -1,0 +1,30 @@
+# Testing for d3samp6 problem with Griz Parallel Read
+# Plotting of result gamxy
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+on all
+off path; off date
+rview; ry -150; rz 90
+zf 1.15
+tx .2 ; ty -.4
+posmap .91 -.5 .07 .5
+ry 15
+zb 1.1
+tx -.14; ty .4
+sw ortho
+sw interp
+
+# Object selection 
+select brick all
+unselect brick 5 17 28 15 36 18 20-24 30
+
+# Images for variable gamxy
+sw derive_from_derived
+show gamxy
+state 20
+state 100
+outjpeg d3samp6_image_gamxy_plot.answ.jpg

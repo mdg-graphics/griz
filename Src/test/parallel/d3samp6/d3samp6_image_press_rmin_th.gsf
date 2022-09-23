@@ -1,0 +1,25 @@
+# d3samp6 - Testing Griz parallel read
+
+# Setup
+clrsel 
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+minst 1
+maxst 100
+
+# Object selection 
+clrsel
+select brick 1 8 10 14 27 36 18 20-24 30
+select shell 3
+
+# Test rmin/tmin & tmin/tmax with variable press
+show press
+rmin -77
+rmax 38.5
+minst 20
+maxst 95
+plot
+outjpeg d3samp6_image_press_rmin_th.answ.jpg

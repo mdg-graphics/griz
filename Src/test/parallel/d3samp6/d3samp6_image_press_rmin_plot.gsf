@@ -1,0 +1,40 @@
+# d3samp6 - Testing Griz parallel read
+
+# Setup
+switch mglob
+off mat_labels
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+minst 1
+maxst 100
+
+# Set viewing 
+on all
+off path; off date
+rview; ry -150; rz 90
+zf 1.15
+tx .2 ; ty -.4
+posmap .91 -.5 .07 .5
+ry 15
+zb 1.1
+tx -.14; ty .4
+sw ortho
+sw interp
+
+# Object selection 
+clrsel
+select brick 1 8 10 14 27 36 18 20-24 30
+select shell 3
+set_ipt 1 1
+
+# Test rmin/tmin & tmin/tmax with variable press
+sw mstat
+l
+show press
+rmin -40
+rmax 32.5
+tmin 20
+tmax 70
+outjpeg d3samp6_image_press_rmin_plot.answ.jpg

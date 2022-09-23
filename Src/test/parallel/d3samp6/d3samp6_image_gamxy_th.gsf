@@ -1,0 +1,21 @@
+# Testing for d3samp6 problem with Griz Parallel Read
+# Time history plot of gamxy
+
+# Setup
+switch mglob
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+on all
+off path; off date
+
+# Object selection 
+select brick all
+unselect brick 5 17 28 15 36 18 20-24 30
+select mat 1
+
+# Images for variable gamxy
+sw derive_from_derived
+show gamxy; plot
+outjpeg d3samp6_image_gamxy_th.answ.jpg
