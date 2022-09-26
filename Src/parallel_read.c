@@ -373,7 +373,7 @@ mili_reader_extract_query_data( PyObject * py_QueryReturn, char * result_name, i
 
                 /* Get object ids and element count */
                 py_Layout = result_dictionary_unwrap_layout( py_Dict, result_name, subrecord_name );
-                elem_qty = PySequence_Length( py_ProcResult );
+                elem_qty = PySequence_Length( py_Layout );
                 integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
 
                 /* Get map from subrec node ids to global positions */
@@ -1989,6 +1989,8 @@ combine_sand_flags( Analysis *analy, Subrec_obj * p_subrec, int state_no, void *
     char * sand = "sand";
     char * subrecord_name;
     char * class_name;
+    int * object_ids;
+    int * index_map;
     int elem_class_index;
     int obj;
     PyObject * py_ClassName;
@@ -2010,7 +2012,16 @@ combine_sand_flags( Analysis *analy, Subrec_obj * p_subrec, int state_no, void *
     py_ClassName = string_to_pyobject( class_name );
     py_SubrecordName = string_to_pyobject( subrecord_name );
 
-    out_idx = 0;
+    int max_elem_qty = 0;
+    for( i = 0; i < analy->proc_count; i++ ){
+        elem_qty = MESH_P(analy)->index_map->elem_count[elem_class_index][i];
+        if( elem_qty > 0 ){
+            if( elem_qty > max_elem_qty )
+                max_elem_qty = elem_qty;
+        }
+    }
+    object_ids = NEW_N( int, max_elem_qty, "Subrecord Object Ids");
+
     for( i = 0; i < analy->proc_count; i++ ){
         py_ProcResult = PySequence_GetItem( analy->py_Sand, i );
 
@@ -2028,13 +2039,18 @@ combine_sand_flags( Analysis *analy, Subrec_obj * p_subrec, int state_no, void *
                 py_SandFlags = PySequence_GetItem( py_SandFlags, state_no );
             
                 /* Get List of element ids */
-                elem_qty = MESH_P( analy )->index_map->elem_count[elem_class_index][i];
+                py_Layout = result_dictionary_unwrap_layout( py_ClassSandData, sand, subrecord_name );
+                elem_qty = PySequence_Length( py_Layout );
+                integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
+                index_map = MESH_P(analy)->index_map->elem_map[elem_class_index][i];
 
                 /* Get sand flag for each element */
                 for( j = 0; j < elem_qty; j++ ){
                     py_FloatValue = PySequence_GetItem( py_SandFlags, j );
                     py_FloatValue = PySequence_GetItem( py_FloatValue, 0 ); // Stored as single value list
-                    out_buf[out_idx++] = (float) PyFloat_AsDouble( py_FloatValue );
+                    obj = object_ids[j];
+                    out_idx = index_map[obj];
+                    out_buf[out_idx] = (float) PyFloat_AsDouble( py_FloatValue );
                 }
             }
         }
