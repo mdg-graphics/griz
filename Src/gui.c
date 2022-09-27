@@ -1446,26 +1446,14 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
     }
     else
     {
-        if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "dbc" ) )
+        /* Only one class, so submenu name is class name. */
+        if ( p_pr->menu_override == NULL )
         {
-            sprintf( label_buffer, "%s (%s)", "Dirichlet BC (shared)", "dbc" );
-        }
-        else if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "nbc" ) )
-        {
-            sprintf( label_buffer, "%s (%s)", "Neumann BC (shared)", "nbc" );
-        }
-        else if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "cbm" ) )
-        {
-            sprintf( label_buffer, "%s (%s)", "Contact Master (shared)", "cbm" );
-        }
-        else if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "cbs" ) )
-        {
-            sprintf( label_buffer, "%s (%s)", "Contact Slave (shared)", "cbs" );
+            sprintf( label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
         }
         else
         {
-            /* Only one class, so submenu name is class name. */
-            sprintf( label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
+            sprintf( label_buffer, p_pr->menu_override );
         }
     }
 
@@ -1484,7 +1472,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
      * the button is created for the vec/vec_array/array.
      * We don't add buttons for element sets, just the results contained in the element sets.
      */
-    if( p_pr->owning_vec_count == 0 || p_pr->in_vector_array)
+    if( p_pr->owning_vec_count == 0 || p_pr->in_vector_array )
     {
         if ( p_pr->var->agg_type == SCALAR )
         {
@@ -1639,26 +1627,14 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
         }
         else
         {
-            if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "dbc" ) )
-            {
-                sprintf( label_buffer, "%s (%s)", "Dirichlet BC (shared)", "dbc" );
-            }
-            else if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "nbc" ) )
-            {
-                sprintf( label_buffer, "%s (%s)", "Neumann BC (shared)", "nbc" );
-            }
-            else if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "cbm" ) )
-            {
-                sprintf( label_buffer, "%s (%s)", "Contact Master (shared)", "cbm" );
-            }
-            else if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "cbs" ) )
-            {
-                sprintf( label_buffer, "%s (%s)", "Contact Slave (shared)", "cbs" );
-            }
-            else
+            if( p_dr->menu_override == NULL )
             {
                 /* Only one class, so submenu name is class name. */
                 sprintf( label_buffer, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
+            }
+            else
+            {
+                sprintf( label_buffer, p_dr->menu_override );
             }
         }
         int child_idx = -1;
@@ -1671,7 +1647,8 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
             XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
         // If derived results are group together create another submenu
-        if( p_dr->group_name != NULL ){
+        if( p_dr->group_name != NULL )
+        {
             if( !find_labelled_child( submenu, p_dr->group_name, &submenu_cascade, &child_idx))
                 submenu = add_pulldown_submenu( submenu, p_dr->group_name );
             else

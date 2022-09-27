@@ -79,6 +79,7 @@ char        *get_subrecord( Analysis *analy, int num );
 
 int mili_compare_labels( const void *label1, const void *label2 );
 const char * dbl_bc_prefixes[] = { "dbc", "nbc", "cbm", "cbs" };
+const char * dbl_bc_menus[] = { "Dirichlet BC (dbc)", "Neumann BC (nbc)", "Contact Master (cbm)", "Contact Slave (cbs)"};
 
 
 /************************************************************
@@ -2283,7 +2284,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     if(es_short_name == NULL)
     {
         rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
-    }else
+    }
+    else
     {
         rval = htable_search( p_primal_ht, es_short_name, ENTER_MERGE, &p_hte );
         rval2 = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte3 );
@@ -2320,7 +2322,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             if(strcmp(es_short_name ,"stress")==0)
             {
                 strcpy(p_pr->long_name,"Stress");
-            }else
+            }
+            else
             {
                 strcpy(p_pr->long_name,"Strain");
             }
@@ -2429,20 +2432,18 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         /* Loop over all subrecords currently associated with this primal_result */
         for(i = 0; i < p_pr->qty_subrecs; i++)
         {
-            Subrec_obj * p_subr_old = p_subrec[i];
-            /* Check if subrecord already in list */
-            if(strcmp(p_subr_old->subrec.name, p_subr_obj->subrec.name) == 0)
+            if( p_pr->is_shared ) /* If we've already determined this is shared, we're done */
                 break;
 
-            /* Check if "shared", excluding BC srecs so they group appropriately */
-            for( j = 0; j < sizeof(dbl_bc_prefixes)/sizeof(dbl_bc_prefixes[0]); ++j)
+            Subrec_obj * p_subr_old = p_subrec[i];
+
+            /* Check if subrecord already in list */
+            if( strcmp(p_subr_old->subrec.name, p_subr_obj->subrec.name) == 0 )
+                break;
+
+            if( strcmp(p_subr_old->subrec.class_name, p_subr_obj->subrec.class_name) != 0)
             {
-                if ( begins_with(p_subr_old->subrec.class_name, dbl_bc_prefixes[j]) )
-                    break;
-            }
-            if(strcmp(p_subr_old->subrec.class_name, p_subr_obj->subrec.class_name) != 0)
-            {
-                // If new element class name, this result is shared
+                /* If new element class name, this result is shared */
                 p_pr->is_shared = TRUE;
             }
         }
@@ -2461,6 +2462,17 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             p_pr->subrecs = p_subrec;
             p_pr->owning_vec_map = p_owning_vec_map;
             p_pr->qty_subrecs++;
+        }
+    }
+
+    if ( !p_pr->is_shared )
+    {
+         /* not shared, so all classes it belongs to must have the same name, so we don't need to loop over srecs*/
+        for( j = 0; j < sizeof(dbl_bc_prefixes)/sizeof(dbl_bc_prefixes[0]); ++j)
+        {
+            /* if the class name all of all srecs is the same, check if it is a bc class and set the menu override */
+            if ( begins_with(p_pr->subrecs[0]->subrec.class_name, dbl_bc_prefixes[j]) )
+                p_pr->menu_override = dbl_bc_menus[j];
         }
     }
 
@@ -2728,11 +2740,13 @@ mili_db_set_results( Analysis *analy )
                      * and match the candidate primal superclass. */
                     cand_primal_sclass = p_rc->primal_superclass == QTY_SCLASS ? j : p_rc->primal_superclass;
 
-                    for ( l = 0; l < analy->qty_srec_fmts; l++ ){
+                    for ( l = 0; l < analy->qty_srec_fmts; l++ )
+                    {
                         p_subrecs = analy->srec_tree[l].subrecs;
                         p_i = (int *) p_pr->srec_map[l].list;
                         subr_qty = p_pr->srec_map[l].qty;
-                        for ( m = 0; m < subr_qty; m++ ){
+                        for ( m = 0; m < subr_qty; m++ )
+                        {
                             subrec_idx = p_i[m];
                             if ( cand_primal_sclass == p_subrecs[subrec_idx].p_object_class->superclass )
                                 counts[l][subrec_idx]++;
@@ -2745,15 +2759,19 @@ mili_db_set_results( Analysis *analy )
                 if( found_th )
                     pr_qty = 0;
 
-                if( pr_qty > 0 ){
-                    for( k = 0; k < analy->qty_srec_fmts; k++ ){
-                        for( l = 0; l < analy->srec_tree[k].qty; l++ ){
+                if( pr_qty > 0 )
+                {
+                    for( k = 0; k < analy->qty_srec_fmts; k++ )
+                    {
+                        for( l = 0; l < analy->srec_tree[k].qty; l++ )
+                        {
                             if( counts[k][l] == pr_qty )
                                 create_derived_results( analy, j, k, l, p_rc, p_dr_ht );
                         }
                     }
                 }
-                else{
+                else
+                {
                     /*
                     * No primal result dependencies for this derived result.  We
                     * need to associate with a subrecord in order to generate a
@@ -2941,8 +2959,11 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
             /* Loop over all subrecords currently associated with this derived_result */
             for(k = 0; k < p_dr->qty_subrecs; k++)
             {
+                if ( p_dr->is_shared ) /* If we've already determined this is shared previously, break */
+                    break;
+
                 /* Check if subrecord already in list */
-                if(strcmp(p_subrec_list[k]->subrec.name, p_subrec->subrec.name) == 0)
+                if ( strcmp(p_subrec_list[k]->subrec.name, p_subrec->subrec.name ) == 0 )
                     break;
 
                 /* Check if "shared" */
@@ -2952,12 +2973,6 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
                 if( p_subrec_list[k]->p_object_class->superclass != G_NODE && p_subrec->p_object_class->superclass != G_NODE )
                 {
                     Subrec_obj * p_subr_old = p_subrec_list[k];
-                    /* Check if "shared", excluding BC srecs so they group appropriately */
-                    for( j = 0; j < sizeof(dbl_bc_prefixes)/sizeof(dbl_bc_prefixes[0]); ++j)
-                    {
-                        if ( begins_with(p_subr_old->subrec.class_name, dbl_bc_prefixes[j]) )
-                            break;
-                    }
                     if ( strcmp(p_subr_old->subrec.class_name, p_subrec->subrec.class_name) != 0 )
                     {
                         // If new element class name, this result is shared
@@ -2987,6 +3002,17 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
                 p_dr->has_indirect = TRUE;
             }
 
+        }
+    }
+
+    if ( !p_dr->is_shared )
+    {
+         /* not shared, so all classes it belongs to must have the same name, so we don't need to loop over srecs */
+        for( j = 0; j < sizeof(dbl_bc_prefixes)/sizeof(dbl_bc_prefixes[0]); ++j)
+        {
+            /* if the class name all of all srecs is the same, check if it is a bc class and set the menu override */
+            if ( begins_with(p_dr->subrecs[0]->subrec.class_name, dbl_bc_prefixes[j]) )
+                p_dr->menu_override = dbl_bc_menus[j];
         }
     }
 

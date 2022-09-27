@@ -157,6 +157,7 @@ typedef struct _primal_result
     List_head *srec_map;        // List of subrec numbers.
     Subrec_obj **subrecs;         // List of Subrec_objs
     int qty_subrecs;
+    const char * menu_override;       // An override for the top-level menu this result is placed in, doesn't override shared
     Bool_type is_shared;        // Is the result shared by multiple element classes
     Bool_type in_vector_array;  // Is the result in a vector array. Used when creating menus.
     int owning_vec_count;
@@ -215,7 +216,8 @@ typedef struct _derived_result
     int srec_id_cnt;
     Subrec_obj **subrecs;         // List of Subrec_objs
     int qty_subrecs;
-    char * group_name; // A name to group this result under in the gui
+    const char * menu_override;       // An override for the top-level menu this result is placed in, doesn't override shared
+    char * group_name;          // A name to group this result under in the gui
     Bool_type is_shared;        // Is the result shared by multiple element classes
     Bool_type in_menu;
     Bool_type has_indirect;
