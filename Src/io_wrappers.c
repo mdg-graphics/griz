@@ -3222,7 +3222,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
             }
         }
 
-        if ( p_subrecs[i].sand )
+        if ( p_subrecs[i].sand && analy->load_sand )
         {
             p_subrec = p_subrecs + i;
 

@@ -2312,13 +2312,15 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     }
 
     /* Read in sand flags */
-    for( i = 0; i < p_sro->qty; i++ ){
-        p_subrec = p_subrecs + i;
-        ec_index = p_subrec->p_object_class->elem_class_index;
-        if( p_subrec->sand ){
-            rval = combine_sand_flags( analy, p_subrec, state_no, p_st->elem_class_sand[ec_index]);
-            if( rval != OK ){
-                fprintf( stderr, "mili_reader_get_state call combine_sand_flags\n");
+    if( analy->load_sand ){
+        for( i = 0; i < p_sro->qty; i++ ){
+            p_subrec = p_subrecs + i;
+            ec_index = p_subrec->p_object_class->elem_class_index;
+            if( p_subrec->sand ){
+                rval = combine_sand_flags( analy, p_subrec, state_no, p_st->elem_class_sand[ec_index]);
+                if( rval != OK ){
+                    fprintf( stderr, "mili_reader_get_state call combine_sand_flags\n");
+                }
             }
         }
     }

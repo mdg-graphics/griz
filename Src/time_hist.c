@@ -3201,6 +3201,9 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
         first_st = p_gs->start_state;
         last_st = p_gs->end_state;
 
+        /* Disable the loading of SAND flags. Never needed when plotting */
+        analy->load_sand = FALSE;
+
         for ( i = first_st; i <= last_st; i++ )
         {
             p_state_rec = analy->srec_tree + srec_fmts[i];
@@ -3277,6 +3280,9 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
             }
         }
     }
+
+    /* Re-enable sand flags */
+    analy->load_sand = FALSE;
 
     analy->cur_result = p_tmp_result;
     analy->cur_state = tmp_state;

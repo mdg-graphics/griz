@@ -1480,6 +1480,8 @@ typedef struct _Analysis
 
     Bool_type old_shell_stresses;
 
+    Bool_type load_sand;
+
     int proc_count;
     Bool_type parallel_read;
 #ifdef HAVE_PARALLEL_READ

@@ -976,6 +976,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 #endif
 
     /* Get the first state */
+    analy->load_sand = TRUE;
     stat = analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, NULL );
     if ( stat != 0 )
         return FALSE;
