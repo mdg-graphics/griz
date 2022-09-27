@@ -78,6 +78,8 @@ extern void fix_title( char *title );
 char        *get_subrecord( Analysis *analy, int num );
 
 int mili_compare_labels( const void *label1, const void *label2 );
+const char * dbl_bc_prefixes[] = { "dbc", "nbc", "cbm", "cbs" };
+
 
 /************************************************************
  * TAG( determine_naming )
@@ -192,8 +194,8 @@ attach_element_set(Analysis *analy,Subrec_obj *subrec_obj,char *name)
    char SetName[32];
    SetName[0] = '\0';
    Htable_entry *p_hte;
-   int status; 
-   
+   int status;
+
    mat_id = 0;
    for(i= strlen(name)-1;i>=0; i--)
    {
@@ -204,18 +206,18 @@ attach_element_set(Analysis *analy,Subrec_obj *subrec_obj,char *name)
            k++;
        }
    }
-   
+
    sprintf(SetName,"IntLabel_es_%d", mat_id);
-   
+
    status = htable_search( analy->Element_sets, SetName, FIND_ENTRY, &p_hte );
-   
+
    if(status != OK)
    {
       return 1;
    }
-   
-   subrec_obj->element_set = (ElementSet*) p_hte->data; 
-   
+
+   subrec_obj->element_set = (ElementSet*) p_hte->data;
+
    return OK;
 }
 
@@ -1664,7 +1666,7 @@ check_degen_tris( MO_class_data *p_tri_class )
 int
 load_element_sets(Analysis *analy)
 {
-    
+
     analy->Element_sets = NULL;
     analy->Element_set_names = NULL;
     analy->es_cnt       = 0;
@@ -1679,13 +1681,13 @@ load_element_sets(Analysis *analy)
             status;
         Htable_entry *p_hte;
         char **wildcard_list;
-    
+
         /* Shell Integration Point Labels */
-        
+
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "IntLabel", "NULL", "NULL",
                       NULL );
-        
+
         wildcard_list=(char**) malloc( num_entries*sizeof(char *));
 
         if(wildcard_list == NULL)
@@ -1696,45 +1698,45 @@ load_element_sets(Analysis *analy)
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "IntLabel", "NULL", "NULL",
                       wildcard_list );
-        
+
         analy->es_cnt = 0;
-        
+
         if ( num_entries>0 )
         {
             analy->Element_set_names = (char**) malloc(num_entries*sizeof(char*));
             analy->Element_sets = htable_create( 151 );
             analy->es_cnt       = num_entries ;
-            
-            
+
+
             for(i = 0; i < num_entries; i++)
             {
                 num_items_read=0;
                 element_set = malloc(sizeof(ElementSet));
-                
+
                 status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
-                                          (void**)& element_set->integration_points, 
+                                          (void**)& element_set->integration_points,
                                           &num_items_read );
-                    
+
                 analy->Element_set_names[i] = (char *) malloc(strlen(wildcard_list[i]) + 1);
                 analy->Element_set_names[i][0] = '\0';
                 strcpy(analy->Element_set_names[i],wildcard_list[i]);
                 element_set->size = num_items_read-1;
                 element_set->material_number = atoi(wildcard_list[i]+label_length);
                 status = htable_search( analy->Element_sets, wildcard_list[i], ENTER_UNIQUE, &p_hte );
-                
+
                 if(status != OK)
                 {
                     popup_dialog(WARNING_POPUP, "ERROR: Unable to add item to Element set hash taable\n");
                     parse_command("quit", analy);
                 }
-                
+
                 p_hte->data = element_set;
-                
+
                 /* We need to determine the middle integration point for the default.*/
                 /* Take the actual number of point used in the simulation to find the middle*/
-                middle = element_set->integration_points[element_set->size]/2.0 + 
+                middle = element_set->integration_points[element_set->size]/2.0 +
                          element_set->integration_points[element_set->size]%2;
-                
+
                 for(j=0;j<element_set->size;j++)
                 {
                    if(middle < element_set->integration_points[j])
@@ -1762,15 +1764,15 @@ load_element_sets(Analysis *analy)
                 }
                 element_set->current_index = element_set->middle_index;
                 element_set->tempIndex = -1;
-                
+
             }
         }
-        
+
         htable_delete_wildcard_list( num_entries, wildcard_list ) ;
         free(wildcard_list);
         wildcard_list = NULL;
     }
-    
+
     return OK;
 }
 
@@ -1851,7 +1853,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
         return OK;
 
     rval = load_element_sets(analy);
-    
+
     /* Loop over srecs */
     for ( i = 0; i < srec_qty; i++ )
     {
@@ -1983,11 +1985,11 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
 
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
                                       srec_qty, svar_names[k], p_sv_ht, analy );
-                
+
                 // Check for old shell stresses
                 if(!strcmp(svar_names[k], "stress_in") || !strcmp(svar_names[k], "stress_mid") || !strcmp(svar_names[k], "stress_out"))
                     analy->old_shell_stresses = TRUE;
-                
+
                 if ( nodal )
                 {
                     if ( strcmp( svar_names[k], "nodpos" ) == 0 )
@@ -2262,10 +2264,10 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     static int first = 0;
     char label[M_MAX_NAME_LEN];
 
-
     // Look up state variable by name and check if it is an element set.
     rval = htable_search( p_sv_ht, p_name, FIND_ENTRY, &p_hte2 );
-    if(rval == OK){
+    if(rval == OK)
+    {
         p_sv = (State_variable *) p_hte2->data;
         es_short_name = determine_naming(p_name, p_sv);
     }
@@ -2299,14 +2301,16 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         p_pr->in_vector_array = FALSE;
 
         /* Assign appropriate long/short name to Primal_result. */
-        if(es_short_name == NULL){
+        if(es_short_name == NULL)
+        {
             /* Not an element set, use existing short/long name */
             p_pr->short_name = (char*)calloc(sizeof(char),strlen(p_sv->short_name)+1);
             strcpy(p_pr->short_name, p_sv->short_name);
             p_pr->long_name = (char*)calloc(sizeof(char),strlen(p_sv->long_name)+1);
             strcpy(p_pr->long_name ,p_sv->long_name);
         }
-        else{
+        else
+        {
             /* Is an element set, check for stress/strain */
             attach_element_set( analy, p_subr_obj, p_name );
             p_pr->short_name = (char*)calloc(sizeof(char),strlen(es_short_name)+1);
@@ -2412,33 +2416,40 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 p_pr->srec_map[srec_id].qty++;
 
                 /* Record the original name of the result */
-                p_pr->original_names_per_subrec = RENEW_N(char*,p_pr->original_names_per_subrec,
-                                                          i,1,"Extending original names");
+                p_pr->original_names_per_subrec = RENEW_N(char*,p_pr->original_names_per_subrec,i,1,"Extending original names");
                 p_pr->original_names_per_subrec[i] = NEW_N(char, strlen(p_name)+1, "Next alternate name");
                 strcpy(  p_pr->original_names_per_subrec[i], p_name);
             }
-
         }
 
         /* Also update list of Subrec_objs and check if primal_result is "shared" */
-        p_subrec = (Subrec_obj **) p_pr->subrecs;
-        p_owning_vec_map = (int*) p_pr->owning_vec_map;
+        p_subrec = p_pr->subrecs;
+        p_owning_vec_map = p_pr->owning_vec_map;
 
         /* Loop over all subrecords currently associated with this primal_result */
-        for(i = 0; i < p_pr->qty_subrecs; i++){
+        for(i = 0; i < p_pr->qty_subrecs; i++)
+        {
+            Subrec_obj * p_subr_old = p_subrec[i];
             /* Check if subrecord already in list */
-            if(strcmp(p_subrec[i]->subrec.name, p_subr_obj->subrec.name) == 0)
+            if(strcmp(p_subr_old->subrec.name, p_subr_obj->subrec.name) == 0)
                 break;
 
-            /* Check if "shared" */
-            if(strcmp(p_subrec[i]->subrec.class_name, p_subr_obj->subrec.class_name) != 0){
+            /* Check if "shared", excluding BC srecs so they group appropriately */
+            for( j = 0; j < sizeof(dbl_bc_prefixes)/sizeof(dbl_bc_prefixes[0]); ++j)
+            {
+                if ( begins_with(p_subr_old->subrec.class_name, dbl_bc_prefixes[j]) )
+                    break;
+            }
+            if(strcmp(p_subr_old->subrec.class_name, p_subr_obj->subrec.class_name) != 0)
+            {
                 // If new element class name, this result is shared
                 p_pr->is_shared = TRUE;
             }
         }
 
         /* if not in list... */
-        if(i == p_pr->qty_subrecs){
+        if(i == p_pr->qty_subrecs)
+        {
             p_subrec = RENEW_N(Subrec_obj*, p_subrec, i, 1, "Extend Subrec_obj list");
             p_subrec[i] = p_subr_obj;
 
@@ -2456,10 +2467,12 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     /* If this is a vector array result, attach element set */
     if( p_pr->var->agg_type == VEC_ARRAY )
         attach_element_set( analy, p_subr_obj, p_pr->short_name );
-    
+
     /* Check for hex strains and update flag in Analysis struct. */
-    if( strcmp(p_pr->short_name, "strain") == 0 ){
-        for(i = 0; i < p_pr->qty_subrecs; i++){
+    if( strcmp(p_pr->short_name, "strain") == 0 )
+    {
+        for(i = 0; i < p_pr->qty_subrecs; i++)
+        {
             if( p_pr->subrecs[i]->p_object_class->superclass == G_HEX )
                 analy->have_hex_strains = TRUE;
         }
@@ -2477,14 +2490,14 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     }
 
     // Handle vector and vector array results and their component svars
-    if(p_pr->owning_vec_count == 0)
+    if( p_pr->owning_vec_count == 0 )
     {
         p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
         p_pr->owning_vector_result[0] = NULL;
-    }else
+    }
+    else
     {
-        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
-                                                        p_pr->owning_vec_count, 1,"Extending vector results");
+        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result, p_pr->owning_vec_count, 1,"Extending vector results");
         p_pr->owning_vector_result[p_pr->owning_vec_count] = NULL;
     }
     if ( p_sv->agg_type == VECTOR || p_sv->agg_type == VEC_ARRAY)
@@ -2550,7 +2563,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     }
     else if ( p_sv->agg_type == ARRAY)
     {
-        // We just need to make sure that the show string given from the 
+        // We just need to make sure that the show string given from the
         // from the menu callback and the input line
         if(p_sv->rank == 1)
         {
@@ -2571,7 +2584,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 {
                     sprintf( label, "%s[%d,%d]", p_pr->short_name, dim_index + 1, array_index + 1 );
                     rval = htable_search( p_primal_ht, label, ENTER_UNIQUE, &p_hte4);
-                    
+
                     if(rval == OK)
                     {
                         p_hte4->data = p_pr;
@@ -2669,7 +2682,7 @@ mili_db_set_results( Analysis *analy )
         }
         if ( j == analy->mesh_qty )
             continue;
-        
+
         for( j = 0; j < QTY_SCLASS; j++ ){
             if( p_rc->valid_superclasses[j] ){
                 for( k = 0; p_rc->primals[k] != NULL; k++ ){
@@ -2703,14 +2716,14 @@ mili_db_set_results( Analysis *analy )
                         else
                             found_th=TRUE;
                     }
-                    
+
                     /* Primal precision must match candidate requirement. */
                     if ( strcmp(p_pr->short_name, "nodpos")
                             && p_rc->single_precision_input
                             && p_pr->var->num_type != G_FLOAT
                             && p_pr->var->num_type != G_FLOAT4 )
                         continue;
-                    
+
                     /* Increment counts for subrecords which contain primal result
                      * and match the candidate primal superclass. */
                     cand_primal_sclass = p_rc->primal_superclass == QTY_SCLASS ? j : p_rc->primal_superclass;
@@ -2731,7 +2744,7 @@ mili_db_set_results( Analysis *analy )
 
                 if( found_th )
                     pr_qty = 0;
-                
+
                 if( pr_qty > 0 ){
                     for( k = 0; k < analy->qty_srec_fmts; k++ ){
                         for( l = 0; l < analy->srec_tree[k].qty; l++ ){
@@ -2936,12 +2949,20 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
                 /* If the superclass is Node, do not mark as shared -- No nodal results are shared and
                  * this prevents results derived from nodal positions (strains) from incorrectly being
                  * put in the shared menu. */
-                if( p_subrec_list[k]->p_object_class->superclass != G_NODE
-                    && p_subrec->p_object_class->superclass != G_NODE
-                    && strcmp(p_subrec_list[k]->subrec.class_name, p_subrec->subrec.class_name) != 0)
+                if( p_subrec_list[k]->p_object_class->superclass != G_NODE && p_subrec->p_object_class->superclass != G_NODE )
                 {
-                    // If new element class name, this result is shared
-                    p_dr->is_shared = TRUE;
+                    Subrec_obj * p_subr_old = p_subrec_list[k];
+                    /* Check if "shared", excluding BC srecs so they group appropriately */
+                    for( j = 0; j < sizeof(dbl_bc_prefixes)/sizeof(dbl_bc_prefixes[0]); ++j)
+                    {
+                        if ( begins_with(p_subr_old->subrec.class_name, dbl_bc_prefixes[j]) )
+                            break;
+                    }
+                    if ( strcmp(p_subr_old->subrec.class_name, p_subrec->subrec.class_name) != 0 )
+                    {
+                        // If new element class name, this result is shared
+                        p_dr->is_shared = TRUE;
+                    }
                 }
             }
 
@@ -5366,7 +5387,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
                         rval );
         return GRIZ_FAIL;
     }
-   
+
     if ( svar_qty > 0 )
     {
         if ( svar_qty < 100 )

@@ -1446,8 +1446,27 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
     }
     else
     {
-        /* Only one class, so submenu name is class name. */
-        sprintf( label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
+        if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "dbc" ) )
+        {
+            sprintf( label_buffer, "%s (%s)", "Dirichlet BC (shared)", "dbc" );
+        }
+        else if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "nbc" ) )
+        {
+            sprintf( label_buffer, "%s (%s)", "Neumann BC (shared)", "nbc" );
+        }
+        else if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "cbm" ) )
+        {
+            sprintf( label_buffer, "%s (%s)", "Contact Master (shared)", "cbm" );
+        }
+        else if( begins_with( p_pr->subrecs[0]->p_object_class->short_name, "cbs" ) )
+        {
+            sprintf( label_buffer, "%s (%s)", "Contact Slave (shared)", "cbs" );
+        }
+        else
+        {
+            /* Only one class, so submenu name is class name. */
+            sprintf( label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
+        }
     }
 
     // ensure the submenu exists
@@ -1620,8 +1639,27 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
         }
         else
         {
-            /* Only one class, so submenu name is class name. */
-            sprintf( label_buffer, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
+            if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "dbc" ) )
+            {
+                sprintf( label_buffer, "%s (%s)", "Dirichlet BC (shared)", "dbc" );
+            }
+            else if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "nbc" ) )
+            {
+                sprintf( label_buffer, "%s (%s)", "Neumann BC (shared)", "nbc" );
+            }
+            else if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "cbm" ) )
+            {
+                sprintf( label_buffer, "%s (%s)", "Contact Master (shared)", "cbm" );
+            }
+            else if( begins_with( p_dr->subrecs[0]->p_object_class->short_name, "cbs" ) )
+            {
+                sprintf( label_buffer, "%s (%s)", "Contact Slave (shared)", "cbs" );
+            }
+            else
+            {
+                /* Only one class, so submenu name is class name. */
+                sprintf( label_buffer, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
+            }
         }
         int child_idx = -1;
         Widget submenu;
@@ -1631,7 +1669,7 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
             submenu = add_pulldown_submenu( parent, label_buffer );
         else
             XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
-        
+
         // If derived results are group together create another submenu
         if( p_dr->group_name != NULL ){
             if( !find_labelled_child( submenu, p_dr->group_name, &submenu_cascade, &child_idx))
