@@ -142,6 +142,7 @@ mili_reader_query( int state, char* class_name, int ipt, char *result ){
              * py_Labels = Py_None,
              * py_State,
              * py_Ipts,
+             * py_Subrec = Py_None,
              * py_WriteData = Py_None;
     PyObject * py_QueryReturn,
              * py_FuncName,
@@ -166,6 +167,7 @@ mili_reader_query( int state, char* class_name, int ipt, char *result ){
         Py_INCREF( py_Material );
         Py_INCREF( py_Labels );
         Py_INCREF( py_WriteData );
+        Py_INCREF( py_Subrec );
 
         /* Build list of state variable names. */
         py_SvarNames = PyList_New(1);
@@ -194,7 +196,7 @@ mili_reader_query( int state, char* class_name, int ipt, char *result ){
         py_FuncName = string_to_pyobject( QUERY_FUNCTION );
         py_QueryReturn = PyObject_CallMethodObjArgs( p_analysis->py_MiliDB, py_FuncName, py_SvarNames,
                                                     py_ClassName, py_Material, py_Labels,
-                                                    py_State, py_Ipts, py_WriteData, NULL );
+                                                    py_State, py_Ipts, py_Subrec, py_WriteData, NULL );
 
         /* Free python refereces */
         Py_DECREF( py_TempStr );
@@ -447,9 +449,7 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     State_rec_obj* p_sro;
     Subrec_obj* p_subrec;
     PyObject * py_QueryReturn;
-    PyObject * py_NewResultFlag;
     PyObject * py_Result;
-    Bool_type new_result_flag;
 
     /* Get analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
@@ -504,10 +504,152 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     printf("[mili_reader_get_results] elapsed = %f\n", elapsed);
 #endif
 
-
     return rval;
 }
 
+
+/* TAG( mili_reader_load_stress_strain_components )
+ *
+ * Query the Mili reader for the stress or strain components from a specified subrecord.
+ * NOTE: This function makes a lot of assumptions about how the data should be loaded in
+ *       and really only designed to be used for the compute_es_... function in stress.c and strain.c
+ */
+extern int
+mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type is_stress, Bool_type is_pressure, float** data )
+{
+    int i;
+    int rval;
+    int srec_id;
+    int elem_class_idx;
+    int ipt;
+    Bool_type node_result;
+    char* subrecord_name;
+    char* class_name;
+    char* result;
+    State_rec_obj* p_sro;
+    Subrec_obj* p_subrec;
+    PyObject * py_Result;
+    int num_components;
+    const char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
+    const char* strain_components[6] = {"ex", "ey", "ez", "exy", "eyz", "ezx"};
+
+    /* Arguments we need for mili reader query function */
+    PyObject * py_SvarNames,
+             * py_ClassName,
+             * py_Material = Py_None,
+             * py_Labels = Py_None,
+             * py_State,
+             * py_Ipts,
+             * py_Subrec,
+             * py_WriteData = Py_None;
+    PyObject * py_QueryReturn,
+             * py_FuncName,
+             * py_TempStr;
+
+    /* Get analysis pointer */
+    Analysis * p_analysis = get_analy_ptr();
+
+#ifdef MILI_READER_TIMING
+    clock_t start, end;
+    double elapsed;
+    start = clock();
+#endif
+
+    /* Get srec id and subrecord name */
+    srec_id = p_analysis->state_srec_fmt_ids[state-1];
+    p_sro = p_analysis->srec_tree + srec_id;
+    p_subrec = p_sro->subrecs + subrec_id;
+    subrecord_name = p_subrec->subrec.name;
+    class_name = p_subrec->p_object_class->short_name;
+
+    /* Check for integration point */
+    if( p_subrec->element_set ){
+        if(p_subrec->element_set->tempIndex < 0)
+            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->current_index];
+        else
+            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->tempIndex];
+        py_Ipts = Py_BuildValue("i", ipt);
+        PyErr_Clear();
+    }
+    else{
+        py_Ipts = Py_None;
+        Py_INCREF( py_Ipts );
+    }
+
+    /* Increment reference counters for Py_None */
+    Py_INCREF( py_Material );
+    Py_INCREF( py_Labels );
+    Py_INCREF( py_WriteData );
+
+    /* Build list of state variable names. */
+    num_components = (is_pressure) ? 3 : 6;
+    py_SvarNames = PyList_New(num_components);
+    for(i = 0; i < num_components; i++){
+        if( is_stress )
+            py_TempStr = string_to_pyobject(stress_components[i]);
+        else
+            py_TempStr = string_to_pyobject(strain_components[i]);
+        PyList_SetItem(py_SvarNames, i, py_TempStr);
+    }
+
+    py_ClassName = string_to_pyobject(class_name);
+
+    py_Subrec = string_to_pyobject(subrecord_name);
+
+    /* Convert state number to python integer */
+    py_State = Py_BuildValue("i", state);
+    /* Do Not Remove this: For some reason the above function call causes an error,
+    * even though it correctly returns the expected pyobject*. We need to clear the error
+    * Indicator so that the next call does not fail because of it. */
+    PyErr_Clear();
+
+    /* Get function name and call query */
+    py_FuncName = string_to_pyobject( QUERY_FUNCTION );
+    py_QueryReturn = PyObject_CallMethodObjArgs( p_analysis->py_MiliDB, py_FuncName, py_SvarNames,
+                                                py_ClassName, py_Material, py_Labels,
+                                                py_State, py_Ipts, py_Subrec, py_WriteData, NULL );
+    if( py_QueryReturn == NULL ){
+        PyErr_Print();
+        printf("\n");
+        return OK;
+    }
+    /* Parse out stress and strain values and store in correct locations
+     * Assumption:
+     *      data[0][0:elem_qty] = sx/ex
+     *      data[1][0:elem_qty] = sy/ey
+     *      data[2][0:elem_qty] = sz/ez
+     *      data[3][0:elem_qty] = sxy/exy
+     *      data[4][0:elem_qty] = syz/eyz
+     *      data[5][0:elem_qty] = szx/ezx
+     */
+    /* Loop over processors and get each result */
+
+    for( i = 0; i < num_components; i++ ){
+        result = (is_stress) ? stress_components[i] : strain_components[i];
+        elem_class_idx = p_subrec->p_object_class->elem_class_index;
+        rval = mili_reader_extract_query_data( py_QueryReturn, result, state, subrecord_name, FALSE,
+                                               elem_class_idx, (void*) data[i] );
+    }
+
+    /* Free python refereces */
+    Py_DECREF( py_TempStr );
+    Py_DECREF( py_FuncName );
+    Py_DECREF( py_SvarNames );
+    Py_DECREF( py_ClassName );
+    Py_DECREF( py_Material );
+    Py_DECREF( py_Labels );
+    Py_DECREF( py_State );
+    Py_DECREF( py_Ipts );
+    Py_DECREF( py_WriteData );
+
+#ifdef MILI_READER_TIMING
+    end = clock();
+    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("[mili_reader_load_stress_strain_components] elapsed = %f\n", elapsed);
+#endif
+
+    return OK;
+}
 
 /* TAG( cmpfunc )
  *

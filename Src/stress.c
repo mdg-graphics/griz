@@ -1153,21 +1153,34 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
         }
     }
 
+
     // Look up element set and gather stress components
     rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
     if(rval == OK){
         primal_result = (Primal_result*) p_hte->data;
 
-        es_name = get_es_name(primal_result, subrec);
+        if( !analy->parallel_read){
+            es_name = get_es_name(primal_result, subrec);
+            // Gather all the stress components.
+            ipt_index = p_subrec->element_set->current_index + 1;
+            for( i = 0; i < 3; i++ ){
+                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                    analy->parallel_read, FALSE);
+                es_primals[1] = NULL;
+                analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
+            }
 
-        // Gather all the stress components.
-        ipt_index = p_subrec->element_set->current_index + 1;
-        for( i = 0; i < 3; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
-                                                                analy->parallel_read, FALSE);
-            es_primals[1] = NULL;
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
+            /* Free dynamically allocated strings */
+            if( es_primals[0] )
+                free(es_primals[0]);
+            if( es_name )
+                free(es_name);
         }
+        #ifdef HAVE_PARALLEL_READ
+        else{
+            mili_reader_load_stress_strain_components( analy->cur_state+1, subrec, TRUE, TRUE, stresses );
+        }
+        #endif
     }
 
     /* all three result buffers should now be populated with the raw data needed to calculate pressure
@@ -1227,12 +1240,6 @@ compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
     /* free stress result arrays */
     for(i = 0; i < 3; i++)
         free(stresses[i]);
-
-    /* Free dynamically allocated strings */
-    if( es_primals[0] )
-        free(es_primals[0]);
-    if( es_name )
-        free(es_name);
 }
 
 /*******************************
@@ -1388,15 +1395,28 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     rval = htable_search(analy->primal_results, primals[0], FIND_ENTRY, &p_hte);
     if(rval == OK){
         primal_result = (Primal_result*) p_hte->data;
-        es_name = get_es_name(primal_result, subrec);
-        // Gather all the stress components.
-        ipt_index = p_subrec->element_set->current_index + 1;
-        for( i = 0; i < 6; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
-                                                                analy->parallel_read, FALSE);
-            es_primals[1] = NULL;
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
+
+        if( !analy->parallel_read ){
+            es_name = get_es_name(primal_result, subrec);
+            // Gather all the stress components.
+            ipt_index = p_subrec->element_set->current_index + 1;
+            for( i = 0; i < 6; i++ ){
+                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                    analy->parallel_read, FALSE);
+                es_primals[1] = NULL;
+                analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
+            }
+            /* Free dynamically allocated strings */
+            if( es_primals[0] )
+                free(es_primals[0]);
+            if( es_name )
+                free(es_name);
         }
+        #ifdef HAVE_PARALLEL_READ
+        else{
+            mili_reader_load_stress_strain_components( analy->cur_state+1, subrec, TRUE, FALSE, stresses );
+        }
+        #endif
     }
 
     for(i = 0; i < obj_qty; i++)
@@ -1458,12 +1478,6 @@ void compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpol
     /* free stress result arrays */
     for(i = 0; i < 6; i++)
         free(stresses[i]);
-
-    /* Free dynamically allocated strings */
-    if( es_primals[0] )
-        free(es_primals[0]);
-    if( es_name )
-        free(es_name);
 }
 
 /************************************************************
@@ -1637,16 +1651,29 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
     if(rval == OK){
         primal_result = (Primal_result*) p_hte->data;
 
-        es_name = get_es_name(primal_result, subrec);
+        if( !analy->parallel_read ){
+            es_name = get_es_name(primal_result, subrec);
 
-        // Gather all the stress components.
-        ipt_index = p_subrec->element_set->current_index + 1;
-        for( i = 0; i < 6; i++ ){
-            es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
-                                                                analy->parallel_read, FALSE);
-            es_primals[1] = NULL;
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
+            // Gather all the stress components.
+            ipt_index = p_subrec->element_set->current_index + 1;
+            for( i = 0; i < 6; i++ ){
+                es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
+                                                                    analy->parallel_read, FALSE);
+                es_primals[1] = NULL;
+                analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, es_primals, (void *) stresses[i] );
+            }
+
+            /* Free dynamically allocated strings */
+            if( es_primals[0] )
+                free(es_primals[0]);
+            if( es_name )
+                free(es_name);
         }
+        #ifdef HAVE_PARALLEL_READ
+        else{
+            mili_reader_load_stress_strain_components( analy->cur_state+1, subrec, TRUE, FALSE, stresses );
+        }
+        #endif
     }
  
     /* Map result onto a numeric index. */
@@ -1785,12 +1812,6 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
     /* free stress result arrays */
     for(i = 0; i < 6; i++)
         free(stresses[i]);
-
-    /* Free dynamically allocated strings */
-    if( es_primals[0] )
-        free(es_primals[0]);
-    if( es_name )
-        free(es_name);
 }
 
 /************************************************************

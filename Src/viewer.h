@@ -2030,6 +2030,7 @@ extern int mili_reader_read_param_array( int, char*, void** );
 extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
 extern Bool_type combine_nodpos( Analysis*, int, void* );
 extern Bool_type combine_sand_flags( Analysis*, Subrec_obj*, int, void* );
+extern int mili_reader_load_stress_strain_components( int, int, Bool_type, Bool_type, float** );
 #endif
 
 /* Mili wrappers. */
