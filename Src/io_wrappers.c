@@ -2432,9 +2432,6 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         /* Loop over all subrecords currently associated with this primal_result */
         for(i = 0; i < p_pr->qty_subrecs; i++)
         {
-            if( p_pr->is_shared ) /* If we've already determined this is shared, we're done */
-                break;
-
             Subrec_obj * p_subr_old = p_subrec[i];
 
             /* Check if subrecord already in list */
@@ -2548,10 +2545,9 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                     }
                     /* If not, add it */
                     mapped_index = find_matching_subrec_index( subrec_id, p_pr );
-                    if( l == p_pr->owning_vec_count || mapped_index == p_pr->owning_vec_count )
+                    if( l == p_pr->owning_vec_count )
                     {
                         p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,p_pr->owning_vec_count,1,"Extending vector results");
-                        p_pr->owning_vec_map = RENEW_N( int, p_pr->owning_vec_map,p_pr->owning_vec_count,1,"PR owning vector result map" );
                         p_pr->owning_vector_result[p_pr->owning_vec_count] = (struct _primal_result*)owning_pr;
                         /* Lookup subrec index and add to map */
                         p_pr->owning_vec_map[mapped_index] = p_pr->owning_vec_count;
@@ -2960,9 +2956,6 @@ create_derived_results( Analysis *analy, int superclass, int srec_id, int subrec
             /* Loop over all subrecords currently associated with this derived_result */
             for(k = 0; k < p_dr->qty_subrecs; k++)
             {
-                if ( p_dr->is_shared ) /* If we've already determined this is shared previously, break */
-                    break;
-
                 /* Check if subrecord already in list */
                 if ( strcmp(p_subrec_list[k]->subrec.name, p_subrec->subrec.name ) == 0 )
                     break;

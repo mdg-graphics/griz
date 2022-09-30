@@ -8424,7 +8424,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     Famid fid;
     int sclass_cnt=0;
 
-    int status=OK;
+    int status = OK;
 
     db_ident = analy->db_ident;
     p_mesh   = MESH_P( analy );
