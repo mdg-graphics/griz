@@ -2537,28 +2537,29 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                     p_pr->owning_vec_map[mapped_index] = p_pr->owning_vec_count;
                     /* Increment number of owning vectors */
                     p_pr->owning_vec_count++;
-                }else
+                }
+                else
                 {
                     /* Check if owning_pr already recorded */
-                    for( l = 0; l < p_pr->owning_vec_count; l++){
-                        if( p_pr->owning_vector_result[l] == owning_pr)
+                    for( l = 0; l < p_pr->owning_vec_count; l++)
+                    {
+                        if( p_pr->owning_vector_result[l] == owning_pr )
                             break;
                     }
                     /* If not, add it */
-                    if( l == p_pr->owning_vec_count){
-                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
-                                                                p_pr->owning_vec_count, 1,
-                                                                "Extending vector results");
+                    mapped_index = find_matching_subrec_index( subrec_id, p_pr );
+                    if( l == p_pr->owning_vec_count || mapped_index == p_pr->owning_vec_count )
+                    {
+                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,p_pr->owning_vec_count,1,"Extending vector results");
+                        p_pr->owning_vec_map = RENEW_N( int, p_pr->owning_vec_map,p_pr->owning_vec_count,1,"PR owning vector result map" );
                         p_pr->owning_vector_result[p_pr->owning_vec_count] = (struct _primal_result*)owning_pr;
                         /* Lookup subrec index and add to map */
-                        mapped_index = find_matching_subrec_index( subrec_id, p_pr );
                         p_pr->owning_vec_map[mapped_index] = p_pr->owning_vec_count;
                         /* Increment number of owning vectors */
                         p_pr->owning_vec_count++;
                     }
                     else
                     {
-                        mapped_index = find_matching_subrec_index( subrec_id, p_pr );
                         p_pr->owning_vec_map[mapped_index] = l;
                     }
                 }
