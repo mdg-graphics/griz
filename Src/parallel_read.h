@@ -8,6 +8,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "misc.h"
+
 #define OK 0
 #define NOT_OK 1
 
@@ -36,6 +38,21 @@ const int QTY_CONNECTS[] = { 0, 0, 2, 3, 4, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10 };
 /* Error messages */
 const char * MR_FAILED_IMPORT = "\nFailed to import the Mili Reader module.\n";
 const char * MR_DEFAULT_FAILED = "\n%s calling Mili Python (%s) Failed.\n";
+
+
+/*****************************************************************
+ * TAG( check_running_on_login_node )
+ *
+ * Check if Griz is running on a login node.
+ */
+Bool_type
+check_running_on_login_node()
+{
+    const char* SLURM = "SLURM_JOBID";
+    const char* LSF = "LSF_JOBID";
+    Bool_type on_login_node = !getenv(SLURM) && !getenv(LSF);
+    return on_login_node;
+}
 
 
 /*****************************************************************

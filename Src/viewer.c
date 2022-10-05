@@ -886,7 +886,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     /* If this is a parallel read, Initialize python */
 #ifdef HAVE_PARALLEL_READ
     if ( analy->parallel_read ){
-        if( !griz_python_setup( analy ) ){
+        if( check_running_on_login_node() )
+        {
+            popup_dialog( WARNING_POPUP, "Parallel read NOT available when running on Login Node." );
+            return FALSE;
+        }
+        if( !griz_python_setup( analy ) )
+        {
             popup_dialog( WARNING_POPUP, "Failed to load Mili Reader Module." );
             return FALSE;
         }
