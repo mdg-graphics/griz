@@ -331,7 +331,14 @@ mili_db_get_geom( Analysis *analy )
         M_HEX,
         M_PARTICLE
     };
+    static int simple_sclasses[] =
+    {
+        M_UNIT,
+        M_MAT,
+        M_MESH
+    };
     int qty_esclasses, elem_class_count;
+    int qty_simple_sclasses;
     static int qty_connects[] =
     {
         2, 3, 3, 4, 4, 5, 6, 8, 1
@@ -354,8 +361,7 @@ mili_db_get_geom( Analysis *analy )
 
     if ( analy->mesh_table != NULL )
     {
-        popup_dialog( WARNING_POPUP,
-                      "Mesh table pointer not NULL at initialization." );
+        popup_dialog( WARNING_POPUP, "Mesh table pointer not NULL at initialization." );
         return 1;
     }
 
@@ -403,8 +409,7 @@ mili_db_get_geom( Analysis *analy )
 
         int_args[0] = i;
         int_args[1] = M_NODE;
-        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args,
-                                NULL, (void *) &qty_classes );
+        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args, NULL, (void *) &qty_classes );
         if ( rval != 0 )
         {
             mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
@@ -415,12 +420,10 @@ mili_db_get_geom( Analysis *analy )
 
         for ( j = 0; j < qty_classes; j++ )
         {
-            rval = mc_get_class_info( dbid, i, M_NODE, j, short_name, long_name,
-                                      &obj_qty );
+            rval = mc_get_class_info( dbid, i, M_NODE, j, short_name, long_name, &obj_qty );
             if ( rval != 0 )
             {
-                mc_print_error( "mili_db_get_geom() call mc_get_class_info()",
-                                rval );
+                mc_print_error( "mili_db_get_geom() call mc_get_class_info()", rval );
                 return GRIZ_FAIL;
             }
 
@@ -428,7 +431,6 @@ mili_db_get_geom( Analysis *analy )
             htable_search( p_ht, short_name, ENTER_ALWAYS, &p_hte );
 
             p_mocd = NEW( MO_class_data, "Nodes geom table entry" );
-
             p_mocd->mesh_id = i;
             griz_str_dup( &p_mocd->short_name, short_name );
             griz_str_dup( &p_mocd->long_name, long_name );
@@ -436,11 +438,9 @@ mili_db_get_geom( Analysis *analy )
             p_mocd->elem_class_index = -1;
             p_mocd->qty = obj_qty;
             if ( dims == 3 )
-                p_mocd->objects.nodes3d = NEW_N( GVec3D, obj_qty,
-                                                 "3D node coord array" );
+                p_mocd->objects.nodes3d = NEW_N( GVec3D, obj_qty, "3D node coord array" );
             else
-                p_mocd->objects.nodes2d = NEW_N( GVec2D, obj_qty,
-                                                 "2D node coord array" );
+                p_mocd->objects.nodes2d = NEW_N( GVec2D, obj_qty, "2D node coord array" );
             p_mocd->objects.nodes = NEW_N(float, obj_qty*3, "node positions");
 
             p_hte->data = (void *) p_mocd;
@@ -451,12 +451,10 @@ mili_db_get_geom( Analysis *analy )
 #endif
 
             /* Now load the coordinates array. */
-            rval = mc_load_nodes( dbid, i, short_name,
-                                  (void *) p_mocd->objects.nodes );
+            rval = mc_load_nodes( dbid, i, short_name, (void *) p_mocd->objects.nodes );
             if ( rval != 0 )
             {
-                mc_print_error( "mili_db_get_geom() call mc_load_nodes()",
-                                rval );
+                mc_print_error( "mili_db_get_geom() call mc_load_nodes()", rval );
                 return GRIZ_FAIL;
             }
 
@@ -494,7 +492,7 @@ mili_db_get_geom( Analysis *analy )
                 if ( status!= OK )
                     p_mocd->labels_found = FALSE;
 
-                if ( status == OK && block_qty> 0 )
+                if ( status == OK && block_qty > 0 )
                 {
                     /* Allocate space for object labels  */
                     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
@@ -506,9 +504,7 @@ mili_db_get_geom( Analysis *analy )
                         popup_fatal( "Unable to allocate labels index on class load" );
 
                     p_mocd->labels_found = TRUE;
-                    for (obj_id=0;
-                            obj_id<p_mocd->qty;
-                            obj_id++)
+                    for( obj_id = 0; obj_id < p_mocd->qty; obj_id++ )
                     {
                         p_mocd->labels[obj_id].local_id  = obj_id;
                         p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
@@ -519,8 +515,7 @@ mili_db_get_geom( Analysis *analy )
                     }
 
                     /* Sort the labels */
-                    qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                           mili_compare_labels);
+                    qsort( p_mocd->labels, obj_qty, sizeof(MO_class_labels), mili_compare_labels );
 
                     /* Create a mapping for the 1-n label index */
                     for (obj_id = 0; obj_id < obj_qty; obj_id++)
@@ -554,9 +549,7 @@ mili_db_get_geom( Analysis *analy )
 
                     p_mocd->labels_found = TRUE;
 
-                    for (obj_id=0;
-                            obj_id<p_mocd->qty;
-                            obj_id++)
+                    for ( obj_id = 0; obj_id < p_mocd->qty; obj_id++ )
                     {
                         p_mocd->labels[obj_id].local_id  = obj_id;
                         p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
@@ -567,20 +560,18 @@ mili_db_get_geom( Analysis *analy )
                     }
 
                     /* Sort the labels */
-                    qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), mili_compare_labels);
+                    qsort( p_mocd->labels, obj_qty, sizeof(MO_class_labels), mili_compare_labels );
 
                     /* Create a mapping for the 1-n label index */
 
-                    for (obj_id = 0; obj_id < obj_qty; obj_id++)
+                    for( obj_id = 0; obj_id < obj_qty; obj_id++ )
                         p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
-
 
                 }
 
                 p_mocd->label_blocking.block_qty = 0;
 
-                if ( p_mocd->labels_found &&
-                        block_qty>0 && block_range )
+                if ( p_mocd->labels_found && block_qty > 0 && block_range )
                 {
                     /* Construct the Label Blocking table of contents */
                     p_mocd->label_blocking.block_qty           = block_qty;
@@ -611,10 +602,7 @@ mili_db_get_geom( Analysis *analy )
             /* Update the mesh references by superclass. */
             p_lh = p_md->classes_by_sclass + M_NODE;
             mo_classes = (MO_class_data **) p_lh->list;
-            mo_classes = (void *)
-                         RENEW_N( MO_class_data *,
-                                  mo_classes, p_lh->qty, 1,
-                                  "Extend node sclass array" );
+            mo_classes = (void *) RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1, "Extend node sclass array" );
             mo_classes[p_lh->qty] = p_mocd;
             p_lh->qty++;
             p_lh->list = (void *) mo_classes;
@@ -622,11 +610,7 @@ mili_db_get_geom( Analysis *analy )
 
         if ( !have_Nodal )
         {
-            popup_dialog( WARNING_POPUP,
-                          "Node object classs not found \"node\"." );
-
-            /* htable_delete( p_ht, delete_mo_class_data, TRUE );
-               return OK; */
+            popup_dialog( WARNING_POPUP, "Node object classs not found \"node\"." );
 
             /* No nodal or element data in this problem so create a
              * fake nodal class.
@@ -641,8 +625,7 @@ mili_db_get_geom( Analysis *analy )
             p_mocd->qty = 0;
 
             /* Allocate the data buffer for I/O and result derivation. */
-            p_mocd->data_buffer = NEW_N( float, 10000,
-                                         "Class data buffer" );
+            p_mocd->data_buffer = NEW_N( float, 10000, "Class data buffer" );
 
             /* Keep a reference to node geometry handy. */
             p_md->node_geom = p_mocd;
@@ -664,24 +647,19 @@ mili_db_get_geom( Analysis *analy )
         for ( j = 0; j < qty_esclasses; j++ )
         {
             int_args[1] = elem_sclasses[j];
-            rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS,
-                                    (void *) int_args, NULL,
-                                    (void *) &qty_classes );
+            rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args, NULL, (void *) &qty_classes );
             if ( rval != 0 )
             {
-                mc_print_error( "mili_db_get_geom() call mc_query_family()",
-                                rval );
+                mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
                 return GRIZ_FAIL;
             }
 
             for ( k = 0; k < qty_classes; k++ )
             {
-                rval = mc_get_class_info( dbid, i, elem_sclasses[j], k,
-                                          short_name, long_name, &obj_qty );
+                rval = mc_get_class_info( dbid, i, elem_sclasses[j], k, short_name, long_name, &obj_qty );
                 if ( rval != 0 )
                 {
-                    mc_print_error( "mili_db_get_geom() call "
-                                    "mc_get_class_info()", rval );
+                    mc_print_error( "mili_db_get_geom() call mc_get_class_info()", rval );
                     return GRIZ_FAIL;
                 }
 
@@ -704,26 +682,22 @@ mili_db_get_geom( Analysis *analy )
                 p_ed = NEW( Elem_data, "Element conn struct" );
 
                 p_mocd->objects.elems = p_ed;
-                p_ed->nodes = NEW_N( int, obj_qty * qty_connects[j],
-                                     "Element connectivities" );
+                p_ed->nodes = NEW_N( int, obj_qty * qty_connects[j], "Element connectivities" );
                 p_ed->mat    = NEW_N( int, obj_qty, "Element materials" );
                 p_ed->part   = NEW_N( int, obj_qty, "Element parts" );
                 p_ed->volume = NULL;
 
                 /* Allocate the data buffer for I/O and result derivation. */
-                p_mocd->data_buffer = NEW_N( float, obj_qty,
-                                             "Class data buffer" );
+                p_mocd->data_buffer = NEW_N( float, obj_qty, "Class data buffer" );
                 if ( p_mocd->data_buffer == NULL )
                     popup_fatal( "Unable to alloc data buffer on class load" );
 
                 p_hte->data = (void *) p_mocd;
 
-                rval = mc_load_conns( dbid, i, short_name, p_ed->nodes,
-                                      p_ed->mat, p_ed->part );
+                rval = mc_load_conns( dbid, i, short_name, p_ed->nodes, p_ed->mat, p_ed->part );
                 if ( rval != 0 )
                 {
-                    mc_print_error( "mili_db_get_geom() call "
-                                    "mc_load_conns()", rval );
+                    mc_print_error( "mili_db_get_geom() call mc_load_conns()", rval );
                     return GRIZ_FAIL;
                 }
 
@@ -754,11 +728,9 @@ mili_db_get_geom( Analysis *analy )
                         popup_fatal( "Unable to allocate labels index on class load" );
 
                     p_mocd->labels_found = TRUE;
-                    for (obj_id=0;
-                            obj_id<p_mocd->qty;
-                            obj_id++)
+                    for ( obj_id = 0; obj_id < p_mocd->qty; obj_id++ )
                     {
-                        p_mocd->labels[obj_id].local_id  = temp_elems[obj_id]-1;
+                        p_mocd->labels[obj_id].local_id  = temp_elems[obj_id] - 1;
                         p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
 
                         if ( temp_labels[obj_id] > p_mocd->labels_max )
@@ -768,21 +740,14 @@ mili_db_get_geom( Analysis *analy )
                     }
 
                     /* Sort the labels */
+                    qsort( p_mocd->labels, obj_qty, sizeof(MO_class_labels), mili_compare_labels );
 
-                    /*qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                          (void *) mili_compare_labels); */
-
-                    qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                          mili_compare_labels);
                     /* Create a mapping for the 1-n label index */
-
-                    for (obj_id=0;
-                            obj_id<obj_qty;
-                            obj_id++)
+                    for( obj_id = 0; obj_id < obj_qty; obj_id++ )
                     {
                         p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
                         mat_index = p_mocd->labels[obj_id].local_id;
-                        if ( p_mocd->labels[obj_id].local_id<0 || p_mocd->labels[obj_id].local_id>=obj_qty )
+                        if ( p_mocd->labels[obj_id].local_id < 0 || p_mocd->labels[obj_id].local_id >= obj_qty )
                             mat_index = p_mocd->labels[obj_id].local_id;
                     }
                 }
@@ -796,7 +761,7 @@ mili_db_get_geom( Analysis *analy )
                         popup_fatal( "Unable to allocate block_range" );
                     }
 
-                    for(index = 0; index < obj_qty; index++)
+                    for( index = 0; index < obj_qty; index++ )
                     {
                         temp_labels[index] = index + 1;
                         temp_elems[index] = index + 1;
@@ -816,11 +781,9 @@ mili_db_get_geom( Analysis *analy )
                         popup_fatal( "Unable to allocate labels index on class load" );
 
 
-                    for (obj_id=0;
-                            obj_id<p_mocd->qty;
-                            obj_id++)
+                    for ( obj_id = 0; obj_id < p_mocd->qty; obj_id++ )
                     {
-                        p_mocd->labels[obj_id].local_id  = temp_elems[obj_id]-1;
+                        p_mocd->labels[obj_id].local_id  = temp_elems[obj_id] - 1;
                         p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
 
                         if ( temp_labels[obj_id] > p_mocd->labels_max )
@@ -849,9 +812,7 @@ mili_db_get_geom( Analysis *analy )
                 /* If we have multiple blocks of labels then identify them
                  * by loading into a structure for later retrieval.
                  */
-
-                if ( p_mocd->labels_found &&
-                        block_qty>0 && block_range )
+                if ( p_mocd->labels_found && block_qty > 0 && block_range )
                 {
                     p_mocd->label_blocking.block_qty           = block_qty;
                     p_mocd->label_blocking.block_total_objects = 0;
@@ -862,16 +823,12 @@ mili_db_get_geom( Analysis *analy )
 
                     block_range_index = 0;
                     mat_index = 0;
-
-                    for ( block_index=0;
-                            block_index<block_qty;
-                            block_index++ )
+                    for ( block_index = 0; block_index < block_qty; block_index++ )
                     {
                         /* Update min and max labels for this block */
-
-                        if (block_range[block_range_index]<p_mocd->label_blocking.block_min)
+                        if (block_range[block_range_index] < p_mocd->label_blocking.block_min)
                             p_mocd->label_blocking.block_min = block_range[block_range_index];
-                        if (block_range[block_range_index]>p_mocd->label_blocking.block_max)
+                        if (block_range[block_range_index] > p_mocd->label_blocking.block_max)
                             p_mocd->label_blocking.block_max = block_range[block_range_index];
 
                         p_mocd->label_blocking.block_objects[block_index].label_start = block_range[block_range_index++];
@@ -884,78 +841,29 @@ mili_db_get_geom( Analysis *analy )
                 }
 
                 /* Element superclass-specific actions. */
-                switch ( elem_sclasses[j] )
+                switch ( p_mocd->superclass )
                 {
                 case M_HEX:
                     check_degen_hexs( p_mocd );
-                    p_lh = p_md->classes_by_sclass + M_HEX;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend hex sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
-
                     break;
-
-                    /* #ifdef HAVE_WEDGE_PYRAMID */
                 case M_WEDGE:
                     popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                   "Checking for degenerate wedge elements",
                                   "is not implemented.", short_name );
-                    p_lh = p_md->classes_by_sclass + M_WEDGE;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend wedge sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
                     break;
                 case M_PYRAMID:
                     popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                   "Checking for degenerate pyramid",
                                   "elements is not implemented.",
                                   short_name );
-                    p_lh = p_md->classes_by_sclass + M_PYRAMID;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend pyramid sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
                     break;
-                    /* #endif */
                 case M_TET:
                     popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                   "Checking for degenerate tet elements",
                                   "is not implemented.", short_name );
-                    p_lh = p_md->classes_by_sclass + M_TET;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend tet sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
                     break;
                 case M_QUAD:
                     check_degen_quads( p_mocd );
-                    p_lh = p_md->classes_by_sclass + M_QUAD;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend quad sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
                     break;
                 case M_TRI:
                     check_degen_tris( p_mocd );
@@ -963,54 +871,19 @@ mili_db_get_geom( Analysis *analy )
                         popup_dialog( INFO_POPUP, "%s\n(class \"%s\").",
                                       "Degenerate tri element(s) detected",
                                       short_name );
-                    p_lh = p_md->classes_by_sclass + M_TRI;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend tri sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
-                    break;
-                case M_BEAM:
-                    p_lh = p_md->classes_by_sclass + M_BEAM;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend beam sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
-                    break;
-                case M_TRUSS:
-                    p_lh = p_md->classes_by_sclass + M_TRUSS;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend truss sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
-                    break;
-                case M_PARTICLE:
-                    p_lh = p_md->classes_by_sclass + M_PARTICLE;
-                    mo_classes = (MO_class_data **) p_lh->list;
-                    mo_classes = (void *)
-                                 RENEW_N( MO_class_data *,
-                                          mo_classes, p_lh->qty, 1,
-                                          "Extend particle sclass array" );
-                    mo_classes[p_lh->qty] = p_mocd;
-                    p_lh->qty++;
-                    p_lh->list = (void *) mo_classes;
-
                     break;
                 default:
                     /* do nothing */
                     ;
                 }
+
+                /* Update Mesh_data classes_by_sclass list for elements superclass */
+                p_lh = p_md->classes_by_sclass + p_mocd->superclass;
+                mo_classes = (MO_class_data **) p_lh->list;
+                mo_classes = (void *) RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1, "Extend Element class sclass array" );
+                mo_classes[p_lh->qty] = p_mocd;
+                p_lh->qty++;
+                p_lh->list = (void *) mo_classes;
             }
         }
 
@@ -1022,15 +895,10 @@ mili_db_get_geom( Analysis *analy )
         /* Update the Mesh_data struct with element class info. */
         p_md->elem_class_qty = elem_class_count;
 
-
-        /*
-         * Load surface mesh object classes.
-         */
-
+        /* Load surface mesh object classes. */
         int_args[0] = i;
         int_args[1] = M_SURFACE;
-        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args,
-                                NULL, (void *) &qty_classes );
+        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args, NULL, (void *) &qty_classes );
         if ( rval != 0 )
         {
             mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
@@ -1038,15 +906,12 @@ mili_db_get_geom( Analysis *analy )
         }
 
         surface_qty = 0;
-
         for ( j = 0; j < qty_classes; j++ )
         {
-            rval = mc_get_class_info( dbid, i, M_SURFACE, j, short_name, long_name,
-                                      &obj_qty );
+            rval = mc_get_class_info( dbid, i, M_SURFACE, j, short_name, long_name, &obj_qty );
             if ( 0 != rval )
             {
-                mc_print_error( "mili_db_get_geom() call mc_get_class_info()",
-                                rval );
+                mc_print_error( "mili_db_get_geom() call mc_get_class_info()", rval );
                 return GRIZ_FAIL;
             }
 
@@ -1071,45 +936,33 @@ mili_db_get_geom( Analysis *analy )
             total_facets = 0;
             for ( k = 0; k < obj_qty; k++ )
             {
-                /*
-                 * NOTE:  Surface id's are "1-based", therefore need to
-                 *        add "+1" to surface id (k)
-                 */
-
-                /* Load each surface data struct */
-
+                /* Load each surface data struct
+                   NOTE:  Surface id's are "1-based", therefore need to add "+1" to surface id (k) */
                 int_args[1] = k + 1;
                 rval = mc_query_family( dbid, QTY_FACETS_IN_SURFACE,
                                         (void *) int_args, short_name,
                                         (void *) &qty_facets );
 
                 total_facets += qty_facets;
-
                 p_mocd->objects.surfaces[k].facet_qty = qty_facets;
-
-                p_mocd->objects.surfaces[k].nodes = NEW_N( int, 4*qty_facets,
-                                                    "Surface connectivities" );
+                p_mocd->objects.surfaces[k].nodes = NEW_N( int, 4*qty_facets, "Surface connectivities" );
                 p_mocd->objects.surfaces[k].surface_id = surface_qty;
                 surface_qty++;
             }
 
             for ( k = 0; k < obj_qty; k++ )
             {
-
                 /* Now load the coordinates array.*/
-                rval = mc_load_surface( dbid, i, k, short_name,
-                                        (void *) p_mocd->objects.surfaces[k].nodes );
+                rval = mc_load_surface( dbid, i, k, short_name, (void *) p_mocd->objects.surfaces[k].nodes );
                 if ( rval != 0 )
                 {
-                    mc_print_error( "mili_db_get_geom() call mc_load_surface()",
-                                    rval );
+                    mc_print_error( "mili_db_get_geom() call mc_load_surface()", rval );
                     return GRIZ_FAIL;
                 }
             }
 
             /* Allocate the data buffer for I/O and result derivation. */
-            p_mocd->data_buffer = NEW_N( float, total_facets,
-                                         "Class data buffer" );
+            p_mocd->data_buffer = NEW_N( float, total_facets, "Class data buffer" );
             if ( p_mocd->data_buffer == NULL )
                 popup_fatal( "Unable to alloc data buffer on class load" );
 
@@ -1120,193 +973,76 @@ mili_db_get_geom( Analysis *analy )
 
             p_hte->data = (void *) p_mocd;
 
-
             /* Update the mesh references by superclass. */
             p_lh = p_md->classes_by_sclass + M_SURFACE;
             mo_classes = (MO_class_data **) p_lh->list;
-            mo_classes = (void *)
-                         RENEW_N( MO_class_data *,
-                                  mo_classes, p_lh->qty, 1,
-                                  "Extend surface sclass array" );
+            mo_classes = (void *) RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1, "Extend surface sclass array" );
             mo_classes[p_lh->qty] = p_mocd;
             p_lh->qty++;
             p_lh->list = (void *) mo_classes;
         }
 
-
-
-        /*
-         * Load simple mesh object classes.
-         */
-
-        /* M_UNIT classes. */
+        /* Load simple mesh object classes. */
+        qty_simple_sclasses = sizeof( simple_sclasses ) / sizeof( simple_sclasses[0] );
 
         int_args[0] = i;
-        int_args[1] = M_UNIT;
-        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args,
-                                NULL, (void *) &qty_classes );
-        if ( rval != 0 )
+        for( j = 0; j < qty_simple_sclasses; j++ )
         {
-            mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
-            return GRIZ_FAIL;
-        }
-
-        for ( j = 0; j < qty_classes; j++ )
-        {
-            rval = mc_get_simple_class_info( dbid, i, M_UNIT, j, short_name,
-                                             long_name, &start_ident,
-                                             &stop_ident );
+            int_args[1] = simple_sclasses[j];
+            rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args, NULL, (void *) &qty_classes );
             if ( rval != 0 )
             {
-                mc_print_error( "mili_db_get_geom() call "
-                                "mc_get_simple_class_info()", rval );
+                mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
                 return GRIZ_FAIL;
             }
 
-            htable_search( p_ht, short_name, ENTER_ALWAYS, &p_hte );
-
-            p_mocd = NEW( MO_class_data, "Simple class geom entry" );
-
-            p_mocd->mesh_id = i;
-            griz_str_dup( &p_mocd->short_name, short_name );
-            griz_str_dup( &p_mocd->long_name, long_name );
-            p_mocd->superclass = M_UNIT;
-            p_mocd->elem_class_index = -1;
-            p_mocd->qty = stop_ident - start_ident + 1;
-            p_mocd->simple_start = start_ident;
-            p_mocd->simple_stop = stop_ident;
-
-            /* Allocate the data buffer for I/O and result derivation. */
-            p_mocd->data_buffer = NEW_N( float, p_mocd->qty,
-                                         "Class data buffer" );
-            if ( p_mocd->data_buffer == NULL )
-                popup_fatal( "Unable to allocate data buffer on class load" );
-
-            p_lh = p_md->classes_by_sclass + M_UNIT;
-            mo_classes = (MO_class_data **) p_lh->list;
-            mo_classes = (void *)
-                         RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1,
-                                  "Extend unit sclass array" );
-            mo_classes[p_lh->qty] = p_mocd;
-            p_lh->qty++;
-            p_lh->list = (void *) mo_classes;
-
-            p_hte->data = (void *) p_mocd;
-        }
-
-        /* M_MAT classes. */
-
-        int_args[1] = M_MAT;
-        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args,
-                                NULL, (void *) &qty_classes );
-        if ( rval != 0 )
-        {
-            mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
-            return GRIZ_FAIL;
-        }
-
-        for ( j = 0; j < qty_classes; j++ )
-        {
-            rval = mc_get_simple_class_info( dbid, i, M_MAT, j, short_name,
-                                             long_name, &start_ident,
-                                             &stop_ident );
-            if ( rval != 0 )
+            for ( k = 0; k < qty_classes; k++ )
             {
-                mc_print_error( "mili_db_get_geom() call "
-                                "mc_get_simple_class_info()", rval );
-                return GRIZ_FAIL;
+                rval = mc_get_simple_class_info( dbid, i, simple_sclasses[j], k, short_name, long_name, &start_ident, &stop_ident );
+                if ( rval != 0 )
+                {
+                    mc_print_error( "mili_db_get_geom() call mc_get_simple_class_info()", rval );
+                    return GRIZ_FAIL;
+                }
+
+                htable_search( p_ht, short_name, ENTER_ALWAYS, &p_hte );
+
+                p_mocd = NEW( MO_class_data, "Simple class geom entry" );
+                p_mocd->mesh_id = i;
+                griz_str_dup( &p_mocd->short_name, short_name );
+                griz_str_dup( &p_mocd->long_name, long_name );
+                p_mocd->superclass = simple_sclasses[j];
+                p_mocd->elem_class_index = -1;
+                p_mocd->qty = stop_ident - start_ident + 1;
+                p_mocd->simple_start = start_ident;
+                p_mocd->simple_stop = stop_ident;
+
+                /* Allocate the data buffer for I/O and result derivation. */
+                p_mocd->data_buffer = NEW_N( float, p_mocd->qty, "Class data buffer" );
+                if ( p_mocd->data_buffer == NULL )
+                    popup_fatal( "Unable to allocate data buffer on class load" );
+
+                p_lh = p_md->classes_by_sclass + p_mocd->superclass;
+                mo_classes = (MO_class_data **) p_lh->list;
+                mo_classes = (void *) RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1, "Extend simple class sclass array" );
+                mo_classes[p_lh->qty] = p_mocd;
+                p_lh->qty++;
+                p_lh->list = (void *) mo_classes;
+
+                p_hte->data = (void *) p_mocd;
             }
+        }
 
-            htable_search( p_ht, short_name, ENTER_ALWAYS, &p_hte );
-
-            p_mocd = NEW( MO_class_data, "Simple class geom entry" );
-
-            p_mocd->mesh_id = i;
-            griz_str_dup( &p_mocd->short_name, short_name );
-            griz_str_dup( &p_mocd->long_name, long_name );
-            p_mocd->superclass = M_MAT;
-            p_mocd->elem_class_index = -1;
-            p_mocd->qty = stop_ident - start_ident + 1;
-            p_mocd->simple_start = start_ident;
-            p_mocd->simple_stop = stop_ident;
-
-            p_matd = NEW_N( Material_data, p_mocd->qty, "Material data array" );
+        // Need to call gen_material_data on M_MAT classes after all other classes are processed.
+        MO_class_data ** mat_classes = p_md->classes_by_sclass[M_MAT].list;
+        for( j = 0; j < p_md->classes_by_sclass[M_MAT].qty; j++ ){
+            p_mocd = mat_classes[i];
+            p_matd = NEW_N( Material_data, p_mocd->qty, "Material Data Array" );
             p_mocd->objects.materials = p_matd;
             gen_material_data( p_mocd, p_md );
-
-            /* Allocate the data buffer for I/O and result derivation. */
-            p_mocd->data_buffer = NEW_N( float, p_mocd->qty,
-                                         "Class data buffer" );
-            if ( p_mocd->data_buffer == NULL )
-                popup_fatal( "Unable to allocate data buffer on class load" );
-
-            p_lh = p_md->classes_by_sclass + M_MAT;
-            mo_classes = (MO_class_data **) p_lh->list;
-            mo_classes = (void *)
-                         RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1,
-                                  "Extend material sclass array" );
-            mo_classes[p_lh->qty] = p_mocd;
-            p_lh->qty++;
-            p_lh->list = (void *) mo_classes;
-
-            p_hte->data = (void *) p_mocd;
         }
 
-        /* M_MESH classes. */
-
-        int_args[1] = M_MESH;
-        rval = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, (void *) int_args,
-                                NULL, (void *) &qty_classes );
-        if ( rval != 0 )
-        {
-            mc_print_error( "mili_db_get_geom() call mc_query_family()",
-                            rval );
-            return GRIZ_FAIL;
-        }
-
-        for ( j = 0; j < qty_classes; j++ )
-        {
-            rval = mc_get_simple_class_info( dbid, i, M_MESH, j, short_name,
-                                             long_name, &start_ident,
-                                             &stop_ident );
-            if ( rval != 0 )
-            {
-                mc_print_error( "mili_db_get_geom() call "
-                                "mc_get_simple_class_info()", rval );
-                return GRIZ_FAIL;
-            }
-
-            htable_search( p_ht, short_name, ENTER_ALWAYS, &p_hte );
-
-            p_mocd = NEW( MO_class_data, "Simple class geom entry" );
-
-            p_mocd->mesh_id = i;
-            griz_str_dup( &p_mocd->short_name, short_name );
-            griz_str_dup( &p_mocd->long_name, long_name );
-            p_mocd->superclass = M_MESH;
-            p_mocd->elem_class_index = -1;
-            p_mocd->qty = stop_ident - start_ident + 1;
-            p_mocd->simple_start = start_ident;
-            p_mocd->simple_stop = stop_ident;
-
-            /* Allocate the data buffer for I/O and result derivation. */
-            p_mocd->data_buffer = NEW_N( float, p_mocd->qty,
-                                         "Class data buffer" );
-            if ( p_mocd->data_buffer == NULL )
-                popup_fatal( "Unable to allocate data buffer on class load" );
-
-            p_lh = p_md->classes_by_sclass + M_MESH;
-            mo_classes = (MO_class_data **) p_lh->list;
-            mo_classes = (void *)
-                         RENEW_N( MO_class_data *, mo_classes, p_lh->qty, 1,
-                                  "Extend mesh sclass array" );
-            mo_classes[p_lh->qty] = p_mocd;
-            p_lh->qty++;
-            p_lh->list = (void *) mo_classes;
-
-            p_hte->data = (void *) p_mocd;
-        }
-    }
+    } // for ( i = 0 i < mesh_qty; i++ )
 
     status = get_hex_volumes( dbid, analy );
     return (OK);
@@ -1714,35 +1450,7 @@ load_element_sets(Analysis *analy)
                 p_hte->data = element_set;
                 
                 /* We need to determine the middle integration point for the default.*/
-                /* Take the actual number of point used in the simulation to find the middle*/
-                middle = element_set->integration_points[element_set->size]/2.0 + 
-                         element_set->integration_points[element_set->size]%2;
-                
-                for(j=0;j<element_set->size;j++)
-                {
-                   if(middle < element_set->integration_points[j])
-                   {break;}
-                }
-                if(j >0 && j<element_set->size)
-                {
-                    if(j>1)
-                    {
-                        j--;
-                    }
-                    if(abs(element_set->integration_points[j]-middle)< abs(element_set->integration_points[j-1]-middle))
-                    {
-                        element_set->middle_index = j;
-                    }else
-                    {
-                        element_set->middle_index = j-1;
-                    }
-                }else if(j==element_set->size)
-                {
-                    element_set->middle_index = j-1;
-                }else
-                {
-                    element_set->middle_index = j;
-                }
+                set_es_middle_index( element_set );
                 element_set->current_index = element_set->middle_index;
                 element_set->tempIndex = -1;
                 
@@ -3222,7 +2930,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
             }
         }
 
-        if ( p_subrecs[i].sand && analy->load_sand )
+        if ( p_subrecs[i].sand )
         {
             p_subrec = p_subrecs + i;
 
