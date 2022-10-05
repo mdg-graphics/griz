@@ -121,8 +121,10 @@ parse_show_command( char *token, Analysis *analy )
     else
     {
         init_result( &new_result );
-        if ( find_result( analy, analy->result_source, TRUE, &new_result, token) ){
-            if( !new_result.single_valued ){
+        if ( find_result( analy, analy->result_source, TRUE, &new_result, token) )
+        {
+            if( !new_result.single_valued )
+            {
                 popup_dialog( INFO_POPUP,
                               "Result specification for \"show\" command\n"
                               "must resolve to a scalar quantity for plotting");
@@ -135,13 +137,14 @@ parse_show_command( char *token, Analysis *analy )
             analy->cur_result = &current_result;
             analy->cur_result->reference_count++;
         }
-        else{
+        else
+        {
             popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
             return 0;
         }
     }
-    
-    analy->extreme_result = FALSE; 
+
+    analy->extreme_result = FALSE;
 
     load_result( analy, TRUE, TRUE, FALSE );
 
