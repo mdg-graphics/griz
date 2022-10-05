@@ -230,6 +230,7 @@ static void parse_abscissa_spec( int, char [][TOKENLENGTH], Analysis *, int *,
                                  Result ** );
 static void clear_gather_resources( Gather_segment **, Analysis * );
 static void gather_time_series( Gather_segment *, Analysis * );
+static void gather_parallel_read_time_series( Gather_segment *, Analysis * );
 static int get_result_superclass( int, Result * );
 static void remove_unused_time_series( Time_series_obj **, Time_series_obj *,
                                        Analysis * );
@@ -880,55 +881,15 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
         APPEND( res_list, analy->series_results );
 
     /* Gather the time series data. */
-    gather_time_series( control_list, analy );
+    if( !analy->parallel_read )
+        gather_time_series( control_list, analy );
+    #ifdef HAVE_PARALLEL_READ
+    else
+        gather_parallel_read_time_series( control_list, analy );
+    #endif
 
     /* Clean up. */
     clear_gather_resources( &control_list, analy );
-}
-
-
-/*****************************************************************
- * TAG( element_set_check )
- *
- * For plotting results we must have selected objects and when
- * the token count is 1 we also have results showing.  This function
- * is used by the plot command to return TRUE if any of the selected
- * objects are actually element sets containing multiple integration
- * points. 
- * 
- */
-extern Bool_type element_set_check(Analysis * analy)
-{
-    int i, superclass;
-    Result * p_result;
-    Specified_obj *objpts;
-
-    if((p_result = analy->cur_result) == NULL)
-    {
-        return FALSE;
-    }
-
-    if(analy->selected_objects == NULL)
-    {
-        return FALSE;
-    }
-
-    for(objpts = analy->selected_objects; objpts != NULL; objpts = objpts->next)
-    {
-        superclass = objpts->mo_class->superclass;
-
-        /* for each object seleted see if it is an element set and if so return TRUE */
-        for(i = 0; i < p_result->qty; i++)
-        {
-            /* we have found the selected superclassin the current result.  Now see if it is an element set */
-            if(p_result->original_names != NULL && strstr(p_result->original_names[i], "es_") != NULL)
-            {
-                return TRUE;
-            }
-        }
-    }
-
-    return FALSE;
 }
 
 
@@ -1160,7 +1121,12 @@ create_oper_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
         APPEND( opnd2_res, analy->series_results );
 
     /* Gather the time series data. */
-    gather_time_series( control_list, analy );
+    if( !analy->parallel_read )
+        gather_time_series( control_list, analy );
+    #ifdef HAVE_PARALLEL_READ
+    else
+        gather_parallel_read_time_series( control_list, analy );
+    #endif
 
     /* Clean up. */
     clear_gather_resources( &control_list, analy );
@@ -1347,7 +1313,12 @@ update_plot_objects( Analysis *analy )
     analy->oper_time_series_list = oper_update_list;
 
     /* Gather the time series data. */
-    gather_time_series( control_list, analy );
+    if( !analy->parallel_read )
+        gather_time_series( control_list, analy );
+    #ifdef HAVE_PARALLEL_READ
+    else
+        gather_parallel_read_time_series( control_list, analy );
+    #endif
 
     /* Clean up. */
     clear_gather_resources( &control_list, analy );
@@ -1865,8 +1836,7 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
                 rval = OK;
                 if( rval == OK ){
                     mat_num = atoi((char*)p_hte->data);
-                    int index = p_subrec->element_set->current_index;
-                    int ipt = p_subrec->element_set->integration_points[index];
+                    int ipt = get_subrecord_integration_point_num( p_subrec );
                     fprintf( ofile, "# Material %d Integration point: %d\n", mat_num, ipt);
                 }
             }
@@ -3142,8 +3112,7 @@ prep_gather_tree( Gather_segment *p_gs, Analysis *analy )
          */
         for ( j = 0; j < qty_subrecs; j++ )
         {
-            for ( p_rmlo = subrec_array[j].gather_tree; p_rmlo != NULL;
-                    NEXT( p_rmlo ) )
+            for ( p_rmlo = subrec_array[j].gather_tree; p_rmlo != NULL; NEXT( p_rmlo ) )
             {
                 for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
                 {
@@ -3189,7 +3158,7 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
     srec_fmts = analy->srec_formats;
 
     /*
-     * Loop over the gather segments.  During each segment, the set of
+     * Loop over the gather segments. During each segment, the set of
      * mesh object/result combinations being gathered is constant.
      */
     for ( p_gs = ctl_list; p_gs != NULL; NEXT( p_gs ) )
@@ -3200,9 +3169,6 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
         /* Loop over the states in the segment. */
         first_st = p_gs->start_state;
         last_st = p_gs->end_state;
-
-        /* Disable the loading of SAND flags. Never needed when plotting */
-        analy->load_sand = FALSE;
 
         for ( i = first_st; i <= last_st; i++ )
         {
@@ -3222,16 +3188,10 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
                 p_subrec = p_state_rec->subrecs + j;
 
                 /* Traverse the gather tree, generating and saving results. */
-                for ( p_rmlo = p_subrec->gather_tree; p_rmlo != NULL;
-                        NEXT( p_rmlo ) )
+                for ( p_rmlo = p_subrec->gather_tree; p_rmlo != NULL; NEXT( p_rmlo ) )
                 {
                     if ( !p_rmlo->active )
                         continue;
-                    /******
-                                        primal_name = p_rmlo->result->primals;
-                                        if( strcmp( primal_name, "nodpos") == 0 )
-                                            break;
-                    *****/
                     /*
                      * Gather p_rmlo result on this subrecord.
                      *
@@ -3245,8 +3205,7 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
 
                     /* Store result value for each object in list. */
                     obj_cnt=0;
-                    for ( p_sro = p_rmlo->mo_list;
-                            p_sro != NULL; NEXT( p_sro ) )
+                    for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
                     {
                         if ( !p_sro->active )
                             continue;
@@ -3281,15 +3240,207 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
         }
     }
 
-    /* Re-enable sand flags */
-    analy->load_sand = FALSE;
-
     analy->cur_result = p_tmp_result;
     analy->cur_state = tmp_state;
 
     analy->db_get_state( analy, analy->cur_state, analy->state_p,
                          &analy->state_p, &st_qty );
 }
+
+
+#ifdef HAVE_PARALLEL_READ
+/*****************************************************************
+ * TAG( gather_parallel_read_time_series )
+ *
+ * Gather time series referenced in the gather trees.
+ * This function is specialized to have better performance for the parallel
+ * read using the Mili Python reader
+ */
+static void
+gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
+{
+    int i, j, k;
+    int obj_cnt=0;
+    int first_st, last_st;
+    int *srec_fmts;
+    State_rec_obj *p_state_rec;
+    Subrec_obj *p_subrec;
+    Series_ref_obj *p_sro;
+    Time_series_obj *p_tso;
+    Result_mo_list_obj *p_rmlo;
+    Result *p_tmp_result;
+    Gather_segment *p_gs;
+    int tmp_state, st_qty;
+    float value, rot_value;
+    Bool_type need_to_load_nodpos;
+    int lbl_idx, lbl_num, obj_id;
+    int * queried_labels;
+    int * object_ids;
+    int * sorted_object_ids;
+
+    clock_t start, end;
+    double elapsed;
+    start = clock();
+
+    p_tmp_result = analy->cur_result;
+    tmp_state = analy->cur_state;
+
+    srec_fmts = analy->srec_formats;
+
+    /*
+     * Loop over the gather segments. During each segment, the set of
+     * mesh object/result combinations being gathered is constant.
+     */
+    for ( p_gs = ctl_list; p_gs != NULL; NEXT( p_gs ) )
+    {
+        /* Activate/deactivate entries in the gather trees for the segment. */
+        prep_gather_tree( p_gs, analy );
+
+        /* Loop over the states in the segment. */
+        first_st = p_gs->start_state;
+        last_st = p_gs->end_state;
+
+        /* Disable the loading of SAND flags. Never needed when plotting */
+        analy->load_sand = FALSE;
+
+        for( i = 0; i < analy->qty_srec_fmts; i++ ){
+            p_state_rec = analy->srec_tree + i;
+
+            if ( p_state_rec->series_qty == 0 )
+                continue;
+            
+            analy->load_nodpos = FALSE;
+
+            /* Loop over subrecords for this state record format. */
+            for( j = 0; j < p_state_rec->qty; j++ )
+            {
+                p_subrec = p_state_rec->subrecs + j;
+                for ( p_rmlo = p_subrec->gather_tree; p_rmlo != NULL; NEXT( p_rmlo ) )
+                {
+                    if ( !p_rmlo->active )
+                        continue;
+
+                    if( p_rmlo->result->origin.is_derived ){
+                        analy->load_nodpos = TRUE;
+                    }
+
+                    /*
+                     * Gather p_rmlo result on this subrecord.
+                     * Shouldn't need to zero result array prior to each load.
+                     */
+                    p_rmlo->result->modifiers.use_flags.use_ref_surface = 1;
+                    p_rmlo->result->modifiers.use_flags.use_ref_frame = 1;
+                    analy->cur_result = p_rmlo->result;
+
+                    /* Gather list of requested elements and query only those */
+                    obj_cnt = 0;
+                    for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
+                    {
+                        if ( !p_sro->active )
+                            continue;
+
+                        obj_cnt++;
+                    }
+
+                    /* Get list of element labels to query */
+                    queried_labels = NEW_N( int, obj_cnt, "Labels to query" );
+                    obj_cnt = 0;
+                    for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
+                    {
+                        if ( !p_sro->active )
+                            continue;
+
+                        p_tso = p_sro->series;
+                        lbl_idx = p_tso->mo_class->labels_index[p_tso->ident];
+                        lbl_num = p_tso->mo_class->labels[lbl_idx].label_num;
+                        obj_id = p_tso->mo_class->labels[lbl_idx].local_id;
+                        queried_labels[obj_cnt] = lbl_num;
+                        obj_cnt++;
+                    }
+
+                    /* Query all states initially */
+                    analy->py_PreloadedResult = NULL;
+                    if( p_rmlo->result->origin.is_primal )
+                    {
+                        if( mili_reader_preload_primal_th( analy, p_rmlo, p_subrec, obj_cnt, queried_labels, first_st, last_st ) != OK )
+                        {
+                            analy->py_PreloadedResult = NULL;
+                        }
+                    } 
+                    else if( p_rmlo->result->origin.is_derived )
+                    {
+                        analy->py_PreloadedResult = NULL;
+                        //if( mili_reader_preload_derived_th( analy, p_rmlo, p_subrec, first_st, last_st ) != OK ){
+                        //    analy->py_PreloadedResult = NULL;
+                        //}
+                    }
+
+                    /* For each state... */
+                    for( k = first_st; k <= last_st; k++ )
+                    {
+                        analy->cur_state = k;
+                        analy->db_get_state( analy, k, analy->state_p, &analy->state_p, &st_qty );
+
+                        /* Call load_subrecord_result variant */
+                        load_subrecord_result( analy, j, TRUE, FALSE );
+
+                        /* Store result value for each object in list. */
+                        obj_cnt=0;
+                        for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
+                        {
+                            if ( !p_sro->active )
+                                continue;
+
+                            p_tso = p_sro->series;
+
+                            value = p_tso->mo_class->data_buffer[p_tso->ident];
+
+                            obj_cnt++;
+                            if (is_primal_quad_strain_result( p_rmlo->result->name ))
+                            {
+                                rot_value = value;
+                                rotate_quad_result( analy, p_rmlo->result->name, p_tso->ident, &rot_value );
+                                value=rot_value;
+                            }
+
+                            if ( value < p_tso->min_val )
+                            {
+                                p_tso->min_val = value;
+                                p_tso->min_val_state = k;
+                            }
+                            if ( value > p_tso->max_val )
+                            {
+                                p_tso->max_val = value;
+                                p_tso->max_val_state = k;
+                            }
+                            p_tso->data[k] = value;
+                        }
+                    }
+
+                    free( queried_labels );
+
+                    if( analy->py_PreloadedResult != NULL )
+                        Py_DECREF( analy->py_PreloadedResult );
+                    analy->py_PreloadedResult = NULL;
+                }
+            }
+        }
+    }
+
+    end = clock();
+    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("[gather_parallel_read_time_series] elapsed = %f\n", elapsed);
+
+    /* Re-enable sand flags and nodpos */
+    analy->load_sand = TRUE;
+    analy->load_nodpos = TRUE;
+
+    analy->cur_result = p_tmp_result;
+    analy->cur_state = tmp_state;
+
+    analy->db_get_state( analy, analy->cur_state, analy->state_p, &analy->state_p, &st_qty );
+}
+#endif
 
 
 /*****************************************************************

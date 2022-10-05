@@ -12880,7 +12880,7 @@ draw_foreground( Analysis *analy )
                     if( p_subrec->element_set != NULL ){
                         hmove2( xp, yp );
                         int mat_num = p_subrec->element_set->material_number;
-                        int ipt = p_subrec->element_set->integration_points[p_subrec->element_set->current_index];
+                        int ipt = get_subrecord_integration_point_num( p_subrec );
                         sprintf( str, "Material %d Integration Point: %d", mat_num, ipt );
                         hcharstr( str );
                         yp -= LINE_SPACING_COEFF * text_height;

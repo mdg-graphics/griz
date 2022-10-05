@@ -23,7 +23,6 @@ const char* PARAMETER_GETTER = "parameters";
 const char* PARAM_WILDCARD_SEARCH = "parameter_wildcard_search";
 const char* STATE_MAPS_GETTER = "state_maps";
 const char* QUERY_FUNCTION = "query";
-const char* QUERY_ALL_CLASSES = "query_all_classes";
 const char* RELOAD_FUNCTION = "reload";
 const char* FREE_NODE_DATA = "free_node_data";
 
@@ -115,10 +114,6 @@ PyObject*
 call_mili_reader_function_noargs(PyObject * mili_db, const char * function_name)
 {
     PyObject * py_FuncName = string_to_pyobject( function_name );
-    /* Do Not Remove this: For some reason the above function call causes an error (sometimes),
-     * even though it correctly returns the expected pyobject*. We need to clear the error
-     * Indicator so that the next call does not fail because of it. */
-    PyErr_Clear();
     PyObject * py_Result = PyObject_CallMethodObjArgs( mili_db, py_FuncName, NULL );
     return py_Result;
 }

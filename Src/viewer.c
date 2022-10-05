@@ -885,8 +885,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     /* If this is a parallel read, Initialize python */
 #ifdef HAVE_PARALLEL_READ
-    analy->py_MiliDB = NULL;
-    analy->py_MiliReaderModule = NULL;
     if ( analy->parallel_read ){
         if( !griz_python_setup( analy ) ){
             popup_dialog( WARNING_POPUP, "Failed to load Mili Reader Module." );
@@ -976,6 +974,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 #endif
 
     /* Get the first state */
+    analy->load_nodpos = TRUE;
     analy->load_sand = TRUE;
     stat = analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, NULL );
     if ( stat != 0 )
@@ -3326,3 +3325,92 @@ mili_compare_labels(const void *in_label1, const void *in_label2 )
 
     return ( 0 );
 }
+
+/* TAG( compare_int )
+ *
+ * Function to compare two integers. Used by qsort.
+ */
+int
+compare_int (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+
+/* TAG( get_subrecord_integration_point_num )
+ *
+ * Get the integration point number that is currently selected for the given Subrecord.
+ * Returns -1 if no element_set is associated with the subrecord
+ */
+int
+get_subrecord_integration_point_num( Subrec_obj* p_subrec )
+{
+    int ipt = -1;
+    if( p_subrec->element_set )
+    {
+        if( p_subrec->element_set->tempIndex < 0 )
+            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->current_index];
+        else
+            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->tempIndex];
+    }
+    return ipt;
+}
+
+
+/* TAG( get_subrecord_integration_point_index )
+ *
+ * Get the index of integration point that is currently selected for the given Subrecord.
+ * Returns -1 if no element_set is associated with the subrecord
+ */
+int
+get_subrecord_integration_point_index( Subrec_obj* p_subrec )
+{
+    int ipt_index = -1;
+    if( p_subrec->element_set )
+    {
+        if( p_subrec->element_set->tempIndex < 0 )
+            ipt_index = p_subrec->element_set->current_index;
+        else
+            ipt_index = p_subrec->element_set->tempIndex;
+    }
+    return ipt_index;
+}
+
+
+/* TAG( set_es_middle_index )
+ *
+ * Given an ElementSet, compute and sets the middle index.
+ */
+Bool_type
+set_es_middle_index( ElementSet * element_set )
+{
+    int middle, j;
+
+    /* We need to determine the middle integration point for the default.*/
+    /* Take the actual number of point used in the simulation to find the middle*/
+    middle = element_set->integration_points[element_set->size]/2.0 + 
+                element_set->integration_points[element_set->size]%2;
+    
+    for( j = 0; j < element_set->size; j++)
+    {
+        if( middle < element_set->integration_points[j] )
+            break;
+    }
+
+    if( j > 0 && j < element_set->size )
+    {
+        if( j > 1)
+            j--;
+
+        if( abs(element_set->integration_points[j] - middle) < abs(element_set->integration_points[j-1] - middle) )
+            element_set->middle_index = j;
+        else
+            element_set->middle_index = j-1;
+    }
+    else if( j == element_set->size)
+        element_set->middle_index = j-1;
+    else
+        element_set->middle_index = j;
+
+    return OK;
+}
+

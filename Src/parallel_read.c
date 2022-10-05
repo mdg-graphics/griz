@@ -10,9 +10,9 @@
 #include "parallel_read.h"
 #include "viewer.h"
 
-#ifndef MILI_READER_TIMING
-#define MILI_READER_TIMING
-#endif
+//#ifndef MILI_READER_TIMING
+//#define MILI_READER_TIMING
+//#endif
 
 
 /* TAG( griz_python_setup )
@@ -31,6 +31,9 @@ griz_python_setup(Analysis * analy)
     double elapsed;
     start = clock();
 #endif
+    /* Default to Null */
+    analy->py_MiliDB = NULL;
+    analy->py_MiliReaderModule = NULL;
 
     /* Not necessary, but recommended */
     wchar_t *program_name = Py_DecodeLocale(PROGRAM_NAME, NULL);
@@ -77,7 +80,8 @@ griz_python_setup(Analysis * analy)
          This allows the analysis struct to store a pointer to these function depending on the db type.
  */
 extern int
-mili_reader_db_open( char *path_root, int *p_dbid ){
+mili_reader_db_open( char *path_root, int *p_dbid )
+{
     PyObject *py_Arglist;
     PyObject *py_PlotFilePath;
     Analysis * p_analysis;
@@ -127,94 +131,284 @@ mili_reader_db_open( char *path_root, int *p_dbid ){
 }
 
 
+/* TAG( build_query_args )
+ *
+ * Construct a PyObject Tuple containing all the arguments for a query to the mili reader.
+ */
+PyObject*
+build_query_args( PyObject* py_Svar, PyObject* py_Class, PyObject* py_Labels, PyObject* py_States, PyObject* py_Ipts )
+{
+    PyObject * py_Args = PyTuple_New(7);
+    PyTuple_SetItem( py_Args, 0, py_Svar );
+    PyTuple_SetItem( py_Args, 1, py_Class );
+    PyTuple_SetItem( py_Args, 2, Py_None );
+    PyTuple_SetItem( py_Args, 3, py_Labels );
+    PyTuple_SetItem( py_Args, 4, py_States );
+    PyTuple_SetItem( py_Args, 5, py_Ipts );
+    PyTuple_SetItem( py_Args, 6, Py_None );
+    return py_Args;
+}
+
+
+/* TAG( build_query_kwargs )
+ *
+ * Construct a PyObject Dict containing all the keyword arguments for a query to the mili reader.
+ */
+PyObject*
+build_query_kwargs( PyObject* py_Subrecord )
+{
+    PyObject * py_Kwargs = PyDict_New();
+    PyDict_SetItemString( py_Kwargs, "output_object_labels", Py_False );
+    PyDict_SetItemString( py_Kwargs, "subrec", py_Subrecord );
+    return py_Kwargs;
+}
+
+
+/* TAG( get_query_function )
+ *
+ * Retrieve PyObject* for the Mili reader query function.
+ */
+PyObject*
+get_query_function( Analysis * p_analysis )
+{
+    PyObject * py_Func, * py_FuncName;
+    py_FuncName = string_to_pyobject( QUERY_FUNCTION );
+    py_Func = PyObject_GetAttr( p_analysis->py_MiliDB, py_FuncName );
+    Py_DECREF( py_FuncName );
+    return py_Func;
+}
+
+
+/* TAG( mili_reader_get_svar_argument )
+ *
+ * Build PyObject* of list of svar names to query.
+ */
+PyObject*
+mili_reader_get_svar_argument( int qty_results, char ** result_names )
+{
+    int i;
+    PyObject * py_SvarNames;
+    PyObject * py_TempStr;
+
+    /* Build list of state variable names. */
+    py_SvarNames = PyList_New( qty_results );
+    for( i = 0 ; i < qty_results; i++ )
+    {
+        py_TempStr = string_to_pyobject( result_names[i] );
+        PyList_SetItem( py_SvarNames, i, py_TempStr );
+    }
+
+    return py_SvarNames;
+}
+
+
+/* TAG( mili_reader_get_labels_argument )
+ *
+ * Build PyObject* of list of labels to query.
+ */
+PyObject*
+mili_reader_get_labels_argument( int qty_labels, int * labels_list )
+{
+    PyObject * py_Labels;
+
+    if( qty_labels == 0 || labels_list == NULL )
+    {
+        py_Labels = Py_None;
+        Py_INCREF( Py_None );
+    }
+    else
+    {
+        int i;
+        py_Labels = PyList_New( qty_labels );
+        for( i = 0; i < qty_labels; i++ )
+        {
+            PyList_SetItem( py_Labels, i, PyLong_FromLong(labels_list[i]) );
+        }
+    }
+
+    return py_Labels;
+}
+
+
+/* TAG( mili_reader_get_states_argument )
+ *
+ * Build PyObject* of list of states to query.
+ */
+PyObject*
+mili_reader_get_states_argument( int analysis_total_states, int start_state, int end_state )
+{
+    int i, j;
+    int qty_states;
+    PyObject * py_States;
+    
+    qty_states = (end_state - start_state) + 1;
+    if( qty_states == analysis_total_states )
+    {
+        py_States = Py_None;
+        Py_INCREF( Py_None );
+    }
+    else
+    {
+        py_States = PyList_New( qty_states );
+        j = 0;
+        for( i = start_state; i <= end_state; i++ )
+        {
+            PyList_SetItem( py_States, j++, PyLong_FromLong(i) );
+        }
+    }
+
+    return py_States;
+}
+
+
+/* TAG( mili_reader_get_ipts_argument )
+ *
+ * Build PyObject* for integration point to query.
+ */
+PyObject*
+mili_reader_get_ipts_argument( int ipt )
+{
+    PyObject * py_Ipt;
+
+    if( ipt == -1 )
+    {
+        py_Ipt = Py_None;
+        Py_INCREF( Py_None );
+    }
+    else
+    {
+        py_Ipt = PyLong_FromLong( ipt );
+    }
+
+    return py_Ipt;
+}
+
+
+/* TAG( mili_reader_get_subrec_argument )
+ *
+ * Build PyObject* name of Subrecord to query.
+ */
+PyObject*
+mili_reader_get_subrec_argument( char * subrecord_name )
+{
+    PyObject * py_Subrecord;
+
+    if( subrecord_name == NULL )
+    {
+        py_Subrecord = Py_None;
+        Py_INCREF( Py_None );
+    }
+    else
+    {
+        py_Subrecord = string_to_pyobject( subrecord_name );
+    }
+
+    return py_Subrecord;
+}
+
+
+/* TAG( is_previous_query )
+ *
+ * Check if the current query matches the previous query.
+ */
+Bool_type is_previous_query( Analysis * p_analysis, char* result_name, char* class_name, int ipt, int start_state, int end_state )
+{
+    Bool_type same_query;
+    same_query = ( p_analysis->py_PrevQuery != NULL
+                   && strcmp(p_analysis->prev_query_result_name, result_name) == 0
+                   && strcmp(p_analysis->prev_query_class_name, class_name) == 0
+                   && p_analysis->prev_query_ipt == ipt
+                   && p_analysis->prev_query_start_state <= start_state
+                   && p_analysis->prev_query_end_state >= end_state );
+    return same_query;
+}
+
+
+/* TAG( store_query )
+ *
+ * Store the query for resuse.
+ */
+void store_query( Analysis * p_analysis, PyObject * py_Query, char* result_name, char* class_name, int ipt, int start_state, int end_state )
+{
+    /* Update the stored previous query */
+    if( p_analysis->py_PrevQuery != NULL )
+        Py_DECREF( p_analysis->py_PrevQuery );
+    p_analysis->py_PrevQuery = py_Query;
+    Py_INCREF( p_analysis->py_PrevQuery );
+
+    /* Update previous query arguments */
+    p_analysis->prev_query_result_name = (char*) strdup(result_name);
+    p_analysis->prev_query_class_name = (char*) strdup(class_name);
+    p_analysis->prev_query_start_state = start_state;
+    p_analysis->prev_query_end_state = end_state;
+    p_analysis->prev_query_ipt = ipt;
+}
+
+
 /* TAG( mili_reader_query )
  *
  * Query a result using the mili reader and return the PyObject pointer to
  * the result dictionary
  */
 PyObject*
-mili_reader_query( int state, char* class_name, int ipt, char *result ){
+mili_reader_query( char* result, char* class_name, char* subrecord_name, int ipt, int start_state, int end_state )
+{
     int i;
     /* Arguments we need for mili reader query function */
     PyObject * py_SvarNames,
              * py_ClassName,
-             * py_Material = Py_None,
-             * py_Labels = Py_None,
-             * py_State,
-             * py_Ipts,
-             * py_Subrec = Py_None,
-             * py_WriteData = Py_None;
-    PyObject * py_QueryReturn,
-             * py_FuncName,
-             * py_TempStr;
+             * py_Labels,
+             * py_States,
+             * py_Subrecord,
+             * py_Ipt;
+    PyObject * py_Func,
+             * py_Args,
+             * py_Kwargs;
+    PyObject * py_QueryReturn;
 
     /* Get analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
 
+    /* Check if this is a preloaded result for plot/outth */
+    if( p_analysis->py_PreloadedResult )
+    {
+        /* Just use preloaded result */
+        py_QueryReturn = p_analysis->py_PreloadedResult;
+        Py_INCREF( py_QueryReturn );
+    }
     /* Check if this is a repeated query */
-    if( p_analysis->py_PrevQuery != NULL
-            && strcmp(p_analysis->prev_query_result_name, result) == 0
-            && strcmp(p_analysis->prev_query_class_name, class_name) == 0
-            && (p_analysis->prev_query_state == state || p_analysis->prev_query_state == -1)
-            && p_analysis->prev_query_ipt == ipt){
+    else if( is_previous_query(p_analysis, result, class_name, ipt, start_state, end_state) )
+    {
         /* Just use saved result */
         py_QueryReturn = p_analysis->py_PrevQuery;
         Py_INCREF( py_QueryReturn );
     }
     /* If not, perform query */
-    else{
-        /* Increment reference counters for Py_None */
-        Py_INCREF( py_Material );
-        Py_INCREF( py_Labels );
-        Py_INCREF( py_WriteData );
-        Py_INCREF( py_Subrec );
-
-        /* Build list of state variable names. */
-        py_SvarNames = PyList_New(1);
-        py_TempStr = string_to_pyobject(result);
-        PyList_SetItem(py_SvarNames, 0, py_TempStr);
-
-        py_ClassName = string_to_pyobject(class_name);
-
-        /* Convert state number to python integer */
-        py_State = Py_BuildValue("i", state);
-        /* Do Not Remove this: For some reason the above function call causes an error,
-        * even though it correctly returns the expected pyobject*. We need to clear the error
-        * Indicator so that the next call does not fail because of it. */
-        PyErr_Clear();
-
-        /* Handle integration point */
-        py_Ipts = Py_None;
-        Py_INCREF( py_Ipts );
-        if( ipt != -1 ){
-            Py_DECREF( py_Ipts );
-            py_Ipts = Py_BuildValue("i", ipt);
-            PyErr_Clear();
-        }
+    else
+    {
+        /* Generate arguments for the Query */
+        py_SvarNames = mili_reader_get_svar_argument( 1, &result );
+        py_ClassName = string_to_pyobject( class_name );
+        py_Labels = mili_reader_get_labels_argument( 0, NULL );
+        py_States = mili_reader_get_states_argument( p_analysis->state_count, start_state, end_state );
+        py_Subrecord = mili_reader_get_subrec_argument( subrecord_name );
+        py_Ipt = mili_reader_get_ipts_argument( ipt );
 
         /* Get function name and call query */
-        py_FuncName = string_to_pyobject( QUERY_FUNCTION );
-        py_QueryReturn = PyObject_CallMethodObjArgs( p_analysis->py_MiliDB, py_FuncName, py_SvarNames,
-                                                    py_ClassName, py_Material, py_Labels,
-                                                    py_State, py_Ipts, py_Subrec, py_WriteData, NULL );
+        py_Func = get_query_function( p_analysis );
+        py_Args = build_query_args( py_SvarNames, py_ClassName, py_Labels, py_States, py_Ipt );
+        py_Kwargs = build_query_kwargs( py_Subrecord );
+        py_QueryReturn = PyObject_Call( py_Func, py_Args, py_Kwargs );
+
+        /* If we got back a result, save it for possible repeated use */
+        if( py_QueryReturn != NULL )
+            store_query( p_analysis, py_QueryReturn, result, class_name, ipt, start_state, end_state );
 
         /* Free python refereces */
-        Py_DECREF( py_TempStr );
-        Py_DECREF( py_FuncName );
-        Py_DECREF( py_SvarNames );
-        Py_DECREF( py_ClassName );
-        Py_DECREF( py_Material );
-        Py_DECREF( py_Labels );
-        Py_DECREF( py_State );
-        Py_DECREF( py_Ipts );
-        Py_DECREF( py_WriteData );
+        Py_DECREF( py_Args );
+        Py_DECREF( py_Kwargs );
+        Py_DECREF( py_Func );
     }
-
-    /* Record query information */
-    p_analysis->prev_query_result_name = (char*) strdup(result);
-    p_analysis->prev_query_class_name = (char*) strdup(class_name);
-    p_analysis->prev_query_state = state;
-    p_analysis->prev_query_ipt = ipt;
 
     return py_QueryReturn;
 }
@@ -280,25 +474,31 @@ result_dictionary_unwrap_states(PyObject * py_Dict, char * result_name)
  * Get the index of the state's results from Dictionary
  */
 int
-get_state_index( PyObject * py_Dict, char * result_name, int state_no ){
+get_state_index( PyObject * py_Dict, char * result_name, int state_no )
+{
     int j;
     int st_qty;
     int state_idx = 0;
     PyObject * py_States;
     
     py_States = result_dictionary_unwrap_states( py_Dict, result_name );
-    if( py_States != NULL){
+    if( py_States != NULL)
+    {
         /* Get quantity of states in the query */
         st_qty = PySequence_Length( py_States );
-        if( st_qty == 1 ){
+        if( st_qty == 1 )
+        {
             state_idx = 0;
         }
-        else{
+        else
+        {
             /* Find correct index of state */
             int * states = NEW_N( int, st_qty, "List of states in query" );
             integer_pointer_from_pyobject( py_States, st_qty, states );
-            for( j = 0; j < st_qty; j++ ){
-                if( states[j] == state_no ){
+            for( j = 0; j < st_qty; j++ )
+            {
+                if( states[j] == state_no )
+                {
                     state_idx = j;
                     break;
                 }
@@ -310,120 +510,278 @@ get_state_index( PyObject * py_Dict, char * result_name, int state_no ){
 }
 
 
-/* TAG( mili_reader_extract_query_data )
+/* TAG( extract_node_result )
  *
- * Extract the results from a PyObject pointer to Mili reader query result.
+ * Extract the results from a PyObject pointer to Mili reader query result
+ * that contains results for nodes.
  */
 int
-mili_reader_extract_query_data( PyObject * py_QueryReturn, char * result_name, int queried_state,
-                                char * subrecord_name, Bool_type node_result,
-                                int elem_class_idx, void* data )
+extract_node_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, float * result_buffer )
 {
     int i, j, k;
-    int comp_qty;
+    int obj, elem_qty;
     int out_idx;
-    int elem_qty;
-    int obj;
+    int comp_qty;
     int * object_ids;
-    float * result_buffer;
     PyObject * py_ProcResult;
     PyObject * py_Results;
     PyObject * py_Value;
     PyObject * py_Dict;
     PyObject * py_Layout;
-    PyObject * py_States;
-    int st_qty, state_idx;
+    int state_idx;
     int * index_map;
+
+    /* Get global analysis pointer */
+    Analysis * p_analysis = get_analy_ptr();
+
+    state_idx = -1;
+
+    /* Get max number of nodes on a processor so we only allocate array once */
+    int max_elem_qty = 0;
+    for( i = 0; i < p_analysis->proc_count; i++ )
+    {
+        elem_qty = MESH_P(p_analysis)->index_map->node_count[i];
+        if( elem_qty > 0 )
+        {
+            if( elem_qty > max_elem_qty )
+                max_elem_qty = elem_qty;
+        }
+    }
+    object_ids = NEW_N( int, max_elem_qty, "Node result object ids");
+
+    /* Loop over processors and get each result */
+    for( i = 0; i < p_analysis->proc_count; i++ )
+    {
+        /* Get results from the ith processor */
+        py_Dict = PySequence_GetItem( py_QueryReturn, i );
+        /* Get results for current subrecord */
+        py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
+        /* If results exist... */
+        if( py_ProcResult != NULL )
+        {
+
+            /* Determine index of state data in query (Only done once) */
+            if( state_idx == -1 )
+            {
+                state_idx = get_state_index( py_Dict, result_name, queried_state );
+            }
+
+            /* Get data for the requested state */
+            py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
+
+            /* Get object ids and element count */
+            py_Layout = result_dictionary_unwrap_layout( py_Dict, result_name, subrecord_name );
+            elem_qty = PySequence_Length( py_Layout );
+            integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
+
+            /* Get map from subrec node ids to global positions */
+            index_map = MESH_P(p_analysis)->index_map->node_map[i];
+
+            /*  Extract and properly order results. */
+            for( j = 0; j < elem_qty; j++)
+            {
+                obj = object_ids[j];
+                py_Results = PySequence_GetItem( py_ProcResult, j );
+                comp_qty = PySequence_Length( py_Results );
+                for( k = 0; k < comp_qty; k++ )
+                {
+                    out_idx = (index_map[obj] * comp_qty) + k;
+                    py_Value = PySequence_GetItem( py_Results, k );
+                    result_buffer[out_idx] = (float) PyFloat_AsDouble( py_Value );
+                }
+            }
+        }
+    }
+
+    if( object_ids )
+        free( object_ids );
+
+    return OK;
+}
+
+
+/* TAG( extract_element_result )
+ *
+ * Extract the results from a PyObject pointer to Mili reader query result
+ * that contains results for an element class (Not M_NODE).
+ */
+int
+extract_element_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, float * result_buffer )
+{
+    int i, j, k;
+    int comp_qty;
+    int out_idx;
+    int elem_qty;
+    PyObject * py_ProcResult;
+    PyObject * py_Results;
+    PyObject * py_Value;
+    PyObject * py_Dict;
+    int state_idx;
 
     /* Get global analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
 
     out_idx = 0;
     state_idx = -1;
-    result_buffer = (float*) data;
 
-    if( node_result ){
-        /* This array is always going to be bigger than the number of elements on a given processor.
-        * Allocating a larger array may be more efficient than freeing and reallocating an exact sized
-        * array for each processor. */
-        int max_elem_qty = 0;
-        for( i = 0; i < p_analysis->proc_count; i++ ){
-            elem_qty = MESH_P(p_analysis)->index_map->node_count[i];
-            if( elem_qty > 0 ){
-                if( elem_qty > max_elem_qty )
-                    max_elem_qty = elem_qty;
+    /* Loop over processors and get each result */
+    for( i = 0; i < p_analysis->proc_count; i++ )
+    {
+        py_Dict = PySequence_GetItem( py_QueryReturn, i );
+        py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
+        if( py_ProcResult != NULL )
+        {
+            /* Determine index of state data in query (Only done once) */
+            if( state_idx == -1 )
+            {
+                state_idx = get_state_index( py_Dict, result_name, queried_state );
             }
-        }
-        object_ids = NEW_N( int, max_elem_qty, "Node result object ids");
 
-        /* Loop over processors and get each result */
-        for( i = 0; i < p_analysis->proc_count; i++ ){
-            /* Get results from the ith processor */
-            py_Dict = PySequence_GetItem( py_QueryReturn, i );
-            /* Get results for current subrecord */
-            py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
-            /* If results exist... */
-            if( py_ProcResult != NULL ){
-                /* Determine index of state data in query (Only done once) */
-                if( state_idx == -1 ){
-                    /* Get index of state in results dictionary */
-                    state_idx = get_state_index( py_Dict, result_name, queried_state );
-                }
+            py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
+            elem_qty = PySequence_Length( py_ProcResult );
 
-                /* Get data for the requested state */
-                py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
-
-                /* Get object ids and element count */
-                py_Layout = result_dictionary_unwrap_layout( py_Dict, result_name, subrecord_name );
-                elem_qty = PySequence_Length( py_Layout );
-                integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
-
-                /* Get map from subrec node ids to global positions */
-                index_map = MESH_P(p_analysis)->index_map->node_map[i];
-
-                /*  Extract and properly order results. */
-                for( j = 0; j < elem_qty; j++){
-                    obj = object_ids[j];
-                    py_Results = PySequence_GetItem( py_ProcResult, j );
-                    comp_qty = PySequence_Length( py_Results );
-                    for( k = 0; k < comp_qty; k++ ){
-                        out_idx = (index_map[obj] * comp_qty) + k;
-                        py_Value = PySequence_GetItem( py_Results, k );
-                        result_buffer[out_idx] = (float) PyFloat_AsDouble( py_Value );
-                    }
+            /*  Extract and properly order results. */
+            for( j = 0; j < elem_qty; j++)
+            {
+                py_Results = PySequence_GetItem( py_ProcResult, j );
+                comp_qty = PySequence_Length( py_Results );
+                for( k = 0; k < comp_qty; k++ )
+                {
+                    py_Value = PySequence_GetItem( py_Results, k );
+                    result_buffer[out_idx++] = (float) PyFloat_AsDouble( py_Value );
                 }
             }
         }
-
-        if( object_ids )
-            free( object_ids );
     }
-    else{
-        /* Loop over processors and get each result */
-        for( i = 0; i < p_analysis->proc_count; i++ ){
-            py_Dict = PySequence_GetItem( py_QueryReturn, i );
-            py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
-            if( py_ProcResult != NULL ){
-                /* Determine index of state data in query (Only done once) */
-                if( state_idx == -1 ){
-                    /* Get index of state in results dictionary */
-                    state_idx = get_state_index( py_Dict, result_name, queried_state );
+
+    return OK;
+}
+
+
+/* TAG( extract_element_subset_result )
+ *
+ * Extract the results from a PyObject pointer to Mili reader query result
+ * that contains results for an element class (Not M_NODE).
+ */
+int
+extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, int elem_class_index, float * result_buffer )
+{
+    int i, j, k;
+    int subrec_idx;
+    int comp_qty;
+    int obj;
+    int out_idx;
+    int elem_qty;
+    PyObject * py_ProcResult;
+    PyObject * py_Results;
+    PyObject * py_Value;
+    PyObject * py_Dict;
+    PyObject * py_Layout;
+    int state_idx;
+    int ** index_map;
+    int * object_ids;
+    int cur_state, srec_id, subrec;
+    int subrecord_obj_qty;
+    int qty_series;
+    State_rec_obj * p_state_rec;
+    Subrec_obj * p_subrec;
+
+    /* Get global analysis pointer */
+    Analysis * p_analysis = get_analy_ptr();
+
+    cur_state = p_analysis->cur_state;
+    srec_id = p_analysis->state_srec_fmt_ids[cur_state];
+    p_state_rec = p_analysis->srec_tree + srec_id;
+    qty_series = p_state_rec->series_qty;
+
+    subrec = p_analysis->cur_result->subrecs[p_analysis->result_index];
+    p_subrec = p_state_rec->subrecs + subrec;
+    subrecord_obj_qty = p_subrec->subrec.qty_objects;
+
+    /* Get map from object ids to global array indexes */
+    index_map = MESH_P( p_analysis )->index_map->elem_map[elem_class_index];
+
+    /* qty_series may be more than necessary, but always enough */
+    object_ids = NEW_N( int, qty_series, "List of object ids" );
+
+    out_idx = 0;
+    state_idx = -1;
+
+    /* Loop over processors and get each result */
+    for( i = 0; i < p_analysis->proc_count; i++ )
+    {
+        py_Dict = PySequence_GetItem( py_QueryReturn, i );
+        py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
+        if( py_ProcResult != NULL )
+        {
+            /* Determine index of state data in query (Only done once) */
+            if( state_idx == -1 )
+            {
+                state_idx = get_state_index( py_Dict, result_name, queried_state );
+            }
+
+            py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
+
+            /* Get object ids and element count */
+            py_Layout = result_dictionary_unwrap_layout( py_Dict, result_name, subrecord_name );
+            elem_qty = PySequence_Length( py_Layout );
+            integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
+
+            /*  Extract and properly order results. */
+            for( j = 0; j < elem_qty; j++)
+            {
+                obj = object_ids[j];
+                py_Results = PySequence_GetItem( py_ProcResult, j );
+                comp_qty = PySequence_Length( py_Results );
+
+                for( subrec_idx = 0; subrec_idx < subrecord_obj_qty; subrec_idx++ )
+                {
+                    if( p_subrec->object_ids[subrec_idx] == index_map[i][obj] )
+                        break;
                 }
 
-                py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
-                elem_qty = PySequence_Length( py_ProcResult );
-
-                /*  Extract and properly order results. */
-                for( j = 0; j < elem_qty; j++){
-                    py_Results = PySequence_GetItem( py_ProcResult, j );
-                    comp_qty = PySequence_Length( py_Results );
-                    for( k = 0; k < comp_qty; k++ ){
-                        py_Value = PySequence_GetItem( py_Results, k );
-                        result_buffer[out_idx++] = (float) PyFloat_AsDouble( py_Value );
-                    }
+                for( k = 0; k < comp_qty; k++ )
+                {
+                    out_idx = (subrec_idx * comp_qty) + k;
+                    py_Value = PySequence_GetItem( py_Results, k );
+                    result_buffer[out_idx] = (float) PyFloat_AsDouble( py_Value );
                 }
             }
         }
+    }
+
+    if( object_ids )
+        free( object_ids );
+
+    return OK;
+}
+
+
+/* TAG( mili_reader_extract_query_data )
+ *
+ * Call proper helper function to extract the results from a PyObject pointer to Mili reader query result.
+ */
+int
+mili_reader_extract_query_data( PyObject * py_QueryReturn, char * result_name, int queried_state,
+                                char * subrecord_name, Bool_type node_result,
+                                int elem_class_idx, void* data )
+{
+    Analysis * p_analysis = get_analy_ptr();
+    float * result_buf = (float*) data;
+
+    if( node_result )
+    {
+        extract_node_result( py_QueryReturn, result_name, queried_state, subrecord_name, result_buf );
+    }
+    else if( !node_result && p_analysis->py_PreloadedResult)
+    {
+        /* Most likely only need to extract a subset of elements */
+        extract_element_subset_result( py_QueryReturn, result_name, queried_state, subrecord_name, elem_class_idx, result_buf );
+    }
+    else
+    {
+        /* Need to extract all elements */
+        extract_element_result( py_QueryReturn, result_name, queried_state, subrecord_name, result_buf );
     }
 
     return OK;
@@ -467,27 +825,15 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     subrecord_name = p_subrec->subrec.name;
     class_name = p_subrec->p_object_class->short_name;
 
-    ipt = -1;
-    if( p_subrec->element_set ){
-        if(p_subrec->element_set->tempIndex < 0)
-            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->current_index];
-        else
-            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->tempIndex];
-    }
+    /* Get the integration point */
+    ipt = get_subrecord_integration_point_num( p_subrec );
 
     /* This technically breaks if reading multiple results, but that currently never happens */
-    for( i = 0; i < qty; i++ ){
-        /* Query result using the Mili reader */
-        py_QueryReturn = mili_reader_query( state, class_name, ipt, results[i] );
-        if( py_QueryReturn == NULL ){
+    for( i = 0; i < qty; i++ )
+    {
+        py_QueryReturn = mili_reader_query( results[i], class_name, NULL, ipt, state, state );
+        if( py_QueryReturn == NULL )
             return NOT_OK;
-        }
-
-        /* Update the stored previous query */
-        if( p_analysis->py_PrevQuery != NULL )
-            Py_DECREF( p_analysis->py_PrevQuery );
-        p_analysis->py_PrevQuery = py_QueryReturn;
-        Py_INCREF( p_analysis->py_PrevQuery );
 
         /* Extract/reorder the results from the Python dictionary structure */
         node_result = (p_subrec->p_object_class->superclass == G_NODE);
@@ -505,6 +851,61 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
 #endif
 
     return rval;
+}
+
+
+extern int
+mili_reader_preload_primal_th( Analysis* analy, Result_mo_list_obj* p_rmlo, Subrec_obj* p_subrec,
+                               int obj_qty, int *labels, int first_st, int last_st )
+{
+    int i, j, ipt;
+    int qty_states;
+    char * result_name;
+    PyObject * py_SvarNames,
+             * py_ClassName,
+             * py_Labels,
+             * py_States,
+             * py_Subrecord,
+             * py_Ipt;
+    PyObject * py_Func,
+             * py_Args,
+             * py_Kwargs;
+    PyObject * py_QueryReturn;
+
+    /* Get integration point */
+    ipt = get_subrecord_integration_point_num( p_subrec );
+
+    /* Get result name */
+    result_name = (char*) p_rmlo->result->name;
+
+    /* Generate arguments for the Query */
+    py_SvarNames = mili_reader_get_svar_argument( 1, &result_name );
+    py_ClassName = string_to_pyobject( p_subrec->p_object_class->short_name );
+    py_Labels = mili_reader_get_labels_argument( obj_qty, labels );
+    py_States = mili_reader_get_states_argument( analy->state_count, first_st, last_st );
+    py_Subrecord = mili_reader_get_subrec_argument( p_subrec->subrec.name );
+    py_Ipt = mili_reader_get_ipts_argument( ipt );
+
+    /* Call the query function */
+    py_Func = get_query_function( analy );
+    py_Args = build_query_args( py_SvarNames, py_ClassName, py_Labels, py_States, py_Ipt );
+    py_Kwargs = build_query_kwargs( py_Subrecord );
+    analy->py_PreloadedResult = PyObject_Call( py_Func, py_Args, py_Kwargs );
+
+    /* Free python refereces */
+    Py_DECREF( py_Args );
+    Py_DECREF( py_Kwargs );
+    Py_DECREF( py_Func );
+
+    return OK;
+}
+
+
+extern int
+mili_reader_preload_derived_th( Analysis* analy, Result_mo_list_obj* p_rmlo, Subrec_obj* p_subrec, 
+                                int obj_qty, int *labels, int first_st, int last_st )
+{
+    return OK;
 }
 
 
@@ -530,21 +931,21 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
     Subrec_obj* p_subrec;
     PyObject * py_Result;
     int num_components;
-    const char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
-    const char* strain_components[6] = {"ex", "ey", "ez", "exy", "eyz", "ezx"};
+    char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
+    char* strain_components[6] = {"ex", "ey", "ez", "exy", "eyz", "ezx"};
+    char** components_to_query;
 
     /* Arguments we need for mili reader query function */
     PyObject * py_SvarNames,
              * py_ClassName,
-             * py_Material = Py_None,
-             * py_Labels = Py_None,
-             * py_State,
-             * py_Ipts,
-             * py_Subrec,
-             * py_WriteData = Py_None;
-    PyObject * py_QueryReturn,
-             * py_FuncName,
-             * py_TempStr;
+             * py_Labels,
+             * py_States,
+             * py_Ipt,
+             * py_Subrecord;
+    PyObject * py_Func,
+             * py_Args,
+             * py_Kwargs;
+    PyObject * py_QueryReturn;
 
     /* Get analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
@@ -562,55 +963,33 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
     subrecord_name = p_subrec->subrec.name;
     class_name = p_subrec->p_object_class->short_name;
 
-    /* Check for integration point */
-    if( p_subrec->element_set ){
-        if(p_subrec->element_set->tempIndex < 0)
-            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->current_index];
-        else
-            ipt = p_subrec->element_set->integration_points[p_subrec->element_set->tempIndex];
-        py_Ipts = Py_BuildValue("i", ipt);
-        PyErr_Clear();
-    }
-    else{
-        py_Ipts = Py_None;
-        Py_INCREF( py_Ipts );
-    }
-
-    /* Increment reference counters for Py_None */
-    Py_INCREF( py_Material );
-    Py_INCREF( py_Labels );
-    Py_INCREF( py_WriteData );
-
-    /* Build list of state variable names. */
+    /* Get number/name of components we need to query */
     num_components = (is_pressure) ? 3 : 6;
-    py_SvarNames = PyList_New(num_components);
-    for(i = 0; i < num_components; i++){
-        if( is_stress )
-            py_TempStr = string_to_pyobject(stress_components[i]);
-        else
-            py_TempStr = string_to_pyobject(strain_components[i]);
-        PyList_SetItem(py_SvarNames, i, py_TempStr);
-    }
+    components_to_query = (is_stress) ? stress_components : strain_components;
 
-    py_ClassName = string_to_pyobject(class_name);
+    /* Get integration point */
+    ipt = get_subrecord_integration_point_num( p_subrec );
 
-    py_Subrec = string_to_pyobject(subrecord_name);
+    /* Generate arguments for the Query */
+    py_SvarNames = mili_reader_get_svar_argument( num_components, components_to_query );
+    py_ClassName = string_to_pyobject( class_name );
+    py_Labels = mili_reader_get_labels_argument( 0, NULL );
+    py_States = mili_reader_get_states_argument( p_analysis->state_count, state, state );
+    py_Subrecord = mili_reader_get_subrec_argument( p_subrec->subrec.name );
+    py_Ipt = mili_reader_get_ipts_argument( ipt );
 
-    /* Convert state number to python integer */
-    py_State = Py_BuildValue("i", state);
-    /* Do Not Remove this: For some reason the above function call causes an error,
-    * even though it correctly returns the expected pyobject*. We need to clear the error
-    * Indicator so that the next call does not fail because of it. */
-    PyErr_Clear();
+    /* Call the query function */
+    py_Func = get_query_function( p_analysis );
+    py_Args = build_query_args( py_SvarNames, py_ClassName, py_Labels, py_States, py_Ipt );
+    py_Kwargs = build_query_kwargs( py_Subrecord );
+    py_QueryReturn = PyObject_Call( py_Func, py_Args, py_Kwargs );
 
-    /* Get function name and call query */
-    py_FuncName = string_to_pyobject( QUERY_FUNCTION );
-    py_QueryReturn = PyObject_CallMethodObjArgs( p_analysis->py_MiliDB, py_FuncName, py_SvarNames,
-                                                py_ClassName, py_Material, py_Labels,
-                                                py_State, py_Ipts, py_Subrec, py_WriteData, NULL );
+    /* Free python refereces */
+    Py_DECREF( py_Args );
+    Py_DECREF( py_Kwargs );
+    Py_DECREF( py_Func );
+
     if( py_QueryReturn == NULL ){
-        PyErr_Print();
-        printf("\n");
         return OK;
     }
     /* Parse out stress and strain values and store in correct locations
@@ -631,17 +1010,6 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
                                                elem_class_idx, (void*) data[i] );
     }
 
-    /* Free python refereces */
-    Py_DECREF( py_TempStr );
-    Py_DECREF( py_FuncName );
-    Py_DECREF( py_SvarNames );
-    Py_DECREF( py_ClassName );
-    Py_DECREF( py_Material );
-    Py_DECREF( py_Labels );
-    Py_DECREF( py_State );
-    Py_DECREF( py_Ipts );
-    Py_DECREF( py_WriteData );
-
 #ifdef MILI_READER_TIMING
     end = clock();
     elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -649,14 +1017,6 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
 #endif
 
     return OK;
-}
-
-/* TAG( cmpfunc )
- *
- * Function to compare two integers
- */
-int cmpfunc (const void * a, const void * b) {
-   return ( *(int*)a - *(int*)b );
 }
 
 
@@ -913,7 +1273,7 @@ mili_reader_get_geom( Analysis * analy )
             }
 
             /* Sort the labels */
-            qsort( node_labels, obj_qty, sizeof(int), cmpfunc);
+            qsort( node_labels, obj_qty, sizeof(int), compare_int);
 
             /* Remove duplicates and get real number of nodes */
             k = 0;
@@ -1159,7 +1519,7 @@ mili_reader_get_geom( Analysis * analy )
             /* Special case for particle classes -- Elements need to be put in sorted order. */
             if( idents_exist && is_particle_class( analy, elem_class->superclass, elem_class->short_name ) ){
                 /* Sort element labels */
-                qsort( elem_labels, obj_qty, sizeof(int), cmpfunc );
+                qsort( elem_labels, obj_qty, sizeof(int), compare_int );
                 for( k = 0; k < proc_count; k++ ){
                     /* Get Labels on processor */
                     py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[k], elem_class->short_name );
@@ -1182,11 +1542,6 @@ mili_reader_get_geom( Analysis * analy )
 
                 elem_class->simple_start = elem_labels[0];
                 elem_class->simple_stop = elem_labels[elem_class->qty-1];
-
-                if ( elem_class->superclass == M_MAT ){
-                    p_matd = NEW_N( Material_data, obj_qty, "Material data array" );
-                    elem_class->objects.materials = p_matd;
-                }
 
                 p_lh = p_md->classes_by_sclass + elem_class->superclass;
                 mo_classes = (MO_class_data **) p_lh->list;
@@ -1364,6 +1719,8 @@ mili_reader_get_geom( Analysis * analy )
         MO_class_data ** mat_classes = p_md->classes_by_sclass[M_MAT].list;
         for( j = 0; j < p_md->classes_by_sclass[M_MAT].qty; j++ ){
             elem_class = mat_classes[i];
+            p_matd = NEW_N( Material_data, elem_class->qty, "Material data array" );
+            elem_class->objects.materials = p_matd;
             gen_material_data( elem_class, p_md );
         }
 
@@ -1548,45 +1905,6 @@ create_st_variable_from_pyobject( Hash_table *p_sv_ht, char *p_name,
 }
 
 
-/* TAG( set_es_middle_index )
- *
- * Given an ElementSet, compute and sets the middle index.
- */
-Bool_type
-set_es_middle_index( ElementSet * element_set )
-{
-    int middle, j;
-
-    /* We need to determine the middle integration point for the default.*/
-    /* Take the actual number of point used in the simulation to find the middle*/
-    middle = element_set->integration_points[element_set->size]/2.0 + 
-                element_set->integration_points[element_set->size]%2;
-    
-    for( j = 0; j < element_set->size; j++)
-    {
-        if( middle < element_set->integration_points[j] )
-            break;
-    }
-
-    if( j > 0 && j < element_set->size )
-    {
-        if( j > 1)
-            j--;
-
-        if( abs(element_set->integration_points[j] - middle)< abs(element_set->integration_points[j-1] - middle) )
-            element_set->middle_index = j;
-        else
-            element_set->middle_index = j-1;
-    }
-    else if( j == element_set->size)
-        element_set->middle_index = j-1;
-    else
-        element_set->middle_index = j;
-
-    return OK;
-}
-
-
 /* TAG( mili_reader_load_element_sets )
  *
  * Load element set data from mili reader.
@@ -1616,7 +1934,8 @@ mili_reader_load_element_sets(Analysis *analy, PyObject ** py_ESList)
     analy->Element_set_names = NULL;
     analy->es_cnt = 0;
 
-    if ( py_ESList == NULL ){
+    if ( py_ESList == NULL )
+    {
         fprintf( stderr, "mili_reader_load_element_sets: py_ESList is NULL\n" );
         return GRIZ_FAIL;
     }
@@ -1754,6 +2073,8 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
     analy->num_bad_subrecs = 0;
     analy->bad_subrecs = NULL;
     analy->old_shell_stresses = FALSE;
+
+    analy->py_PreloadedResult = NULL;
 
     /* Single call to mili reader to get all the data we need */
     py_CallData = call_mili_reader_function_noargs( analy->py_MiliDB, GET_ST_DESCRIPTORS_CALL );
@@ -2286,7 +2607,7 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     p_st->time = analy->state_times[state_no];
 
     /* Read node position array if it exists, re-ordering if necessary. */
-    if ( analy->stateDB )
+    if ( analy->stateDB && analy->load_nodpos)
     {
         rval = combine_nodpos( analy, state_no, p_st->nodes.nodes );
 

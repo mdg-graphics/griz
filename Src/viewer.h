@@ -1466,9 +1466,7 @@ typedef struct _Analysis
      * Added February , 2013: IRC - Array of integration point label
      * data.
      */
-    int                 es_cnt; /* Number of element sets */
-    //Integration_points *es_intpoints;
-    //IntLabels * int_labels;
+    int es_cnt; /* Number of element sets */
     Hash_table * Element_sets;
     char **Element_set_names;
     Bool_type int_point_labels;
@@ -1481,9 +1479,11 @@ typedef struct _Analysis
     Bool_type old_shell_stresses;
 
     Bool_type load_sand;
+    Bool_type load_nodpos;
 
     int proc_count;
     Bool_type parallel_read;
+
 #ifdef HAVE_PARALLEL_READ
     char * mili_reader_src_path;
     char * mili_reader_venv_bin;
@@ -1492,12 +1492,14 @@ typedef struct _Analysis
     PyObject * py_MiliParameters;
     PyObject * py_Nodpos;
     PyObject * py_Sand;
+    PyObject * py_PreloadedResult;
 
     /* Prevent repeat queryies */
     PyObject * py_PrevQuery;
     char * prev_query_result_name;
     char * prev_query_class_name;
-    int prev_query_state;
+    int prev_query_start_state;
+    int prev_query_end_state;
     int prev_query_ipt;
 #endif
 }
@@ -1902,7 +1904,11 @@ extern Environ env;
 #define TOKENLENGTH 100
 
 /* viewer.c */
+int get_subrecord_integration_point_num( Subrec_obj* );
+int get_subrecord_integration_point_index( Subrec_obj* );
+Bool_type set_es_middle_index( ElementSet* );
 extern int mili_compare_labels(const void *in_label1, const void *in_label2);
+extern int compare_int (const void * a, const void * b);
 extern Bool_type load_analysis( char *fname, Analysis *analy, Bool_type reload );
 extern void close_analysis( Analysis *analy );
 extern void open_history_file( char *fname );
@@ -2033,6 +2039,8 @@ extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
 extern Bool_type combine_nodpos( Analysis*, int, void* );
 extern Bool_type combine_sand_flags( Analysis*, Subrec_obj*, int, void* );
 extern int mili_reader_load_stress_strain_components( int, int, Bool_type, Bool_type, float** );
+extern int mili_reader_preload_primal_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
+extern int mili_reader_preload_derived_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
 #endif
 
 /* Mili wrappers. */
@@ -2388,15 +2396,8 @@ extern void load_primal_result_double( Analysis *, float *, Bool_type );
 extern void load_primal_result_int( Analysis *, float *, Bool_type );
 extern void load_primal_result_long( Analysis *, float *, Bool_type );
 extern Bool_type parse_result_spec( char *, char *, int *, int [], char * );
-extern Bool_type mod_required_mesh_mode( Analysis *, Result_modifier_type, int,
-        int );
-extern Bool_type mod_required_plot_mode( Analysis *, Result_modifier_type, int,
-        int );
-extern int get_element_set_id( char * );
-extern int get_element_set_index( Analysis *, int );
-extern int get_intpoint_index ( int, int, int * );
-extern void set_default_intpoints ( int, int, int *, int * );
-extern void get_intpoints ( Analysis *, int, int[3] );
+extern Bool_type mod_required_mesh_mode( Analysis *, Result_modifier_type, int, int );
+extern Bool_type mod_required_plot_mode( Analysis *, Result_modifier_type, int, int );
 
 /* show.c */
 extern int parse_show_command( char *, Analysis * );
@@ -2428,8 +2429,7 @@ extern void compute_prin_strain( Analysis*, float*, Bool_type );
 extern void compute_es_prin_strain( Analysis*, float*, Bool_type );
 
 extern Bool_type is_primal_quad_strain_result( char *result_name );
-extern void      rotate_quad_result( Analysis *analy, char *primal, int result_cnt,
-                                     float *result );
+extern void      rotate_quad_result( Analysis *analy, char *primal, int result_cnt, float *result );
 
 
 /* stress.c */

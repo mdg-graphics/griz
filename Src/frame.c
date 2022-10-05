@@ -554,7 +554,7 @@ transform_es_stress_strain( char **primals, int primal_index, Analysis *analy,
     if( rval == OK ){
         primal_result = (Primal_result*) p_hte->data;
         es_name = get_es_name(primal_result, subrec);
-        ipt_index = p_subrec->element_set->current_index + 1;
+        ipt_index = get_subrecord_integration_point_index( p_subrec ) + 1;
         for( i = 0; i < 6; i ++ ){
             es_primals[0] = build_es_stress_strain_query_string(es_name, ipt_index, primal_result->in_vector_array, i,
                                                                 analy->parallel_read, isStrain);

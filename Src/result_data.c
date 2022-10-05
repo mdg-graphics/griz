@@ -3149,8 +3149,7 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
  * this function, but this may need to be revisited.)
  */
 Bool_type
-load_subrecord_result( Analysis *analy, int subrec_id, Bool_type update,
-                       Bool_type interpolate )
+load_subrecord_result( Analysis *analy, int subrec_id, Bool_type update, Bool_type interpolate )
 {
     Result *p_r;
     int qty;
@@ -3173,8 +3172,7 @@ load_subrecord_result( Analysis *analy, int subrec_id, Bool_type update,
             {
                 analy->result_index = j;
 
-                p_r->result_funcs[j]( analy, NODAL_RESULT_BUFFER( analy ),
-                                      interpolate );
+                p_r->result_funcs[j]( analy, NODAL_RESULT_BUFFER( analy ), interpolate );
 
                 if ( update )
                 {

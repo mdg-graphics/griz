@@ -1482,20 +1482,16 @@ update_result( Analysis *analy, Result *p_result )
             if ( qty != 0 )
             {
                 /* Arrays for results supported on one or more classes. */
-                p_result->superclasses = NEW_N( int, qty,
-                                                "Result sclass array" );
+                p_result->superclasses = NEW_N( int, qty, "Result sclass array" );
                 p_result->subrecs = NEW_N( int, qty, "Result subrec array" );
-                p_result->indirect_flags = NEW_N( Bool_type, qty,
-                                                  "Result indirect flags" );
+                p_result->indirect_flags = NEW_N( Bool_type, qty, "Result indirect flags" );
 
                 /* Type incompatible with cast syntax of NEW_N.
                 p_result->result_funcs = NEW_N( void (*)(), qty,
                                                      "Result func array" );
                 */
-                p_result->result_funcs = (void (**)()) calloc( qty,
-                                         sizeof( void (**)() ) );
-                p_result->primals = NEW_N( char **, qty,
-                                           "Result primals array" );
+                p_result->result_funcs = (void (**)()) calloc( qty, sizeof( void (**)() ) );
+                p_result->primals = NEW_N( char **, qty, "Result primals array" );
             }
 
             for ( i = 0; i < qty; i++ )
@@ -1517,13 +1513,10 @@ update_result( Analysis *analy, Result *p_result )
             if ( qty != 0 )
             {
                 /* Arrays for results supported on one or more classes. */
-                p_result->superclasses = NEW_N( int, qty,
-                                                "Result sclass array" );
+                p_result->superclasses = NEW_N( int, qty, "Result sclass array" );
                 p_result->subrecs = NEW_N( int, qty, "Result subrec array" );
-                p_result->indirect_flags = NEW_N( Bool_type, qty,
-                                                  "Result indirect flags" );
-                p_result->result_funcs = (void (**)()) calloc( qty,
-                                         sizeof( void (**)() ) );
+                p_result->indirect_flags = NEW_N( Bool_type, qty, "Result indirect flags" );
+                p_result->result_funcs = (void (**)()) calloc( qty, sizeof( void (**)() ) );
             }
 
             p_i = (int *) srec_map[srec_id].list;
@@ -2598,11 +2591,8 @@ char * construct_result_query_string(Analysis* analy){
                     
                     if( found )
                     {
+                        ipt_index = get_subrecord_integration_point_index( p_subrec ) + 1;
                         strcpy(query_string, owning_owning_vec->original_names_per_subrec[k]);
-                        if(p_subrec->element_set->tempIndex < 0)
-                            ipt_index = p_subrec->element_set->current_index+1;
-                        else
-                            ipt_index = p_subrec->element_set->tempIndex+1;
                         sprintf(query_string,"%s[%d,%s[%s]]" , query_string, ipt_index,
                                 owning_vec->original_names_per_subrec[j], primal_result->short_name);
                     }
@@ -2613,11 +2603,8 @@ char * construct_result_query_string(Analysis* analy){
                     }
                 }
                 else if(p_subrec->element_set){
+                    ipt_index = get_subrecord_integration_point_index( p_subrec ) + 1;
                     strcpy(query_string, owning_vec->original_names_per_subrec[j]);
-                    if(p_subrec->element_set->tempIndex < 0)
-                        ipt_index = p_subrec->element_set->current_index+1;
-                    else
-                        ipt_index = p_subrec->element_set->tempIndex+1;
                     sprintf(query_string,"%s[%d,%s]" , query_string, ipt_index, p_result->name);
                 }
                 /* If this is not an element set, we need to add in result name */
@@ -2692,17 +2679,16 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 				                   * that the EI message will not appear in the
 				                   * render window. */
 
+    /* Get Sand flags if they exist */
+    activity = NULL;
     if(analy->state_p->sand_present && p_subrec->p_object_class->elem_class_index >= 0)
         activity = analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index];
-    else
-        activity = NULL;
 
     if ( !analy->particle_nodes_enabled
             && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
         return;
 
-    if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) &&
-        analy->ref_frame == LOCAL)
+    if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) && analy->ref_frame == LOCAL)
     {
         /* we have a shell result in the LOCCAL coordinate system. Now check for a stress result */
         len = strlen(primals[0]);
@@ -2713,14 +2699,16 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
                 load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                 return;
             }
-        } else if(len == 3)
+        }
+        else if(len == 3)
         {
             if(!strcmp(primals[0], "sxy") || !strcmp(primals[0], "szy") || !strcmp(primals[0], "szx"))
             {
                 load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                 return;
             }
-        } else if(len > 6)
+        }
+        else if(len > 6)
         { 
                 if(!strncmp(primals[0], "stress", 6) || !strncmp(primals[0], "es_", 3))
                 {
@@ -2760,7 +2748,6 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     /* Re-order data if necessary. */
     if ( object_ids )
     {
-        /* If we ge a particle object and we do not have particles on, then set value to zero */
         for ( i = 0; i < obj_qty; i++ )
             resultElem[object_ids[i]] = result_buf[i];
 
@@ -3092,7 +3079,7 @@ load_primal_result_double( Analysis *analy, float *resultArr,
                            Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, k, l, rval;
+    int i, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3100,15 +3087,7 @@ load_primal_result_double( Analysis *analy, float *resultArr,
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primals[2];
-    char primal_spec[32];
-    char target[15];
     double *dbuffer;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
-    int ipt_index;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
-
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -3242,7 +3221,7 @@ load_primal_result_int( Analysis *analy, float *resultArr,
                         Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, k, l, rval;
+    int i, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3250,14 +3229,7 @@ load_primal_result_int( Analysis *analy, float *resultArr,
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primals[2];
-    char primal_spec[32];
-    char target[15];
     int *ibuffer;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
-    int ipt_index;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -3387,11 +3359,10 @@ load_primal_result_int( Analysis *analy, float *resultArr,
  * converting it to single precision.
  */
 void
-load_primal_result_long( Analysis *analy, float *resultArr,
-                         Bool_type interpolate )
+load_primal_result_long( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, k, l, rval;
+    int i, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3399,14 +3370,7 @@ load_primal_result_long( Analysis *analy, float *resultArr,
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primals[2];
-    char primal_spec[32];
-    char target[15];
     long *ibuffer;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
-    int ipt_index;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -4104,9 +4068,7 @@ check_nodal_result( Analysis *a )
     qty = a->mesh_table[a->cur_mesh_id].node_geom->qty ;
     data = a->mesh_table[a->cur_mesh_id].node_geom->data_buffer;
 
-    for (i=0;
-            i<qty;
-            i++)
+    for ( i = 0; i < qty; i++ )
         sum += data[i];
 
     return;
@@ -4131,155 +4093,6 @@ get_result_qty( Analysis *analy, int subrec_id )
     srec     = p_result->srec_id;
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
     return (p_subrec->subrec.qty_objects);
-}
-
-/*****************************************************************
- * TAG( get_element_set_id )
- *
- * Returns the element set (es) id from the es name.
- *
- */
-int
-get_element_set_id( char *es_input_ptr )
-{
-    int i=0;
-    int es_id=-1;
-    char *es_ptr=NULL, es_temp[64]="";
-
-    es_ptr = strstr( es_input_ptr, "es_" );
-    es_ptr += 3;
-    if ( es_ptr )
-    {
-        strcpy( es_temp, es_ptr );
-        for ( i=0;
-                i<strlen( es_temp );
-                i++)
-        {
-            if ( !isdigit(es_temp[i] ) )
-            {
-                es_temp[i]='\0';
-                break;
-            }
-        }
-        sscanf( es_temp, "%d", &es_id );
-    }
-
-    return( es_id );
-}
-
-/*****************************************************************
- * TAG( get_element_set_index )
- *
- * Returns the element set (es) index for the specified es id.
- *
- */
-//int
-//get_element_set_index( Analysis *analy, int es_id )
-//{
-//    int i=0;
-//    int es_index=-1;
-//
-//    for (i=0;
-//            i<analy->es_cnt;
-//            i++ )
-//    {
-//        if ( analy->es_intpoints[i].es_id == es_id )
-//        {
-//            es_index = i;
-//            break;
-//        }
-//    }
-//    return( es_index );
-//}
-
-/*****************************************************************
- * TAG( get_intpoint_index )
- *
- * Returns the index of the specified label or -1 if not found.
- *
- */
-int
-get_intpoint_index ( int label, int num_labels, int *intpoint_labels )
-{
-    int i=0;
-    int label_index=-1;
-
-    for ( i=0;
-            i<num_labels;
-            i++ )
-    {
-        if ( intpoint_labels[i]==label )
-            label_index = i;
-    }
-    return ( label_index );
-}
-
-/*****************************************************************
- * TAG( get_intpoints )
- *
- * Returns the current integration points in array
- * intpoints for a specified element set id.
- *
- */
-//void
-//get_intpoints ( Analysis *analy, int es_id, int intpoints[3] )
-//{
-//    int i;
-//
-//    for ( i=0;
-//            i<analy->es_cnt;
-//            i++ )
-//    {
-//        if ( es_id == analy->es_intpoints[i].es_id )
-//        {
-//            intpoints[0] = analy->es_intpoints[i].in_mid_out_set[0];
-//            intpoints[1] = analy->es_intpoints[i].in_mid_out_set[1];
-//            intpoints[2] = analy->es_intpoints[i].in_mid_out_set[2];
-//            return;
-//        }
-//    }
-//    intpoints[0] =  intpoints[1] =  intpoints[2] = -1;
-//    return;
-//}
-
-/*****************************************************************
- * TAG( set_default_intpoints )
- *
- * Returns the default integration points in array
- * default_intpoints.
- *
- */
-void
-set_default_intpoints ( int num_intpoints, int num_labels,
-                        int *intpoint_labels, int default_intpoints[3] )
-{
-    int i;
-    int calc_middle=0, middle_point=-1;
-
-    default_intpoints[0] =  default_intpoints[1] = default_intpoints[2] = -1;
-
-    if ( intpoint_labels[0] == 1 )
-        default_intpoints[0] = 1; /* Inner */
-
-    /* Calculate the MIDDLE integration point */
-    calc_middle = num_intpoints/2.0;
-    if ( calc_middle*2 != num_intpoints )   /* Odd number of points */
-    {
-        calc_middle++;
-
-        /* Make sure the middle point is in the list of labels */
-        for ( i=0;
-                i<num_labels-1;
-                i++ )
-        {
-            if ( intpoint_labels[i] == calc_middle )
-                middle_point = calc_middle;
-        }
-
-    }
-    default_intpoints[1] = middle_point; /* MIDDLE integration point undefined if -1 */
-    if ( intpoint_labels[num_labels-1] == num_intpoints )
-        default_intpoints[2] = num_intpoints; /* Outer */
 }
 
 
