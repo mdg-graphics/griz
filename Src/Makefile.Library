@@ -340,6 +340,10 @@ clean:
 	-rm -f $(ROOT_DIR)/bin_opt/*
 	-rm -f $(ROOT_DIR)/objs_debug/* 
 	-rm -f $(ROOT_DIR)/objs_opt/* 
+	-rm -f $(ROOT_DIR)/bin_batch_debug/*
+	-rm -f $(ROOT_DIR)/bin_batch_opt/*
+	-rm -f $(ROOT_DIR)/objs_batch_debug/*
+	-rm -f $(ROOT_DIR)/objs_batch_opt/*
 
 cleanopt:
 	-touch $(ROOT_DIR)/src/*.c
