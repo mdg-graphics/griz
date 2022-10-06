@@ -858,8 +858,7 @@ extern int
 mili_reader_preload_primal_th( Analysis* analy, Result_mo_list_obj* p_rmlo, Subrec_obj* p_subrec,
                                int obj_qty, int *labels, int first_st, int last_st )
 {
-    int i, j, ipt;
-    int qty_states;
+    int ipt;
     char * result_name;
     PyObject * py_SvarNames,
              * py_ClassName,
@@ -901,10 +900,83 @@ mili_reader_preload_primal_th( Analysis* analy, Result_mo_list_obj* p_rmlo, Subr
 }
 
 
+/* TAG( mili_reader_get_derived_svar_argument )
+ *
+ * Build PyObject* of list of svars to query for derived result.
+ */
+PyObject*
+mili_reader_get_derived_svar_argument( Analysis * p_analysis, Result* p_result, Subrec_obj* p_subrec )
+{
+    int qty_results;
+    char ** result_names;
+    const char * stress = "stress";
+    const char * strain = "strain";
+    char* stress_components[6] = {"sx", "sy", "sz", "sxy", "syz", "szx"};
+    char* strain_components[6] = {"ex", "ey", "ez", "exy", "eyz", "ezx"};
+    PyObject * py_SvarNames;
+
+    int result_index = p_analysis->result_index;
+    char * primal = p_result->primals[result_index][0];
+
+    if( strcmp(primal, stress) == 0 && p_subrec->element_set )
+    {
+        result_names = stress_components;
+        qty_results = 6;
+    }
+    else if( strcmp(primal, strain) == 0 && p_subrec->element_set )
+    {
+        result_names = strain_components;
+        qty_results = 6;
+    }
+    else
+    {
+        result_names = &primal;
+        qty_results = 1;
+    }
+
+    py_SvarNames = mili_reader_get_svar_argument( qty_results, result_names );
+
+    return py_SvarNames;
+}
+
+
 extern int
 mili_reader_preload_derived_th( Analysis* analy, Result_mo_list_obj* p_rmlo, Subrec_obj* p_subrec, 
                                 int obj_qty, int *labels, int first_st, int last_st )
 {
+    int ipt;
+    PyObject * py_SvarNames,
+             * py_ClassName,
+             * py_Labels,
+             * py_States,
+             * py_Subrecord,
+             * py_Ipt;
+    PyObject * py_Func,
+             * py_Args,
+             * py_Kwargs;
+    PyObject * py_QueryReturn;
+
+    /* Get integration point */
+    ipt = get_subrecord_integration_point_num( p_subrec );
+
+    py_SvarNames = mili_reader_get_derived_svar_argument( analy, p_rmlo->result, p_subrec );
+    py_ClassName = string_to_pyobject( p_subrec->p_object_class->short_name );
+    py_Labels = mili_reader_get_labels_argument( obj_qty, labels );
+    py_States = mili_reader_get_states_argument( analy->state_count, first_st, last_st );
+    py_Subrecord = mili_reader_get_subrec_argument( p_subrec->subrec.name );
+    py_Ipt = mili_reader_get_ipts_argument( ipt );
+
+    /* Call the query function */
+    py_Func = get_query_function( analy );
+    py_Args = build_query_args( py_SvarNames, py_ClassName, py_Labels, py_States, py_Ipt );
+    py_Kwargs = build_query_kwargs( py_Subrecord );
+    analy->py_PreloadedResult = PyObject_Call( py_Func, py_Args, py_Kwargs );
+
+    /* Free python refereces */
+    Py_DECREF( py_Args );
+    Py_DECREF( py_Kwargs );
+    Py_DECREF( py_Func );
+
     return OK;
 }
 
@@ -967,31 +1039,40 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
     num_components = (is_pressure) ? 3 : 6;
     components_to_query = (is_stress) ? stress_components : strain_components;
 
-    /* Get integration point */
-    ipt = get_subrecord_integration_point_num( p_subrec );
+    if( p_analysis->py_PreloadedResult != NULL )
+    {
+        py_QueryReturn = p_analysis->py_PreloadedResult;
+        Py_INCREF( py_QueryReturn );
+    }
+    else
+    {
+        /* Get integration point */
+        ipt = get_subrecord_integration_point_num( p_subrec );
 
-    /* Generate arguments for the Query */
-    py_SvarNames = mili_reader_get_svar_argument( num_components, components_to_query );
-    py_ClassName = string_to_pyobject( class_name );
-    py_Labels = mili_reader_get_labels_argument( 0, NULL );
-    py_States = mili_reader_get_states_argument( p_analysis->state_count, state, state );
-    py_Subrecord = mili_reader_get_subrec_argument( p_subrec->subrec.name );
-    py_Ipt = mili_reader_get_ipts_argument( ipt );
+        /* Generate arguments for the Query */
+        py_SvarNames = mili_reader_get_svar_argument( num_components, components_to_query );
+        py_ClassName = string_to_pyobject( class_name );
+        py_Labels = mili_reader_get_labels_argument( 0, NULL );
+        py_States = mili_reader_get_states_argument( p_analysis->state_count, state, state );
+        py_Subrecord = mili_reader_get_subrec_argument( p_subrec->subrec.name );
+        py_Ipt = mili_reader_get_ipts_argument( ipt );
 
-    /* Call the query function */
-    py_Func = get_query_function( p_analysis );
-    py_Args = build_query_args( py_SvarNames, py_ClassName, py_Labels, py_States, py_Ipt );
-    py_Kwargs = build_query_kwargs( py_Subrecord );
-    py_QueryReturn = PyObject_Call( py_Func, py_Args, py_Kwargs );
+        /* Call the query function */
+        py_Func = get_query_function( p_analysis );
+        py_Args = build_query_args( py_SvarNames, py_ClassName, py_Labels, py_States, py_Ipt );
+        py_Kwargs = build_query_kwargs( py_Subrecord );
+        py_QueryReturn = PyObject_Call( py_Func, py_Args, py_Kwargs );
 
-    /* Free python refereces */
-    Py_DECREF( py_Args );
-    Py_DECREF( py_Kwargs );
-    Py_DECREF( py_Func );
+        /* Free python refereces */
+        Py_DECREF( py_Args );
+        Py_DECREF( py_Kwargs );
+        Py_DECREF( py_Func );
+    }
 
     if( py_QueryReturn == NULL ){
         return OK;
     }
+
     /* Parse out stress and strain values and store in correct locations
      * Assumption:
      *      data[0][0:elem_qty] = sx/ex

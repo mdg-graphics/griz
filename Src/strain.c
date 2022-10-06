@@ -899,17 +899,14 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                     {
                         if ( analy->do_tensor_transform )
                             if ( strain_type >= EX && strain_type <= EZX )
-                                transform_tensors( 1, (double (*)[6]) &eps,
-                                                   analy->tensor_transform_matrix );
+                                transform_tensors( 1, (double (*)[6]) &eps, analy->tensor_transform_matrix );
                     }
                     else if ( ref_frame == LOCAL )
                     {
                         if ( strain_type >= EX && strain_type <= EZX )
                         {
-                            hex_g2l_mtx( analy, p_hex_class, i, 0, 1, 3,
-                                         localMat );
-                            transform_tensors( 1, (double (*)[6]) &eps,
-                                               localMat );
+                            hex_g2l_mtx( analy, p_hex_class, i, 0, 1, 3, localMat );
+                            transform_tensors( 1, (double (*)[6]) &eps, localMat );
                         }
                     }
 

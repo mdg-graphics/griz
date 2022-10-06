@@ -3362,17 +3362,17 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                     analy->py_PreloadedResult = NULL;
                     if( p_rmlo->result->origin.is_primal )
                     {
-                        if( mili_reader_preload_primal_th( analy, p_rmlo, p_subrec, obj_cnt, queried_labels, first_st, last_st ) != OK )
+                        if( mili_reader_preload_primal_th( analy, p_rmlo, p_subrec, obj_cnt, queried_labels, first_st+1, last_st+1 ) != OK )
                         {
                             analy->py_PreloadedResult = NULL;
                         }
                     } 
                     else if( p_rmlo->result->origin.is_derived )
                     {
-                        analy->py_PreloadedResult = NULL;
-                        //if( mili_reader_preload_derived_th( analy, p_rmlo, p_subrec, first_st, last_st ) != OK ){
-                        //    analy->py_PreloadedResult = NULL;
-                        //}
+                        if( mili_reader_preload_derived_th( analy, p_rmlo, p_subrec, obj_cnt, queried_labels, first_st+1, last_st+1 ) != OK )
+                        {
+                            analy->py_PreloadedResult = NULL;
+                        }
                     }
 
                     /* For each state... */
