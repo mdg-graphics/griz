@@ -186,6 +186,9 @@ change_time( float time, Analysis *analy )
     struct temp_subrecord *subrecords_b =NULL;
     float *temp_results;
     int s1time, s2time = 0;
+    int fractsz;
+
+    fractsz = analy->time_frac_size;
 
     /*
      * This routine should really go through and interpolate everything
@@ -417,10 +420,6 @@ change_time( float time, Analysis *analy )
     if ( !analy->normals_constant || recompute_norms )
         compute_normals( analy );
 
-
-    //NODAL_RESULT_BUFFER( analy ) = result_a;
-    //load_result( analy, TRUE, TRUE, FALSE );
-
     if(!can_interp){
     	analy->show_interp = FALSE;
     }
@@ -441,7 +440,7 @@ change_time( float time, Analysis *analy )
     /*
      * Print the time and return so the caller can redisplay the mesh.
      */
-    wrt_text( "t = %f\n\n", time );
+    wrt_text( "t = %.*e\n\n", fractsz, time );
 }
 
 

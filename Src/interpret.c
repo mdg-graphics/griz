@@ -3102,6 +3102,16 @@ parse_single_command( char *buf, Analysis *analy )
 				redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
 			}
 		}
+		else if ( strcmp( tokens[0], "fractsz" ) == 0 ||
+				  strcmp( tokens[0], "fractimesize" ) == 0 )
+		{
+			sscanf( tokens[1], "%d", &ival );
+			if ( ival >= 0 && ival <= 13 )
+			{
+				analy->time_frac_size = ival;
+				redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
+			}
+		}
 		else if ( strcmp( tokens[0], "hidwid" ) == 0 )
 		{
 			sscanf( tokens[1], "%f", &val );

@@ -672,7 +672,7 @@ output_time_series( int token_qty, char tokens[MAXTOKENS][TOKENLENGTH],
     }
 
     /* Output format depends on source of abscissa. */
-    if ( output_plots->abscissa->mo_class == NULL && ! analy->th_single_col )
+    if ( output_plots->abscissa->mo_class == NULL && !analy->th_single_col )
     {
         /* Time is common abscissa; dump curves' data adjacently. */
         output_interleaved_series( outfile, output_plots, analy );
@@ -680,9 +680,7 @@ output_time_series( int token_qty, char tokens[MAXTOKENS][TOKENLENGTH],
     else
     {
         /* Dump curves sequentially. */
-
-        for ( p_po = output_plots, cnt = 1; p_po != NULL;
-                NEXT( p_po ), cnt++ )
+        for ( p_po = output_plots, cnt = 1; p_po != NULL; NEXT( p_po ), cnt++ )
             output_one_series( cnt, p_po, outfile, analy );
     }
 
@@ -1483,6 +1481,7 @@ compute_operation_time_series( Plot_obj *p_plot_list )
 static void
 output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
 {
+    const int DEFAULT_TIME_WIDTH = 13;
     Plot_obj *p_po;
     float *times;
     float scale, offset;
@@ -1490,6 +1489,7 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
     int label;
     int tlen, time_width;
     int *column_widths;
+    int fractsz;
     Result *ord_res;
     Title_string *ord_titles;
     Time_series_obj *ord_tso;
@@ -1644,8 +1644,13 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
     for ( i = 0; i < qty; i++ )
         column_widths[i] += 2;
 
+    /* Get correct width for time column based on time fraction size */
+    fractsz = analy->time_frac_size;
+    if( fractsz < DEFAULT_TH_TIME_FRACTION_SIZE )
+        fractsz = DEFAULT_TH_TIME_FRACTION_SIZE;
+    time_width = DEFAULT_TIME_WIDTH + (fractsz - DEFAULT_TH_TIME_FRACTION_SIZE);
+
     /* Write column headers. */
-    time_width = 13;
     fprintf( ofile, "#%*s", time_width - 1, " " );
     for ( i = 0; i < qty; i++ )
         fprintf( ofile, "%*s", column_widths[i], ord_titles[i * 2] );
@@ -1661,12 +1666,10 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
     }
 
     /* Write the data. */
-    for ( i = analy->first_state;
-            i <= analy->last_state;
-            i++ )
+    for ( i = analy->first_state; i <= analy->last_state; i++ )
     {
         /* Abscissa is time. */
-        fprintf( ofile, "%*.6e", time_width, times[i] );
+        fprintf( ofile, "%*.*e", time_width, fractsz, times[i] );
 
         /* Traverse the plot list to get ordinate values at current state. */
         for ( p_po = output_list, j = 0; p_po != NULL; NEXT( p_po ), j++ )
@@ -1674,8 +1677,7 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
             ord_tso = p_po->ordinate;
             idx = ord_tso->cur_block;
 
-            if ( idx < ord_tso->qty_blocks
-                    && i >= ord_tso->state_blocks[idx][0] )
+            if ( idx < ord_tso->qty_blocks && i >= ord_tso->state_blocks[idx][0] )
             {
                 if ( i <= ord_tso->state_blocks[idx][1] )
                     /* State falls within current valid block of data. */
@@ -1745,10 +1747,14 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
     Bool_type ab_is_time;
     Time_series_obj *ab_tso, *ord_tso;
     int fracsz = 6;
+    int fractsz = DEFAULT_TH_TIME_FRACTION_SIZE;
     char ab_title[64], col_str[64];
 
-    if ( analy->float_frac_size>fracsz )
+    if ( analy->float_frac_size > fracsz )
         fracsz = analy->float_frac_size;
+
+    if( analy->time_frac_size > fractsz )
+        fractsz = analy->time_frac_size;
 
     if ( analy->perform_unit_conversion )
     {
@@ -1874,7 +1880,8 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
     }
 
     /* Set initial column widths for 13.6e numeric format. */
-    col_1_width = col_2_width = fracsz;
+    col_1_width = fractsz;
+    col_2_width = fracsz;
 
     title_1_width = strlen( ab_title );
     sprintf(col_str, "%.*e",col_1_width, 1.0);
