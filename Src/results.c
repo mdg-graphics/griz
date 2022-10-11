@@ -2651,6 +2651,57 @@ char * construct_result_query_string(Analysis* analy){
 
 
 /*****************************************************************
+ * TAG( stress_strain_rloc_warning_message )
+ *
+ * If the result is a primal stress/strain component and the reference frame is set to LOCAL,
+ * then output a warning message saying that Global to local transformation is not implemented for
+ * primals currently. Once that has been implemented this error message can be removed.
+ */
+void
+stress_strain_rloc_warning_message( Analysis * analy )
+{
+    static Bool_type warn = TRUE;
+    Bool_type is_primal_stress_strain = FALSE;
+    Result * p_result;
+
+    /* If message already shown, just bail */
+    if( !warn )
+        return;
+
+    p_result = analy->cur_result;
+    if( p_result->origin.is_primal )
+    {
+        if( strncmp( p_result->name, "e", 1 ) == 0 || strncmp( p_result->name, "s", 1 ) == 0 )
+        {
+            if( strncmp( p_result->name+1, "x", 1 ) == 0
+                || strncmp( p_result->name+1, "y", 1 ) == 0
+                || strncmp( p_result->name+1, "z", 1 ) == 0
+                || strncmp( p_result->name+1, "xy", 2 ) == 0
+                || strncmp( p_result->name+1, "yz", 2 ) == 0
+                || strncmp( p_result->name+1, "zx", 2 ) == 0 )
+            {
+                is_primal_stress_strain = TRUE;
+            }
+        }
+        if( strncmp( p_result->name, "stress", 6 ) == 0 || strncmp( p_result->name, "strain", 6 ) == 0 )
+        {
+            is_primal_stress_strain = TRUE;
+        }
+    }
+
+    if( warn && is_primal_stress_strain && analy->ref_frame == LOCAL )
+    {
+        popup_dialog(WARNING_POPUP, "%s%s%s%s",
+                     "Reference frame set to LOCAL, but querying primal stress/strain.\n",
+                     "Global to local transformation not currently available for primal quantities.\n",
+                     "You will need to run the command \"sw derived_results\" to see the transformation.\n",
+                     "NOTE: This warning will only display ONCE");
+        warn = FALSE;
+    }
+}
+
+
+/*****************************************************************
  * TAG( load_primal_result )
  *
  * Load a scalar result from a subrecord without performing any
@@ -2689,6 +2740,8 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     primals[0] = construct_result_query_string(analy);
     primals[1] = NULL;
 
+    stress_strain_rloc_warning_message( analy );
+
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 			                       * for hexes currently. Set to false insure that
 				                   * that the EI message will not appear in the
@@ -2703,8 +2756,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
         return;
 
-    if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) &&
-        analy->ref_frame == LOCAL)
+    if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) && analy->ref_frame == LOCAL)
     {
         /* we have a shell result in the LOCCAL coordinate system. Now check for a stress result */
         len = strlen(primals[0]);
@@ -2724,7 +2776,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             }
         } else if(len > 6)
         { 
-                if(!strncmp(primals[0], "stress", 6) || !strncmp(primals[0], "es_", 3))
+                if(!strncmp(primals[0], "stress", 6) )
                 {
                     load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
                     return;

@@ -1444,8 +1444,6 @@ parse_single_command( char *buf, Analysis *analy )
 			else
 			{
 				popup_dialog( USAGE_POPUP, "select <class name> <ident>...\n" );
-				//UNDOCUMENTED_FEATURE
-				//popup_dialog( USAGE_POPUP, "select <class name> <ident>...\n     or\n select <filename>" );
 				valid_command = FALSE;
 			}
 		}
@@ -1480,7 +1478,6 @@ parse_single_command( char *buf, Analysis *analy )
 						return;
 					strcpy(comment, "There is no class with a shortname of ");
 					strcat(comment, tokens[1]);
-					/*popup_dialog( WARNING_POPUP, "HEY DUFUS, there is no class with that shortname.\n");*/
 					popup_dialog(WARNING_POPUP, comment);
 					return;
 
