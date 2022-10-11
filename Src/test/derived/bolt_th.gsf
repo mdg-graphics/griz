@@ -9,6 +9,7 @@ clrsel
 switch mglob
 on thsinglecol
 fracsz 8
+fractsz 8
 jpegqual 100
 
 # Set viewing 

@@ -16,6 +16,7 @@ minst 1
 maxst 101
 chgst
 fracsz 8
+fractsz 8
 jpegqual 100
 
 # Set viewing 

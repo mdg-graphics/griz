@@ -128,6 +128,10 @@
 /* Default number of significant figures in floating point numbers. */
 #define DEFAULT_FLOAT_FRACTION_SIZE (2)
 
+/* Default number of significant figures in times. */
+#define DEFAULT_TIME_FRACTION_SIZE (5)
+#define DEFAULT_TH_TIME_FRACTION_SIZE (6)
+
 /* Number of materials with settable properties. */
 #define MAX_MATERIALS 300
 
@@ -1075,6 +1079,7 @@ typedef struct _Analysis
     Bool_type use_colormap_pos;
     float hidden_line_width;
     int float_frac_size;
+    int time_frac_size;
     Bool_type auto_frac_size;
     float colormap_pos[4];
     Mouse_mode_type mouse_mode;

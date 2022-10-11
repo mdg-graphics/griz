@@ -8784,8 +8784,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                   ? data_array[hilite_num]
                   * analy->conversion_scale + analy->conversion_offset
                   : data_array[hilite_num];
-            sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                     val );
+            sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
         }
         else
             sprintf( label, " %s %d", cname, hilite_label );
@@ -8813,8 +8812,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                     val = analy->perform_unit_conversion ? data_array[hilite_num] * analy->conversion_scale
                                                   + analy->conversion_offset
                                                   : data_array[hilite_num];
-                    sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                             val );
+                    sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
                 } else
                 {
                     sprintf( label, " %s %d", cname, hilite_label );
@@ -8827,8 +8825,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                       + analy->conversion_offset
                       : data_array[hilite_num];
 
-                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                         val );
+                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
             }
         }
         else
@@ -13074,6 +13071,7 @@ draw_foreground( Analysis *analy )
     /* Time. */
     if ( analy->show_time )
     {
+        int fractsz = analy->time_frac_size;
         char time_name[256], mode_name[32];
         char interp_name[32];
         strcpy(interp_name, "Interpolated State" );
@@ -13088,10 +13086,10 @@ draw_foreground( Analysis *analy )
         hcentertext( TRUE );
         hmove2( 0.0, -cy + 1.0 * text_height );
         if(analy->show_interp){
-            sprintf( str, "%s = %.5e [%s = %d/%d] [%s]", time_name, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1, interp_name);
+            sprintf( str, "%s = %.*e [%s = %d/%d] [%s]", time_name, fractsz, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1, interp_name);
         }
         else{
-            sprintf( str, "%s = %.5e [%s = %d/%d]", time_name, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1);
+            sprintf( str, "%s = %.*e [%s = %d/%d]", time_name, fractsz, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1);
         }
         hcharstr( str );
         hcentertext( FALSE );
