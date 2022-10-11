@@ -975,6 +975,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     analy->manual_backface_cull = TRUE;
     analy->float_frac_size = DEFAULT_FLOAT_FRACTION_SIZE;
+    analy->time_frac_size = DEFAULT_TIME_FRACTION_SIZE;
     analy->auto_frac_size = TRUE;
     analy->hidden_line_width = 1.0;
     analy->show_colorscale = TRUE;
@@ -1998,7 +1999,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 								"em","emsc","emsph","emcyl","emax","emrm","clrem","tellem","crease","getedg",
 								"edgwid","edgbias","setcol","inrgb","mat","light","tlx","tly","tlz","dellit",
 								"camang","lookfr","lookat","lookup","tfx","tfy","tfz","tax","tay","taz",
-								"near","far","fracsz","bbsrc","bbox","hidwid","bufqty","copyrt","setpick","mtl",
+								"near","far","fracsz","fractsz","bbsrc","bbox","hidwid","bufqty","copyrt","setpick","mtl",
 								"vidti","vidttl"};
     	int tempcount2 = 0;
     	int tmppos2 = 0;

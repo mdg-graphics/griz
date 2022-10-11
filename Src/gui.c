@@ -8426,6 +8426,8 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 
     int status = OK;
 
+    int fractsz = analy->time_frac_size;
+
     db_ident = analy->db_ident;
     p_mesh   = MESH_P( analy );
 
@@ -8451,14 +8453,14 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
             rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &first, NULL, (void *) &start_t );
             if ( rval == OK )
             {
-                sprintf( temp_text, "Start time: %.4e\n", start_t );
+                sprintf( temp_text, "Start time: %.*e\n", fractsz, start_t );
                 start_text[cnt++] = (char *) strdup(temp_text) ;
             }
 
             rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &qty_states, NULL, (void *) &end_t );
             if ( rval == OK )
             {
-                sprintf( temp_text, "End time: %.4e\n", end_t );
+                sprintf( temp_text, "End time: %.*e\n", fractsz, end_t );
                 start_text[cnt++] = (char *) strdup(temp_text) ;
             }
 
