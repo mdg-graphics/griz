@@ -10,9 +10,9 @@
 #include "parallel_read.h"
 #include "viewer.h"
 
-//#ifndef MILI_READER_TIMING
-//#define MILI_READER_TIMING
-//#endif
+#ifndef MILI_READER_TIMING
+#define MILI_READER_TIMING
+#endif
 
 
 /* TAG( griz_python_setup )
@@ -26,11 +26,6 @@ griz_python_setup(Analysis * analy)
     PyObject * py_SrcPath;
     PyObject * py_SitePackagesPath;
 
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
     /* Default to Null */
     analy->py_MiliDB = NULL;
     analy->py_MiliReaderModule = NULL;
@@ -61,12 +56,6 @@ griz_python_setup(Analysis * analy)
         return FALSE;
     }
 
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("\n[griz_python_setup] elapsed = %f\n", elapsed);
-#endif
-
     return TRUE;
 }
 
@@ -87,9 +76,8 @@ mili_reader_db_open( char *path_root, int *p_dbid )
     Analysis * p_analysis;
 
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long start, end;
+    start = prec_timer();
 #endif
 
     /* Get the global analysis pointer */
@@ -122,9 +110,8 @@ mili_reader_db_open( char *path_root, int *p_dbid )
     p_dbid = 0;
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_db_open] elapsed = %f\n", elapsed);
+    end = prec_timer();
+    printf("\n[mili_reader_db_open] elapsed = %ldms\n", (end-start));
 #endif
 
     return OK;
@@ -370,7 +357,7 @@ mili_reader_query( char* result, char* class_name, char* subrecord_name, int ipt
     Analysis * p_analysis = get_analy_ptr();
 
     /* Check if this is a preloaded result for plot/outth */
-    if( p_analysis->py_PreloadedResult )
+    if( p_analysis->py_PreloadedResult && strcmp( result, "nodpos" ) != 0 )
     {
         /* Just use preloaded result */
         py_QueryReturn = p_analysis->py_PreloadedResult;
@@ -516,85 +503,62 @@ get_state_index( PyObject * py_Dict, char * result_name, int state_no )
  * that contains results for nodes.
  */
 int
-extract_node_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, float * result_buffer )
+extract_node_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, int comp_qty, float * result_buffer )
 {
     int i, j, k;
-    int obj, elem_qty;
-    int out_idx;
-    int comp_qty;
-    int * object_ids;
-    PyObject * py_ProcResult;
-    PyObject * py_Results;
-    PyObject * py_Value;
-    PyObject * py_Dict;
-    PyObject * py_Layout;
     int state_idx;
+    int obj, elem_qty;
+    int out_idx, in_idx;
+    PyObject * py_ProcResult;
+    PyObject * py_Dict;
     int * index_map;
+
+    PyObject * py_ByteArray;
+    unsigned char * bytearray;
+    float * floatValues;
 
     /* Get global analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
 
     state_idx = -1;
-
-    /* Get max number of nodes on a processor so we only allocate array once */
-    int max_elem_qty = 0;
-    for( i = 0; i < p_analysis->proc_count; i++ )
-    {
-        elem_qty = MESH_P(p_analysis)->index_map->node_count[i];
-        if( elem_qty > 0 )
-        {
-            if( elem_qty > max_elem_qty )
-                max_elem_qty = elem_qty;
-        }
-    }
-    object_ids = NEW_N( int, max_elem_qty, "Node result object ids");
-
     /* Loop over processors and get each result */
     for( i = 0; i < p_analysis->proc_count; i++ )
     {
         /* Get results from the ith processor */
-        py_Dict = PySequence_GetItem( py_QueryReturn, i );
+        py_Dict = PySequence_ITEM( py_QueryReturn, i );
         /* Get results for current subrecord */
         py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
         /* If results exist... */
         if( py_ProcResult != NULL )
         {
-
             /* Determine index of state data in query (Only done once) */
             if( state_idx == -1 )
             {
                 state_idx = get_state_index( py_Dict, result_name, queried_state );
             }
-
-            /* Get data for the requested state */
-            py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
+            py_ProcResult = PySequence_ITEM( py_ProcResult, state_idx );
 
             /* Get object ids and element count */
-            py_Layout = result_dictionary_unwrap_layout( py_Dict, result_name, subrecord_name );
-            elem_qty = PySequence_Length( py_Layout );
-            integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
+            elem_qty = PySequence_Length( py_ProcResult );
 
             /* Get map from subrec node ids to global positions */
             index_map = MESH_P(p_analysis)->index_map->node_map[i];
 
+            py_ByteArray = PyByteArray_FromObject( py_ProcResult ); 
+            bytearray = PyByteArray_AS_STRING( py_ByteArray );
+            floatValues = (float*) bytearray;
+
             /*  Extract and properly order results. */
             for( j = 0; j < elem_qty; j++)
             {
-                obj = object_ids[j];
-                py_Results = PySequence_GetItem( py_ProcResult, j );
-                comp_qty = PySequence_Length( py_Results );
+                in_idx = j * comp_qty;
+                out_idx = (index_map[j] * comp_qty);
                 for( k = 0; k < comp_qty; k++ )
-                {
-                    out_idx = (index_map[obj] * comp_qty) + k;
-                    py_Value = PySequence_GetItem( py_Results, k );
-                    result_buffer[out_idx] = (float) PyFloat_AsDouble( py_Value );
-                }
+                    result_buffer[out_idx+k] = floatValues[in_idx+k];
             }
+            Py_DECREF( py_ByteArray );
         }
     }
-
-    if( object_ids )
-        free( object_ids );
 
     return OK;
 }
@@ -606,28 +570,32 @@ extract_node_result( PyObject * py_QueryReturn, char * result_name, int queried_
  * that contains results for an element class (Not M_NODE).
  */
 int
-extract_element_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, float * result_buffer )
+extract_element_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, int comp_qty, float * result_buffer )
 {
     int i, j, k;
-    int comp_qty;
+    int state_idx;
     int out_idx;
     int elem_qty;
+    int pos;
+    int qty_values;
     PyObject * py_ProcResult;
-    PyObject * py_Results;
-    PyObject * py_Value;
     PyObject * py_Dict;
-    int state_idx;
+
+    PyObject * py_ByteArray;
+    unsigned char * bytearray;
+    float * floatValues;
+    float * out_loc;
 
     /* Get global analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
 
-    out_idx = 0;
     state_idx = -1;
-
+    out_idx = 0;
+    pos = 0;
     /* Loop over processors and get each result */
     for( i = 0; i < p_analysis->proc_count; i++ )
     {
-        py_Dict = PySequence_GetItem( py_QueryReturn, i );
+        py_Dict = PySequence_ITEM( py_QueryReturn, i );
         py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
         if( py_ProcResult != NULL )
         {
@@ -636,21 +604,19 @@ extract_element_result( PyObject * py_QueryReturn, char * result_name, int queri
             {
                 state_idx = get_state_index( py_Dict, result_name, queried_state );
             }
+            py_ProcResult = PySequence_ITEM( py_ProcResult, state_idx );
 
-            py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
-            elem_qty = PySequence_Length( py_ProcResult );
+            qty_values = PySequence_Length( py_ProcResult ) * comp_qty;
 
-            /*  Extract and properly order results. */
-            for( j = 0; j < elem_qty; j++)
-            {
-                py_Results = PySequence_GetItem( py_ProcResult, j );
-                comp_qty = PySequence_Length( py_Results );
-                for( k = 0; k < comp_qty; k++ )
-                {
-                    py_Value = PySequence_GetItem( py_Results, k );
-                    result_buffer[out_idx++] = (float) PyFloat_AsDouble( py_Value );
-                }
-            }
+            py_ByteArray = PyByteArray_FromObject( py_ProcResult ); 
+            bytearray = PyByteArray_AS_STRING( py_ByteArray );
+            floatValues = (float*) bytearray;
+
+            out_loc = result_buffer + pos;
+            memcpy( out_loc, floatValues, qty_values * sizeof(float) );
+            pos += qty_values;
+
+            Py_DECREF( py_ByteArray );
         }
     }
 
@@ -664,13 +630,13 @@ extract_element_result( PyObject * py_QueryReturn, char * result_name, int queri
  * that contains results for an element class (Not M_NODE).
  */
 int
-extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name, int elem_class_index, float * result_buffer )
+extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, int queried_state, char * subrecord_name,
+                               int elem_class_index, int comp_qty, float * result_buffer )
 {
     int i, j, k;
     int subrec_idx;
-    int comp_qty;
     int obj;
-    int out_idx;
+    int out_idx, in_idx;
     int elem_qty;
     PyObject * py_ProcResult;
     PyObject * py_Results;
@@ -685,6 +651,10 @@ extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, in
     int qty_series;
     State_rec_obj * p_state_rec;
     Subrec_obj * p_subrec;
+
+    PyObject * py_ByteArray;
+    unsigned char * bytearray;
+    float * floatValues;
 
     /* Get global analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
@@ -710,7 +680,7 @@ extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, in
     /* Loop over processors and get each result */
     for( i = 0; i < p_analysis->proc_count; i++ )
     {
-        py_Dict = PySequence_GetItem( py_QueryReturn, i );
+        py_Dict = PySequence_ITEM( py_QueryReturn, i );
         py_ProcResult = result_dictionary_unwrap_data( py_Dict, result_name, subrecord_name );
         if( py_ProcResult != NULL )
         {
@@ -719,33 +689,31 @@ extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, in
             {
                 state_idx = get_state_index( py_Dict, result_name, queried_state );
             }
-
-            py_ProcResult = PySequence_GetItem( py_ProcResult, state_idx );
+            py_ProcResult = PySequence_ITEM( py_ProcResult, state_idx );
 
             /* Get object ids and element count */
             py_Layout = result_dictionary_unwrap_layout( py_Dict, result_name, subrecord_name );
             elem_qty = PySequence_Length( py_Layout );
-            integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
+            integer_pointer_from_pytuple( py_Layout, elem_qty, object_ids );
+
+            py_ByteArray = PyByteArray_FromObject( py_ProcResult ); 
+            bytearray = PyByteArray_AS_STRING( py_ByteArray );
+            floatValues = (float*) bytearray;
 
             /*  Extract and properly order results. */
             for( j = 0; j < elem_qty; j++)
             {
                 obj = object_ids[j];
-                py_Results = PySequence_GetItem( py_ProcResult, j );
-                comp_qty = PySequence_Length( py_Results );
-
                 for( subrec_idx = 0; subrec_idx < subrecord_obj_qty; subrec_idx++ )
                 {
                     if( p_subrec->object_ids[subrec_idx] == index_map[i][obj] )
                         break;
                 }
 
+                in_idx = j * comp_qty;
+                out_idx = subrec_idx * comp_qty;
                 for( k = 0; k < comp_qty; k++ )
-                {
-                    out_idx = (subrec_idx * comp_qty) + k;
-                    py_Value = PySequence_GetItem( py_Results, k );
-                    result_buffer[out_idx] = (float) PyFloat_AsDouble( py_Value );
-                }
+                    result_buffer[out_idx+k] = floatValues[in_idx+k];
             }
         }
     }
@@ -764,24 +732,25 @@ extract_element_subset_result( PyObject * py_QueryReturn, char * result_name, in
 int
 mili_reader_extract_query_data( PyObject * py_QueryReturn, char * result_name, int queried_state,
                                 char * subrecord_name, Bool_type node_result,
-                                int elem_class_idx, void* data )
+                                int elem_class_idx, int comp_qty, void* data )
 {
     Analysis * p_analysis = get_analy_ptr();
     float * result_buf = (float*) data;
 
     if( node_result )
     {
-        extract_node_result( py_QueryReturn, result_name, queried_state, subrecord_name, result_buf );
+        extract_node_result( py_QueryReturn, result_name, queried_state, subrecord_name, comp_qty, result_buf );
     }
     else if( !node_result && p_analysis->py_PreloadedResult)
     {
         /* Most likely only need to extract a subset of elements */
-        extract_element_subset_result( py_QueryReturn, result_name, queried_state, subrecord_name, elem_class_idx, result_buf );
+        extract_element_subset_result( py_QueryReturn, result_name, queried_state, subrecord_name,
+                                       elem_class_idx, comp_qty, result_buf );
     }
     else
     {
         /* Need to extract all elements */
-        extract_element_result( py_QueryReturn, result_name, queried_state, subrecord_name, result_buf );
+        extract_element_result( py_QueryReturn, result_name, queried_state, subrecord_name, comp_qty, result_buf );
     }
 
     return OK;
@@ -800,12 +769,14 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     int rval;
     int srec_id;
     int elem_class_idx;
-    int ipt;
+    int ipt, comp_qty;
     Bool_type node_result;
     char* subrecord_name;
     char* class_name;
     State_rec_obj* p_sro;
     Subrec_obj* p_subrec;
+    State_variable * p_sv;
+    Htable_entry* p_hte;
     PyObject * py_QueryReturn;
     PyObject * py_Result;
 
@@ -813,9 +784,8 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     Analysis * p_analysis = get_analy_ptr();
 
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long start, end;
+    start = prec_timer();
 #endif
 
     /* Get srec id and subrecord name */
@@ -824,6 +794,15 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     p_subrec = p_sro->subrecs + subrec_id;
     subrecord_name = p_subrec->subrec.name;
     class_name = p_subrec->p_object_class->short_name;
+
+    /* Look up state variable to get comp_qty */
+    comp_qty = 1;
+    rval = htable_search( p_analysis->st_var_table, results[0], FIND_ENTRY, &p_hte );
+    if( rval == OK )
+    {
+        p_sv = (State_variable*) p_hte->data;
+        comp_qty = p_sv->vec_size;
+    }
 
     /* Get the integration point */
     ipt = get_subrecord_integration_point_num( p_subrec );
@@ -839,15 +818,15 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
         node_result = (p_subrec->p_object_class->superclass == G_NODE);
         elem_class_idx = p_subrec->p_object_class->elem_class_index;
         rval = mili_reader_extract_query_data( py_QueryReturn, results[i], state, subrecord_name, node_result,
-                                               elem_class_idx, data );
+                                               elem_class_idx, comp_qty, data );
         
         Py_DECREF( py_QueryReturn );
     }
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_get_results] elapsed = %f\n", elapsed);
+    end = prec_timer();
+    printf("[mili_reader_get_results] - [%s,%s,%s] - elapsed = %ldms\n",
+            results[0], class_name, subrecord_name, (end-start));
 #endif
 
     return rval;
@@ -1022,12 +1001,6 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
     /* Get analysis pointer */
     Analysis * p_analysis = get_analy_ptr();
 
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
-
     /* Get srec id and subrecord name */
     srec_id = p_analysis->state_srec_fmt_ids[state-1];
     p_sro = p_analysis->srec_tree + srec_id;
@@ -1088,14 +1061,8 @@ mili_reader_load_stress_strain_components( int state, int subrec_id, Bool_type i
         result = (is_stress) ? stress_components[i] : strain_components[i];
         elem_class_idx = p_subrec->p_object_class->elem_class_index;
         rval = mili_reader_extract_query_data( py_QueryReturn, result, state, subrecord_name, FALSE,
-                                               elem_class_idx, (void*) data[i] );
+                                               elem_class_idx, 1, (void*) data[i] );
     }
-
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_load_stress_strain_components] elapsed = %f\n", elapsed);
-#endif
 
     return OK;
 }
@@ -1170,6 +1137,7 @@ mili_reader_get_geom( Analysis * analy )
     int elem_class_count;
     int nodes_on_proc, elems_on_proc, pos, temp;
     int node_idx, out_idx, in_idx;
+    int conn;
     int superclass;
     int block_qty;
     int block_index;
@@ -1177,7 +1145,7 @@ mili_reader_get_geom( Analysis * analy )
     int class_qty;
     int * block_range_ptr;
     int *node_labels, *elem_labels;
-    int elem_nodes[20];
+    int * index_map;
     Bool_type have_nodal;
     char * short_name;
     char * long_name;
@@ -1198,6 +1166,12 @@ mili_reader_get_geom( Analysis * analy )
              * py_CoordsTuple;
     PyObject * py_ProcLabels, * py_ProcConns, * py_ProcNodes;
     PyObject * py_ProcMats, * py_ProcParts;
+    PyObject * py_ByteArray;
+    unsigned char * bytearray;
+    float * floatValues;
+    int * intValues;
+    PyObject * py_MatBytes, * py_PartBytes;
+    int * mats, *parts;
             
     if( analy->mesh_table != NULL)
     {
@@ -1208,14 +1182,14 @@ mili_reader_get_geom( Analysis * analy )
     int proc_count = analy->proc_count;
 
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long start, end;
+    start = prec_timer();
 #endif
 
     /* Single call to Mili reader to get all the data needed by mili_reader_get_geom */
     PyObject * py_GetGeomCallData = call_mili_reader_function_noargs( analy->py_MiliDB, GET_GEOM_CALL );
-    if ( py_GetGeomCallData == NULL ){
+    if ( py_GetGeomCallData == NULL )
+    {
         fprintf( stderr, "mili_reader_get_geom calling GET_GEOM_CALL returned NULL\n");
         return GRIZ_FAIL;
     }
@@ -1228,8 +1202,9 @@ mili_reader_get_geom( Analysis * analy )
     PyObject **py_mats_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
     PyObject **py_parts_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
 
-    for( i = 0; i < proc_count; i++ ){
-        py_ProcData = PySequence_GetItem( py_GetGeomCallData, i );
+    for( i = 0; i < proc_count; i++ )
+    {
+        py_ProcData = PySequence_ITEM( py_GetGeomCallData, i );
         if( py_ProcData == NULL ){
             fprintf( stderr, "mili_reader_get_geom - Geometry data is Null for processor %d\n", i );
             return GRIZ_FAIL;
@@ -1246,7 +1221,8 @@ mili_reader_get_geom( Analysis * analy )
 
     /* Get dimensions of the database */
     dims = get_pyobject_attribute_as_int( analy->py_MiliDB, "dimensions" );
-    if ( dims != 2 && dims != 3 ){
+    if ( dims != 2 && dims != 3 )
+    {
         popup_dialog( WARNING_POPUP, "mili_reader_get_geom() db dimension should be 2 or 3.");
         return GRIZ_FAIL;
     }
@@ -1268,15 +1244,17 @@ mili_reader_get_geom( Analysis * analy )
         p_md->class_table = p_ht;
 
         /* Create initial MO_class_data structs for each element class and sum obj_qty across processors */
-        for( j = 0; j < proc_count; j++ ){
+        for( j = 0; j < proc_count; j++ )
+        {
             // Get Mesh Object class data for 'j' processor
             py_MOData = py_MOclass_by_proc[j];
             if ( py_MOData == NULL )
                 continue;
             num_classes = PySequence_Length( py_MOData );
 
-            for( k = 0; k < num_classes; k++ ){
-                py_ElementClass = PySequence_GetItem( py_MOData, k );
+            for( k = 0; k < num_classes; k++ )
+            {
+                py_ElementClass = PySequence_ITEM( py_MOData, k );
                 short_name = get_pyobject_attribute_as_string( py_ElementClass, "short_name" );
                 rval = htable_search( p_ht, short_name, ENTER_MERGE, &p_hte );
                 /* New MO class */
@@ -1307,14 +1285,19 @@ mili_reader_get_geom( Analysis * analy )
                 {
                     /* Sum up object quantity over processors. Can skip mat, glob, and unit */
                     elem_class = (MO_class_data*) p_hte->data;
-                    if( elem_class->superclass != G_MESH && elem_class->superclass != G_MAT && elem_class->superclass != G_UNIT ){
+                    if( elem_class->superclass != G_MESH && elem_class->superclass != G_MAT && elem_class->superclass != G_UNIT )
+                    {
                         obj_qty = get_pyobject_attribute_as_int( py_ElementClass, "elem_qty" );
                         elem_class->qty += obj_qty;
                     }
                 }
+
+                Py_DECREF( py_ElementClass );
             }
         }
-        
+
+        Py_DECREF( py_MOData );
+
         /* ----------------------------------------------------------------------------------------- */
 
         /* Look up node class */
@@ -1326,27 +1309,33 @@ mili_reader_get_geom( Analysis * analy )
         p_md->index_map->node_count = (int*) malloc( proc_count * sizeof(int));
         p_md->index_map->node_map = (int **) malloc( proc_count * sizeof(int*));
 
+
+
         /* Populate data for nodal class */
-        if ( rval == OK ){
+        if ( rval == OK )
+        {
             obj_qty = node_class->qty;
             /* Get all labels into a single list */
             node_labels = (int*) malloc(obj_qty * sizeof(int));
             pos = 0;
             /* For each processor */
-            for( j = 0; j < proc_count; j++ ){
+            for( j = 0; j < proc_count; j++ )
+            {
                 /* Get node labels on processor */
                 py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[j], node_class->short_name );
                 nodes_on_proc = PySequence_Length( py_ProcLabels );
-                if( nodes_on_proc > 0 ){
+                if( nodes_on_proc > 0 )
+                {
                     /* Convert node labels to integer array */
-                    integer_pointer_from_pyobject( py_ProcLabels, nodes_on_proc, node_labels+pos);
+                    integer_pointer_from_pyobject( py_ProcLabels, nodes_on_proc, node_labels+pos );
                     pos += nodes_on_proc;
 
                     /* Update arrays */
                     p_md->index_map->node_count[j] = nodes_on_proc;
                     p_md->index_map->node_map[j] = (int*) malloc( nodes_on_proc * sizeof(int) );
                 }
-                else{
+                else
+                {
                     /* Update arrays */
                     p_md->index_map->node_count[j] = 0;
                     p_md->index_map->node_map[j] = NULL;
@@ -1358,7 +1347,8 @@ mili_reader_get_geom( Analysis * analy )
 
             /* Remove duplicates and get real number of nodes */
             k = 0;
-            for( j = 0; j < obj_qty-1; j++ ){
+            for( j = 0; j < obj_qty-1; j++ )
+            {
                 if ( node_labels[j] != node_labels[j+1])
                     node_labels[k++] = node_labels[j];
             }
@@ -1368,18 +1358,21 @@ mili_reader_get_geom( Analysis * analy )
             node_class->qty = obj_qty;
 
             /* Create per processor mapping for nodes to index in global node list */
-            for( j = 0; j < proc_count; j++ ){
-                py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[j], node_class->short_name );
+            for( j = 0; j < proc_count; j++ )
+            {
                 nodes_on_proc = p_md->index_map->node_count[j];
+                py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[j], node_class->short_name );
 
-                if( nodes_on_proc > 0 ){
+                if( nodes_on_proc > 0 )
+                {
                     /* Store label numbers in array temporarily, will overwrite next. */
                     integer_pointer_from_pyobject( py_ProcLabels, nodes_on_proc, p_md->index_map->node_map[j] );
 
-                    for( k = 0; k < nodes_on_proc; k++ ){
+                    for( k = 0; k < nodes_on_proc; k++ )
+                    {
                         target = p_md->index_map->node_map[j][k];
                         /* ----- Binary Search ----- */
-                        p_md->index_map->node_map[j][k] = bin_search_index(target, node_labels, obj_qty);
+                        p_md->index_map->node_map[j][k] = bin_search_index(target, node_labels, obj_qty, target-1);
                     }
                 }
             }
@@ -1396,20 +1389,31 @@ mili_reader_get_geom( Analysis * analy )
                 popup_fatal( "Unable to allocate data buffer on class load" );
 
             float * node_coords = node_class->objects.nodes;
-
+    
             /* For each processor */
-            for( j = 0; j < proc_count; j++ ){
+            for( j = 0; j < proc_count; j++ )
+            {
                 nodes_on_proc = p_md->index_map->node_count[j];
-                py_ProcNodes = py_nodes_by_proc[j];
 
+                PyErr_Clear();
+                py_ByteArray = PyByteArray_FromObject( py_nodes_by_proc[j] );
+                bytearray = PyByteArray_AS_STRING( py_ByteArray );
+                floatValues = (float*) bytearray;
+
+                index_map = p_md->index_map->node_map[j];
                 /* Loop over all nodes and coordinates */
-                for( k = 0; k < nodes_on_proc; k++ ){
-                    node_idx = p_md->index_map->node_map[j][k];
+                for( k = 0; k < nodes_on_proc; k++ )
+                {
+                    node_idx = index_map[k];
                     out_idx = node_idx * dims;
                     in_idx = k * dims;
-                    py_CoordsTuple = PySequence_GetItem( py_ProcNodes, k );
-                    float_pointer_from_pyobject( py_CoordsTuple, dims, node_coords+out_idx);
+
+                    for( l = 0; l < dims; l++ )
+                    {
+                        node_coords[out_idx+l] = floatValues[in_idx+l];
+                    }
                 }
+                Py_DECREF( py_ByteArray );
             }
 
             node_class->labels_max = -1;
@@ -1425,7 +1429,8 @@ mili_reader_get_geom( Analysis * analy )
 
             node_class->labels_found = TRUE;
 
-            for( obj_id = 0; obj_id < obj_qty; obj_id++ ){
+            for( obj_id = 0; obj_id < obj_qty; obj_id++ )
+            {
                 node_class->labels[obj_id].local_id = obj_id;
                 node_class->labels[obj_id].label_num = node_labels[obj_id];
                 if ( node_labels[obj_id] > node_class->labels_max )
@@ -1438,19 +1443,22 @@ mili_reader_get_geom( Analysis * analy )
             qsort( node_class->labels, obj_qty, sizeof(MO_class_labels), mili_compare_labels);
 
             /* Create a mapping for the 1-n label index */
-            for ( obj_id = 0; obj_id < obj_qty; obj_id++ ){
+            for ( obj_id = 0; obj_id < obj_qty; obj_id++ )
+            {
                 node_class->labels_index[node_class->labels[obj_id].local_id] = obj_id; 
             }
 
             /* Construct blocking data for node labels */
             block_range_ptr = compute_label_blocking_data( node_labels, obj_qty, &block_qty);
-            if( block_range_ptr == NULL ){
+            if( block_range_ptr == NULL )
+            {
                 fprintf(stderr, "mili_reader_load_nodal_data call compute_label_blocking_data\n");
                 return GRIZ_FAIL;
             }
 
             /* Construct the label blocking table of contents */
-            if( node_class->labels_found && block_qty > 0 && block_range_ptr ){
+            if( node_class->labels_found && block_qty > 0 && block_range_ptr )
+            {
                 node_class->label_blocking.block_qty = block_qty;
                 node_class->label_blocking.block_total_objects = 0;
                 node_class->label_blocking.block_min = MAXINT;
@@ -1458,7 +1466,8 @@ mili_reader_get_geom( Analysis * analy )
                 node_class->label_blocking.block_objects = NEW_N( Label_block_data, block_qty, "Node Class Label Blocking Objects");
 
                 block_index = 0;
-                for( k = 0; k < block_qty; k++ ){
+                for( k = 0; k < block_qty; k++ )
+                {
                     // Update min and max labels for this block 
                     if( block_range_ptr[block_index] < node_class->label_blocking.block_min )
                         node_class->label_blocking.block_min = block_range_ptr[block_index];
@@ -1472,11 +1481,13 @@ mili_reader_get_geom( Analysis * analy )
                 }
             }
 
-            if ( block_range_ptr ){
+            if ( block_range_ptr )
+            {
                 free( block_range_ptr );
                 block_range_ptr = NULL;
             }
-            if ( node_labels ){
+            if ( node_labels )
+            {
                 free( node_labels );
                 node_labels = NULL;
             }
@@ -1491,7 +1502,8 @@ mili_reader_get_geom( Analysis * analy )
 
         }
         /* No nodal class, create one... */
-        else{
+        else
+        {
             popup_dialog( WARNING_POPUP, "Node object class not found \"node\"." );
 
             // No nodal or element data, so create a fake nodal class
@@ -1517,13 +1529,15 @@ mili_reader_get_geom( Analysis * analy )
         /* Initialize arrays for storing element counts per processor and processor to global index mapping */
         p_md->index_map->elem_count = (int**) malloc( elem_class_qty * sizeof(int*) );
         p_md->index_map->elem_map = (int***) malloc( elem_class_qty * sizeof(int**) );
-        for( j = 0; j < elem_class_qty; j++ ){
+        for( j = 0; j < elem_class_qty; j++ )
+        {
             p_md->index_map->elem_count[j] = (int*) malloc( proc_count * sizeof(int) );
             p_md->index_map->elem_map[j] = (int**) malloc( proc_count * sizeof(int*) );
         }
 
         /* Populate element class data. */
-        for( j = 0; j < elem_class_qty; j++ ){
+        for( j = 0; j < elem_class_qty; j++ )
+        {
             elem_class = htable_mo_classes[j];
 
             /* Node class was already handled above. */
@@ -1555,42 +1569,52 @@ mili_reader_get_geom( Analysis * analy )
             elems_on_proc = 0;
             pos = 0;
             temp = 0;
-            for( k = 0; k < proc_count; k++ ){
+            for( k = 0; k < proc_count; k++ )
+            {
                 /* Get Labels on processor */
                 py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[k], elem_class->short_name );
-                if( py_ProcLabels == NULL ){
+                if( py_ProcLabels == NULL )
+                {
                     p_md->index_map->elem_count[elem_class->elem_class_index][k] = 0;
                     p_md->index_map->elem_map[elem_class->elem_class_index][k] = NULL;
                 }
-                else{
+                else
+                {
                     elems_on_proc = PySequence_Length( py_ProcLabels );
                     /* Update arrays */
                     p_md->index_map->elem_count[elem_class->elem_class_index][k] = elems_on_proc;
                     p_md->index_map->elem_map[elem_class->elem_class_index][k] = (int*) malloc( elems_on_proc * sizeof(int) );
 
                     /* If labels exist */
-                    if( idents_exist ){
+                    if( idents_exist )
+                    {
                         /* Read in element labels */
-                        integer_pointer_from_pyobject( py_ProcLabels, elems_on_proc, elem_labels+pos );
+                        integer_pointer_from_pyobject( py_ProcLabels, elems_on_proc, (elem_labels+pos) );
                     }
-                    else{
+                    else
+                    {
                         /* Need to create our own labels -- 1->N */
-                        for(l = 0; l < elems_on_proc; l++){
+                        for(l = 0; l < elems_on_proc; l++)
+                        {
                             elem_labels[temp] = temp+1;
                             temp++;
                         }
                     }
 
                     /* Map proc elems to global indices */
-                    if( elem_class->superclass == M_MESH || elem_class->superclass == M_MAT || elem_class->superclass == M_UNIT ){
+                    if( elem_class->superclass == M_MESH || elem_class->superclass == M_MAT || elem_class->superclass == M_UNIT )
+                    {
                         /* This is an awkward solution to MAT, MESH, and M_UNIT (maybe) being the same on
                         * all processors, can definitely make this better later */
-                        for( l = 0; l < elems_on_proc; l++ ){
+                        for( l = 0; l < elems_on_proc; l++ )
+                        {
                             p_md->index_map->elem_map[j][k][l] = l;
                         }
                     }
-                    else{
-                        for( l = 0; l < elems_on_proc; l++ ){
+                    else
+                    {
+                        for( l = 0; l < elems_on_proc; l++ )
+                        {
                             p_md->index_map->elem_map[j][k][l] = pos++;
                         }
                     }
@@ -1598,28 +1622,31 @@ mili_reader_get_geom( Analysis * analy )
             }
 
             /* Special case for particle classes -- Elements need to be put in sorted order. */
-            if( idents_exist && is_particle_class( analy, elem_class->superclass, elem_class->short_name ) ){
+            if( idents_exist && is_particle_class( analy, elem_class->superclass, elem_class->short_name ) )
+            {
                 /* Sort element labels */
                 qsort( elem_labels, obj_qty, sizeof(int), compare_int );
-                for( k = 0; k < proc_count; k++ ){
+                for( k = 0; k < proc_count; k++ )
+                {
                     /* Get Labels on processor */
                     py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[k], elem_class->short_name );
                     elems_on_proc = p_md->index_map->elem_count[j][k];
-                    if( elems_on_proc > 0 ){
+                    if( elems_on_proc > 0 )
+                    {
                         /* Store label numbers in array temporarily, will overwrite next. */
-                        integer_pointer_from_pyobject( py_ProcLabels, elems_on_proc,
-                                                        p_md->index_map->elem_map[j][k] );
+                        integer_pointer_from_pyobject( py_ProcLabels, elems_on_proc, p_md->index_map->elem_map[j][k] );
                         
-                        for( l = 0; l < elems_on_proc; l++ ){
+                        for( l = 0; l < elems_on_proc; l++ )
+                        {
                             target = p_md->index_map->elem_map[j][k][l];
-                            p_md->index_map->elem_map[j][k][l] = bin_search_index( target, elem_labels, obj_qty );
+                            p_md->index_map->elem_map[j][k][l] = bin_search_index( target, elem_labels, obj_qty, target-1 );
                         }
                     }
                 }
             }
 
-
-            if( elem_class->superclass == M_MESH || elem_class->superclass == M_MAT || elem_class->superclass == M_UNIT ){
+            if( elem_class->superclass == M_MESH || elem_class->superclass == M_MAT || elem_class->superclass == M_UNIT )
+            {
 
                 elem_class->simple_start = elem_labels[0];
                 elem_class->simple_stop = elem_labels[elem_class->qty-1];
@@ -1631,7 +1658,8 @@ mili_reader_get_geom( Analysis * analy )
                 p_lh->qty++;
                 p_lh->list = (void *) mo_classes;
             }
-            else{
+            else
+            {
                 /* Generate Element data */
                 int qty_conns = QTY_CONNECTS[elem_class->superclass];
                 p_ed = NEW( Elem_data, "Element Conn Struct" );
@@ -1643,36 +1671,59 @@ mili_reader_get_geom( Analysis * analy )
 
                 /* Load in nodal connectivity, material, part number, etc. for each element */
                 PyObject * py_M, * py_P;
-                for( k = 0; k < proc_count; k++ ){
-                    if( p_md->index_map->elem_count[j][k] > 0 ){
+                int * class_index_map;
+                int * node_index_map;
+                for( k = 0; k < proc_count; k++ )
+                {
+                    if( p_md->index_map->elem_count[j][k] > 0 )
+                    {
                         elems_on_proc = p_md->index_map->elem_count[j][k];
+                        class_index_map = p_md->index_map->elem_map[j][k];
+                        node_index_map = p_md->index_map->node_map[k];
 
-                        /* Load connectivity */
+                        /* Get elements nodal connectivity */
                         py_ProcConns = PyDict_GetItemString( py_conns_by_proc[k], elem_class->short_name );
-                        /* Load materials and parts */
+                        PyErr_Clear();
+                        py_ByteArray = PyByteArray_FromObject( py_ProcConns );
+                        bytearray = PyByteArray_AS_STRING( py_ByteArray );
+                        intValues = (int*) bytearray;
+                        for( l = 0; l < elems_on_proc; l++ )
+                        {
+                            in_idx = l*qty_conns;
+                            out_idx = class_index_map[l] * qty_conns;
+                            for( m = 0; m < qty_conns; m++ )
+                            {
+                                conn = intValues[in_idx+m];
+                                p_ed->nodes[out_idx+m] = node_index_map[conn];
+                            }
+                        }
+                        Py_DECREF( py_ProcConns );
+                        Py_DECREF( py_ByteArray );
+
+                        /* Load in element materials and part numbers */
                         py_ProcMats = PyDict_GetItemString( py_mats_by_proc[k], elem_class->short_name );
                         py_ProcParts = PyDict_GetItemString( py_parts_by_proc[k], elem_class->short_name );
+                        PyErr_Clear();
+                        
+                        py_MatBytes = PyByteArray_FromObject( py_ProcMats );
+                        py_PartBytes = PyByteArray_FromObject( py_ProcParts );
 
-                        int out_idx;
-                        PyObject * py_ConnSlice;
-                        for( l = 0; l < elems_on_proc; l++ ){
-                            /* Get elements nodal connectivity */
-                            py_ConnSlice = PySequence_GetItem( py_ProcConns, l );
-                            integer_pointer_from_pyobject( py_ConnSlice, qty_conns, elem_nodes );
+                        bytearray = PyByteArray_AS_STRING( py_MatBytes );
+                        mats = (int*) bytearray;
 
-                            /* Elem nodes is local id's for nodes need to convert to global labels */
-                            out_idx = p_md->index_map->elem_map[j][k][l] * qty_conns;
-                            for( m = 0; m < qty_conns; m++ ){
-                                p_ed->nodes[out_idx+m] = p_md->index_map->node_map[k][elem_nodes[m]];
-                            } 
+                        bytearray = PyByteArray_AS_STRING( py_PartBytes );
+                        parts = (int*) bytearray;
 
-                            out_idx = p_md->index_map->elem_map[j][k][l];
-                            /* Get elements material and number */
-                            py_M = PySequence_GetItem( py_ProcMats, l );
-                            py_P = PySequence_GetItem( py_ProcParts, l );
-                            p_ed->mat[out_idx] = PyLong_AsLong(py_M) - 1;
-                            p_ed->part[out_idx] = PyLong_AsLong(py_P) - 1;
+                        for( l = 0; l < elems_on_proc; l++ )
+                        {
+                            out_idx = class_index_map[l];
+                            p_ed->mat[out_idx] = mats[l] - 1;
+                            p_ed->part[out_idx] = parts[l] - 1;
                         }
+                        Py_DECREF( py_ProcMats );
+                        Py_DECREF( py_MatBytes );
+                        Py_DECREF( py_ProcParts );
+                        Py_DECREF( py_PartBytes );
                     }
                 }
 
@@ -1813,11 +1864,9 @@ mili_reader_get_geom( Analysis * analy )
     get_hex_volumes( analy->db_ident, analy );
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_get_geom] elapsed = %f\n", elapsed);
+    end = prec_timer();
+    printf("[mili_reader_get_geom] elapsed = %ldms\n", (end-start));
 #endif
-
 
     /* Freeing these for now, may need them later though. May have to move to analysis struct or global. */
     free( py_MOclass_by_proc );
@@ -1890,7 +1939,7 @@ get_state_variable_from_pyobject( PyObject *py_StateVariable, State_variable *p_
             if ( p_sv->rank > 0 && p_sv->dims == NULL ){
                 return GRIZ_FAIL;
             }
-            integer_pointer_from_pyobject( py_Dims, p_sv->rank, p_sv->dims );
+            integer_pointer_from_pytuple( py_Dims, p_sv->rank, p_sv->dims );
         }
 
         if ( p_sv->agg_type == VEC_ARRAY || p_sv->agg_type == VECTOR )
@@ -1918,8 +1967,8 @@ get_state_variable_from_pyobject( PyObject *py_StateVariable, State_variable *p_
             PyObject *py_Name, *py_Title;
             for( i = 0; i < p_sv->vec_size; i++ )
             {
-                py_Name = PySequence_GetItem( py_CompNames, i );
-                py_Title = PySequence_GetItem( py_CompNames, i );
+                py_Name = PySequence_ITEM( py_CompNames, i );
+                py_Title = PySequence_ITEM( py_CompNames, i );
 
                 p_sv->components[i] = pyobject_as_string( py_Name );
                 p_sv->component_titles[i] = pyobject_as_string( py_Title );
@@ -2039,7 +2088,7 @@ mili_reader_load_element_sets(Analysis *analy, PyObject ** py_ESList)
             for( j = 0 ; j < cnt; j++ )
             {
                 /* Get element set name */
-                py_Tuple = PySequence_GetItem( py_DictItems, j );
+                py_Tuple = PySequence_ITEM( py_DictItems, j );
                 py_Key = PyTuple_GetItem( py_Tuple, 0 );
                 es_name = pyobject_as_string( py_Key );
 
@@ -2056,7 +2105,7 @@ mili_reader_load_element_sets(Analysis *analy, PyObject ** py_ESList)
                     py_Value = PyTuple_GetItem( py_Tuple, 1 );
                     ipt_count = PyTuple_Size( py_Value );
                     element_set->integration_points = NEW_N( int, ipt_count, "Element set ipt list" );
-                    integer_pointer_from_pyobject( py_Value, ipt_count, element_set->integration_points );
+                    integer_pointer_from_pytuple( py_Value, ipt_count, element_set->integration_points );
 
                     /* Initialize other element set data */
                     element_set->size = ipt_count;
@@ -2127,7 +2176,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
     Htable_entry *p_hte, *p_hte2;
     MO_class_data *p_mocd;
     Bool_type nodal, particle;
-    int *node_work_array=NULL;
+    char *node_work_array=NULL;
     State_variable *p_svar;
     Mesh_data *p_mesh;
 
@@ -2146,9 +2195,8 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
              * py_ComponentSvar;
 
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long start, end;
+    start = prec_timer();
 #endif
 
     analy->num_bad_subrecs = 0;
@@ -2172,7 +2220,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
 
     /* Store data for each processor */
     for( i = 0; i < proc_count; i++ ){
-        py_Struct = PySequence_GetItem( py_CallData, i );
+        py_Struct = PySequence_ITEM( py_CallData, i );
         if ( py_Struct != NULL && py_Struct != Py_None ){
             py_ESList[i] = get_pyobject_attribute( py_Struct, "element_sets");
             py_subrecord_list_by_proc[i] = get_pyobject_attribute( py_Struct, "subrecords" );
@@ -2205,7 +2253,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
         subrec_qty = subrecord_count_per_proc[i];
         /* For each subrecord on the processor... */
         for( j = 0; j < subrec_qty; j++ ){
-            py_Subrecord = PySequence_GetItem( py_Subrecords, j );
+            py_Subrecord = PySequence_ITEM( py_Subrecords, j );
             name = get_pyobject_attribute_as_string( py_Subrecord, "name" );
 
             /* Check if subrecord already exists in hash table */
@@ -2228,7 +2276,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
                 /* Create State_variable objects and add entries to p_sv_ht hashtable */
                 for( k = 0; k < svar_qty; k++ )
                 {
-                    py_StateVariable = PySequence_GetItem( py_SubrecordStateVariables, k );
+                    py_StateVariable = PySequence_ITEM( py_SubrecordStateVariables, k );
                     svar_name = get_pyobject_attribute_as_string( py_StateVariable, "name" );
 
                     /* Create state variable from pyobject and add to p_sv_ht */
@@ -2246,7 +2294,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
                             qty_comp_svars = PySequence_Length( py_ComponentSvars ); 
                             for ( l = 0; l < qty_comp_svars; l++ )
                             {
-                                py_ComponentSvar = PySequence_GetItem( py_ComponentSvars, l );
+                                py_ComponentSvar = PySequence_ITEM( py_ComponentSvars, l );
                                 rval = create_st_variable_from_pyobject( p_sv_ht, p_svar->components[l], NULL, py_ComponentSvar, &cnt );
                                 total_svar_qty += cnt;
                                 if( rval != OK ){
@@ -2375,7 +2423,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
 
     /* Allocate a temporary working array for subrec node list creation. */
     mesh_node_qty = p_mesh->node_geom->qty;
-    node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
+    node_work_array = NEW_N( char, mesh_node_qty, "Temp node array" );
 
     /* Populate Griz subrecord and state variable data */
     for( i = 0; i < total_subrec_qty; i++ ){
@@ -2436,7 +2484,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
                     if ( p_sro[srec_id].node_pos_subrec != -1 )
                         popup_dialog( WARNING_POPUP, "Multiple \"node\" position subrecs." );
 
-                    p_sro[srec_id].node_pos_subrec = subrec_index;
+                    p_sro[srec_id].node_pos_subrec = i;
                     analy->stateDB = FALSE;
                     if( mesh_node_qty == p_subr->qty_objects )
                     {
@@ -2468,9 +2516,8 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
 
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_get_st_descriptors] elapsed = %f\n", elapsed);
+    end = prec_timer();
+    printf("[mili_reader_get_st_descriptors] elapsed = %ldms\n", (end-start));
 #endif
     return OK;
 }
@@ -2480,7 +2527,7 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
  *
  * Combine the nodal positions from multiple processors
  */
-extern Bool_type
+extern int 
 combine_nodpos( Analysis *analy, int state_no, void * out_buffer ){
     int i, j;
     int out_idx;
@@ -2498,110 +2545,26 @@ combine_nodpos( Analysis *analy, int state_no, void * out_buffer ){
     dims = analy->dimension;
 
     for( i = 0; i < analy->proc_count; i++ ){
-        py_ProcNodes = PySequence_GetItem( analy->py_Nodpos, i);
+        py_ProcNodes = PySequence_ITEM( analy->py_Nodpos, i);
 
         py_Nodes = PyDict_GetItemString( py_ProcNodes, nodpos );
         py_Nodes = PyDict_GetItemString( py_Nodes, data );
         py_Nodes = PyDict_GetItemString( py_Nodes, node );
 
         /* Single state, so remove state array */
-        py_Nodes = PySequence_GetItem( py_Nodes, state_no );
+        py_Nodes = PySequence_ITEM( py_Nodes, state_no );
         node_qty = MESH_P(analy)->index_map->node_count[i];
 
         /* Get coordinates for each element */
         for( j = 0; j < node_qty; j++ ){
-            py_Coords = PySequence_GetItem( py_Nodes, j );
+            py_Coords = PySequence_ITEM( py_Nodes, j );
             out_idx = MESH_P(analy)->index_map->node_map[i][j] * dims;
             float_pointer_from_pyobject( py_Coords, dims, out_buf+out_idx);
         }
     }
-
     return OK;
 }
 
-
-/* TAG( combine_sand_result )
- *
- * Combine the sand flags from multiple processors
- */
-extern Bool_type
-combine_sand_flags( Analysis *analy, Subrec_obj * p_subrec, int state_no, void * out_buffer ){
-    int i, j;
-    int out_idx;
-    int elem_qty;
-    char * data = "data";
-    char * sand = "sand";
-    char * subrecord_name;
-    char * class_name;
-    int * object_ids;
-    int * index_map;
-    int elem_class_index;
-    int obj;
-    PyObject * py_ClassName;
-    PyObject * py_SubrecordName;
-    PyObject * py_FloatValue;
-    
-    PyObject * py_ProcResult;
-    PyObject * py_Result;
-    PyObject * py_SandFlags;
-    PyObject * py_Layout;
-    PyObject * py_ClassSandData;
-
-    float * out_buf = (float*) out_buffer;
-
-    subrecord_name = p_subrec->subrec.name;
-    class_name = p_subrec->p_object_class->short_name;
-    elem_class_index = p_subrec->p_object_class->elem_class_index;
-
-    py_ClassName = string_to_pyobject( class_name );
-    py_SubrecordName = string_to_pyobject( subrecord_name );
-
-    int max_elem_qty = 0;
-    for( i = 0; i < analy->proc_count; i++ ){
-        elem_qty = MESH_P(analy)->index_map->elem_count[elem_class_index][i];
-        if( elem_qty > 0 ){
-            if( elem_qty > max_elem_qty )
-                max_elem_qty = elem_qty;
-        }
-    }
-    object_ids = NEW_N( int, max_elem_qty, "Subrecord Object Ids");
-
-    for( i = 0; i < analy->proc_count; i++ ){
-        py_ProcResult = PySequence_GetItem( analy->py_Sand, i );
-
-        if( PyDict_Contains( py_ProcResult, py_ClassName ) ){
-            py_ClassSandData = PyDict_GetItemString( py_ProcResult, class_name );
-
-            /* Get list of result values */
-            py_Result = PyDict_GetItemString( py_ClassSandData, sand );
-            py_SandFlags = PyDict_GetItemString( py_Result, data );
-
-            /* Check to make sure this subrecord exists on the current processor */
-            if( PyDict_Contains( py_SandFlags, py_SubrecordName) ){
-                py_SandFlags = PyDict_GetItemString( py_SandFlags, subrecord_name );
-                /* Single state, so remove state array */
-                py_SandFlags = PySequence_GetItem( py_SandFlags, state_no );
-            
-                /* Get List of element ids */
-                py_Layout = result_dictionary_unwrap_layout( py_ClassSandData, sand, subrecord_name );
-                elem_qty = PySequence_Length( py_Layout );
-                integer_pointer_from_pyobject( py_Layout, elem_qty, object_ids );
-                index_map = MESH_P(analy)->index_map->elem_map[elem_class_index][i];
-
-                /* Get sand flag for each element */
-                for( j = 0; j < elem_qty; j++ ){
-                    py_FloatValue = PySequence_GetItem( py_SandFlags, j );
-                    py_FloatValue = PySequence_GetItem( py_FloatValue, 0 ); // Stored as single value list
-                    obj = object_ids[j];
-                    out_idx = index_map[obj];
-                    out_buf[out_idx] = (float) PyFloat_AsDouble( py_FloatValue );
-                }
-            }
-        }
-    }
-
-    return OK;
-}
 
 /* TAG( mili_reader_get_state )
  *
@@ -2617,6 +2580,7 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     int dims;
     int srec_id;
     int mesh_id;
+    int dbid;
     float st_time;
 
     int subrec_size;
@@ -2634,10 +2598,11 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     Mesh_data *p_md;
 
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long tstart, tend;
+    tstart = prec_timer();
 #endif
+
+    dbid = analy->db_ident;
 
     /* Query the number of states in the database */
     st_qty = analy->state_count;
@@ -2690,7 +2655,9 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     /* Read node position array if it exists, re-ordering if necessary. */
     if ( analy->stateDB && analy->load_nodpos)
     {
-        rval = combine_nodpos( analy, state_no, p_st->nodes.nodes );
+        //rval = combine_nodpos( analy, state_no, p_st->nodes.nodes );
+        primal = "nodpos";
+        rval = mili_reader_get_results( analy->db_ident, state_no+1, p_sro->node_pos_subrec, 1, &primal, p_st->nodes.nodes );
 
         /* If unable to get first state, then no state files exist */
         if ( rval != OK )
@@ -2714,14 +2681,38 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     }
 
     /* Read in sand flags */
-    if( analy->load_sand ){
-        for( i = 0; i < p_sro->qty; i++ ){
+    if( analy->load_sand )
+    {
+        for ( i = 0; i < p_sro->qty; i++ )
+        {
             p_subrec = p_subrecs + i;
-            ec_index = p_subrec->p_object_class->elem_class_index;
-            if( p_subrec->sand ){
-                rval = combine_sand_flags( analy, p_subrec, state_no, p_st->elem_class_sand[ec_index]);
-                if( rval != OK ){
-                    fprintf( stderr, "mili_reader_get_state call combine_sand_flags\n");
+            if( p_subrec->sand )
+            {
+                primal = "sand";
+                ec_index = p_subrec->p_object_class->elem_class_index;
+                object_ids = p_subrec->object_ids;
+
+                if( object_ids == NULL )
+                {
+                    rval = mili_reader_get_results( dbid, state_no+1, i, 1, &primal, (void*) p_st->elem_class_sand[ec_index] );
+                    if( rval != 0 )
+                    {
+                        return GRIZ_FAIL;
+                    }
+                }
+                else
+                {
+                    subrec_size = p_subrec->subrec.qty_objects;
+                    input_buf = get_st_input_buffer( analy, subrec_size, p_md->double_precision_sand, &ibuf );
+                    rval = mili_reader_get_results( dbid, state_no+1, i, 1, &primal, input_buf);
+                    if( rval != 0 )
+                    {
+                        return GRIZ_FAIL;
+                    }
+                    reorder_float_array( subrec_size, object_ids, 1, input_buf, p_st->elem_class_sand[ec_index]);
+
+                    if( ibuf != NULL )
+                        free( ibuf );
                 }
             }
         }
@@ -2734,7 +2725,7 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
         object_ids = p_subrec->object_ids;
         subrec_size = p_subrec->subrec.qty_objects;
         input_buf = get_st_input_buffer( analy, subrec_size, TRUE, &ibuf );
-        rval = mili_reader_get_results( analy->db_ident, state_no, p_st->sph_srec_id, 1, &primal, input_buf );
+        rval = mili_reader_get_results( analy->db_ident, state_no+1, p_st->sph_srec_id, 1, &primal, input_buf );
 
         p_float = (float*) input_buf;
         for( i = 0; i < subrec_size; i++ ){
@@ -2756,9 +2747,8 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     *pp_new_st = p_st;
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_get_state] elapsed = %f\n", elapsed);
+    tend = prec_timer();
+    printf("[mili_reader_get_state] elapsed = %ldms\n", (tend-tstart));
 #endif
     return OK;
 }
@@ -2771,23 +2761,12 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
 extern int
 mili_reader_get_metadata( Analysis * analy )
 {
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
-
     mili_reader_get_string( analy->py_MiliParameters, "lib version", analy->mili_version );
     mili_reader_get_string( analy->py_MiliParameters, "host name", analy->mili_host );
     mili_reader_get_string( analy->py_MiliParameters, "arch name", analy->mili_arch );
     mili_reader_get_string( analy->py_MiliParameters, "date", analy->mili_timestamp );
     mili_reader_get_string( analy->py_MiliParameters, "xmilics version", analy->xmilics_version );
 
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_get_metadata] elapsed = %f\n", elapsed);
-#endif
     return OK;
 }
 
@@ -2799,22 +2778,10 @@ mili_reader_get_metadata( Analysis * analy )
 extern int
 mili_reader_load_parameters( Analysis * analy )
 {
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
-
     PyObject * py_Parameters = call_mili_reader_function_noargs( analy->py_MiliDB, PARAMETER_GETTER );
     if( py_Parameters == NULL )
         return NOT_OK;
     analy->py_MiliParameters = py_Parameters;
-
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_load_parameters] elapsed = %f\n", elapsed);
-#endif
     return OK;
 }
 
@@ -2837,20 +2804,8 @@ mili_reader_get_title( Analysis * analy, char * str ){
 extern int
 mili_reader_reload_states()
 {
-#ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
-#endif
-
     Analysis * analy = get_analy_ptr();
     call_mili_reader_function_noargs( analy->py_MiliDB, RELOAD_FUNCTION );
-
-#ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_reload_states] elapsed = %f\n", elapsed);
-#endif
     return OK;
 }
 
@@ -2863,9 +2818,8 @@ extern int
 mili_reader_db_close( Analysis * analy )
 {
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long start, end;
+    start = prec_timer();
 #endif
 
     if( analy->py_MiliDB || analy->py_MiliReaderModule ){
@@ -2873,9 +2827,8 @@ mili_reader_db_close( Analysis * analy )
     }
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_db_close] elapsed = %f\n", elapsed);
+    end = prec_timer();
+    printf("[mili_reader_db_close] elapsed = %ldms\n", (end-start));
 #endif
     return OK;
 }
@@ -2890,9 +2843,8 @@ extern int
 mili_reader_load_state_data( Analysis * analy )
 {
 #ifdef MILI_READER_TIMING
-    clock_t start, end;
-    double elapsed;
-    start = clock();
+    long start, end;
+    start = prec_timer();
 #endif
 
     int i;
@@ -2904,27 +2856,6 @@ mili_reader_load_state_data( Analysis * analy )
     int * state_srecs;
     PyObject * py_SMap;
     PyObject * py_StateData;
-
-    /* Get state data (Nodal positions and sand flags) from the mili reader. */
-    py_StateData = call_mili_reader_function_noargs( analy->py_MiliDB, GET_STATE_CALL );
-    if( py_StateData == NULL ){
-        fprintf( stderr, MR_DEFAULT_FAILED, "mili_reader_load_state_data", GET_STATE_CALL );
-        return NOT_OK;
-    }
-
-    /* Unpack nodal positions */
-    analy->py_Nodpos = get_pyobject_attribute( py_StateData, "nodpos" );
-    if( analy->py_Nodpos == NULL ){
-        fprintf( stderr, "mili_reader_load_state_data unable to unpack nodpos\n" );
-        return NOT_OK;
-    }
-
-    /* Unpack sand flags */
-    analy->py_Sand = get_pyobject_attribute( py_StateData, "sand" );
-    if( analy->py_Sand == NULL ){
-        fprintf( stderr, "mili_reader_load_state_data unable to unpack sand flags\n" );
-        return NOT_OK;
-    }
 
     /* Get state maps from the mili reader */
     PyObject * py_StateMaps = call_mili_reader_function_noargs( analy->py_MiliDB, STATE_MAPS_GETTER );
@@ -2963,7 +2894,7 @@ mili_reader_load_state_data( Analysis * analy )
     analy->state_count = qty_states;
 
     for( i = start_state; i < qty_states; i++ ){
-        py_SMap = PySequence_GetItem( py_StateMaps, i );
+        py_SMap = PySequence_ITEM( py_StateMaps, i );
         st_time = get_pyobject_attribute_as_double( py_SMap, "time" );
         analy->state_times[i] = st_time;
 
@@ -2973,9 +2904,8 @@ mili_reader_load_state_data( Analysis * analy )
 
 
 #ifdef MILI_READER_TIMING
-    end = clock();
-    elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("[mili_reader_load_state_times] elapsed = %f\n", elapsed);
+    end = prec_timer();
+    printf("[mili_reader_load_state_times] elapsed = %ldms\n", (end-start));
 #endif
     return OK;
 }
@@ -3036,7 +2966,7 @@ mili_reader_search_param_wildcard( int fid, int list_len, Bool_type allow_duplic
 
     if( num_entries > 0 ){
         for( i = 0; i < num_entries; i++ ){
-            py_Param = PySequence_GetItem( py_Matches, i );
+            py_Param = PySequence_ITEM( py_Matches, i );
             str = pyobject_as_string( py_Param );
             griz_str_dup( &return_list[i], str );
         }
@@ -3138,8 +3068,8 @@ mili_reader_get_free_node_data( Analysis * analy, float ** free_node_mass, float
     temp_free_node_volume = NEW_N( float, qty_nodes, "FN Volume Array" );
 
     for( i = 0; i < analy->proc_count; i++ ){
-        py_Mass = PySequence_GetItem( py_FNMass, i );
-        py_Vol = PySequence_GetItem( py_FNVol, i );
+        py_Mass = PySequence_ITEM( py_FNMass, i );
+        py_Vol = PySequence_ITEM( py_FNVol, i );
 
         if( py_Mass == Py_None || py_Vol == Py_None ){
             free( temp_free_node_mass );
@@ -3149,12 +3079,12 @@ mili_reader_get_free_node_data( Analysis * analy, float ** free_node_mass, float
         else{
             // Nodal Mass
             for( j = 0; j < node_counts[i]; j++ ){
-                py_Float = PySequence_GetItem( py_Mass, j );
+                py_Float = PySequence_ITEM( py_Mass, j );
                 temp_free_node_mass[node_map[i][j]] = (float) PyFloat_AsDouble( py_Float );
             }
             // Nodal Volume
             for( j = 0; j < node_counts[i]; j++ ){
-                py_Float = PySequence_GetItem( py_Vol, j );
+                py_Float = PySequence_ITEM( py_Vol, j );
                 temp_free_node_volume[node_map[i][j]] = (float) PyFloat_AsDouble( py_Float );
             }
         }

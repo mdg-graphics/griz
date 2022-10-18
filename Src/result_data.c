@@ -3054,8 +3054,7 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
 
         /* Clear the result array. */
         data_buffer = NODAL_RESULT_BUFFER( analy );
-        memset( data_buffer, 0,
-                MESH( analy ).node_geom->qty * sizeof( float ) );
+        memset( data_buffer, 0, MESH( analy ).node_geom->qty * sizeof( float ) );
 
         /* Clear the applicable object class arrays. */
         prep_object_class_buffers( analy, analy->cur_result );

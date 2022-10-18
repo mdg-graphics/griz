@@ -10,6 +10,9 @@
 
 #include "misc.h"
 
+#include <unistd.h>
+#include <sys/time.h>
+
 #define OK 0
 #define NOT_OK 1
 
@@ -31,13 +34,23 @@ const char* FREE_NODE_DATA = "free_node_data";
 /* Griz Struct function calls */
 const char* GET_GEOM_CALL = "griz_get_geom_call";
 const char* GET_ST_DESCRIPTORS_CALL = "griz_get_st_descriptors_call";
-const char* GET_STATE_CALL = "griz_get_state_call";
 
 const int QTY_CONNECTS[] = { 0, 0, 2, 3, 4, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10 };
 
 /* Error messages */
 const char * MR_FAILED_IMPORT = "\nFailed to import the Mili Reader module.\n";
 const char * MR_DEFAULT_FAILED = "\n%s calling Mili Python (%s) Failed.\n";
+
+
+long prec_timer()
+{
+    long time;
+    struct timeval timecheck;
+
+    gettimeofday(&timecheck, NULL);
+    time = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+    return time;
+}
 
 
 /*****************************************************************
@@ -60,12 +73,20 @@ check_running_on_login_node()
  *
  * Binary search to find index of the target element in an array.
  */
-int bin_search_index(int target, int* array, int size){
+int bin_search_index(int target, int* array, int size, int guess){
     int low = 0;
     int high = size - 1;
     int mid;
 
-    while(low <= high){
+    /* Check if guess is correct. */
+    if( guess > 0 && guess < size )
+    {
+        if( array[guess] == target )
+            return guess;
+    }
+
+    while(low <= high)
+    {
         mid = low + (high - low) / 2;
         if( target == array[mid])
             return mid;
@@ -132,6 +153,7 @@ call_mili_reader_function_noargs(PyObject * mili_db, const char * function_name)
 {
     PyObject * py_FuncName = string_to_pyobject( function_name );
     PyObject * py_Result = PyObject_CallMethodObjArgs( mili_db, py_FuncName, NULL );
+    PyErr_Clear();
     return py_Result;
 }
 
@@ -205,7 +227,6 @@ get_pyobject_attribute_as_double( PyObject* object, const char* attr )
     return value;
 }
 
-
 /* TAG( integer_pointer_from_pyobject )
  *
  * Convert pyobject list to int array
@@ -214,10 +235,37 @@ void
 integer_pointer_from_pyobject( PyObject * py_List, int size, int * values )
 {
     int i;
+    int * intValues;
+    unsigned char * bytearray;
+    PyObject * py_ByteArray;
+
+    PyErr_Clear();
+    py_ByteArray = PyByteArray_FromObject( py_List );
+    if( py_ByteArray != NULL )
+    {
+        bytearray = PyByteArray_AsString( py_ByteArray );
+        intValues = (int*) bytearray;
+
+        for( i = 0; i < size; i++ ){
+            values[i] = intValues[i];
+        }
+
+        Py_DECREF( py_ByteArray );
+    }
+}
+
+/* TAG( integer_pointer_from_pytuple )
+ *
+ * Convert pyobject tuple to int array
+ */
+void
+integer_pointer_from_pytuple( PyObject * py_tuple, int size, int * values )
+{
+    int i;
     PyObject * py_LongValue;
     int value;
     for( i = 0; i < size; i++ ){
-        py_LongValue = PySequence_GetItem(py_List, i);
+        py_LongValue = PySequence_GetItem(py_tuple, i);
         value = PyLong_AsLong(py_LongValue);
         values[i] = value;
     }
@@ -232,15 +280,15 @@ void
 float_pointer_from_pyobject( PyObject * py_List, int size, float * values )
 {
     int i;
-    PyObject * py_FloatValue;
-    float flt;
+    PyObject * py_SequenceFast;
+    PyObject ** py_FloatList;
+    PyErr_Clear();
+    py_SequenceFast = PySequence_Fast( py_List, "Object must be iterable" );
+    py_FloatList = PySequence_Fast_ITEMS( py_SequenceFast );
     for( i = 0; i < size; i++ ){
-        py_FloatValue = PySequence_GetItem(py_List, i);
-        flt = (float) PyFloat_AsDouble(py_FloatValue);
-        values[i] = flt;
+        values[i] = (float) PyFloat_AsDouble( py_FloatList[i] );
     }
 }
-
 
 
 /* TAG( mili_reader_get_string )

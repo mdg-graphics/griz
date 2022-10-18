@@ -1492,7 +1492,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     int class_size;
     MO_class_data *p_mocd;
     Bool_type nodal, particle;
-    int *node_work_array=NULL;
+    char *node_work_array=NULL;
     State_variable *p_svar;
     Mesh_data *p_mesh;
 
@@ -1750,7 +1750,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
  * Create list of nodes referenced by objects bound to subrecord.
  */
 void
-create_subrec_node_list( int *node_tmp, int node_tmp_size, Subrec_obj *p_so )
+create_subrec_node_list( char *node_tmp, int node_tmp_size, Subrec_obj *p_so )
 {
     int conn_qty, node_cnt;
     int i, j, k;
@@ -1795,11 +1795,11 @@ create_subrec_node_list( int *node_tmp, int node_tmp_size, Subrec_obj *p_so )
                     if ( elem_conns[k]<0 ) /* Check for missing node */
                         continue;
 
-                    if ( node_tmp[elem_conns[k]] )
+                    if ( node_tmp[elem_conns[k]] == '1' )
                         continue;
                     else
                     {
-                        node_tmp[elem_conns[k]] = TRUE;
+                        node_tmp[elem_conns[k]] = '1';
                         node_cnt++;
                     }
                 }
@@ -1817,11 +1817,11 @@ create_subrec_node_list( int *node_tmp, int node_tmp_size, Subrec_obj *p_so )
 
                 for ( k = 0; k < 4; k++ )
                 {
-                    if ( node_tmp[elem_conns[k]] )
+                    if ( node_tmp[elem_conns[k]] == '1' )
                         continue;
                     else
                     {
-                        node_tmp[elem_conns[k]] = TRUE;
+                        node_tmp[elem_conns[k]] = '1';
                         node_cnt++;
                     }
                 }
@@ -1836,16 +1836,15 @@ create_subrec_node_list( int *node_tmp, int node_tmp_size, Subrec_obj *p_so )
     node_cnt = 0;
     for ( i = 0; i < node_tmp_size; i++ )
     {
-        if ( node_tmp[i] )
+        if ( node_tmp[i] == '1' )
         {
-            node_list[node_cnt] = i;
-            node_cnt++;
+            node_list[node_cnt++] = i;
         }
     }
     p_so->referenced_nodes = node_list;
 
     /* Clear the working array before returning. */
-    memset( (void *) node_tmp, (int) '\0', node_tmp_size * sizeof( int ) );
+    memset( (void *) node_tmp, '0', node_tmp_size * sizeof( char ) );
 }
 
 
@@ -5119,7 +5118,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
     int class_size;
     MO_class_data *p_mocd;
     Bool_type nodal;
-    int *node_work_array;
+    char *node_work_array;
 
     fid = (Famid) dbid;
 
@@ -5195,7 +5194,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
 
         /* Allocate a temporary working array for subrec node list creation. */
         mesh_node_qty = analy->mesh_table[mesh_id].node_geom->qty;
-        node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
+        node_work_array = NEW_N( char, mesh_node_qty, "Temp node array" );
 
         /* Loop over subrecs */
         for ( j = 0; j < subrec_qty; j++ )

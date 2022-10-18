@@ -1998,7 +1998,7 @@ extern void check_degen_quads( MO_class_data *p_quad_class );
 extern void check_degen_tris( MO_class_data *p_tri_class );
 extern State2 *mk_state2( Analysis *, State_rec_obj *, int, int, int,
                           State2 * );
-extern void create_subrec_node_list( int *, int, Subrec_obj * );
+extern void create_subrec_node_list( char *, int, Subrec_obj * );
 extern int create_primal_result( Mesh_data *, int, int, Subrec_obj *,
                                  Hash_table *, int, char *, Hash_table *, Analysis * );
 extern int load_nodpos( Analysis *, State_rec_obj *, Mesh_data *, int, int,
@@ -2037,8 +2037,6 @@ extern int mili_reader_search_param_wildcard( int, int, Bool_type, char*, char*,
 extern int mili_reader_read_ti_array( int, char*, void**, int* );
 extern int mili_reader_read_param_array( int, char*, void** );
 extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
-extern Bool_type combine_nodpos( Analysis*, int, void* );
-extern Bool_type combine_sand_flags( Analysis*, Subrec_obj*, int, void* );
 extern int mili_reader_load_stress_strain_components( int, int, Bool_type, Bool_type, float** );
 extern int mili_reader_preload_primal_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
 extern int mili_reader_preload_derived_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
