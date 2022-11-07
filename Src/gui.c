@@ -8473,9 +8473,14 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
             start_text[cnt++] = (char *) strdup(temp_text) ;
             sprintf( temp_text, "\tMili Database-Timestamp: \t%s\n\n", analy->mili_timestamp );
             start_text[cnt++] = (char *) strdup(temp_text) ;
-            if ( strlen(analy->xmilics_version)>0 )
+            if ( strlen(analy->xmilics_version) > 0 )
             {
                 sprintf( temp_text, "\tXmili Version: \t%s\n", analy->xmilics_version );
+                start_text[cnt++] = (char *) strdup(temp_text) ;
+            }
+            if( strlen(analy->job_id) > 0 )
+            {
+                sprintf( temp_text, "\tMili Database-Job ID: \t%s\n", analy->job_id );
                 start_text[cnt++] = (char *) strdup(temp_text) ;
             }
             sprintf( temp_text, "--------------------------------------------------------------------\n\n" );
@@ -8484,8 +8489,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     }
 
     /* Sum polygons to render by superclass. */
-    for ( i = 0; i < sizeof( traverse_order ) / sizeof( traverse_order[0] );
-            i++ )
+    for ( i = 0; i < sizeof( traverse_order ) / sizeof( traverse_order[0] ); i++ )
     {
         type = traverse_order[i];
         p_lh = p_mesh->classes_by_sclass + type;

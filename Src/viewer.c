@@ -745,6 +745,30 @@ scan_args( int argc, char *argv[], Analysis *analy )
 
 
 /************************************************************
+ * TAG( load_known_mili_parameters )
+ *
+ * Check the mili database for any known parameters that Griz tries to use.
+ * Load them in and store in the analysis struct.
+ */
+void
+load_known_mili_parameters( Analysis *analy )
+{
+    int stat;
+    Bool_type particles_on;
+
+    /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
+    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on);
+    // If "particles_on" paramter does not exist, default to off.
+    if( stat != OK )
+        particles_on = 0;
+    analy->particle_nodes_enabled = particles_on;
+
+    /* Check for "job_id" Mili parameter */
+    stat = mc_read_string( analy->db_ident, "job_id", analy->job_id );
+}
+
+
+/************************************************************
  * TAG( open_analysis )
  *
  * Open a plotfile and initialize an analysis.
@@ -781,7 +805,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     int brick_qty=0, shell_qty=0, truss_qty=0, beam_qty=0;
     int particle_qty=0, tet_qty = 0;
-    Bool_type particles_on;
 
     char temp_fname[MAXPATHLENGTH];
     int dir_pos=-1;
@@ -923,6 +946,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     stat = analy->db_set_results( analy );
     if ( stat != OK )
         return FALSE;
+    
+    /* Load any known mili parameters that Griz uses */
+    load_known_mili_parameters( analy );
 
 #ifdef TIME_OPEN_ANALYSIS
     printf( "Timing initial state get...\n" );
@@ -1051,13 +1077,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     set_contour_vals( 6, analy );
 
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
-
-    /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
-    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on);
-    // If "particles_on" paramter does not exist, default to off.
-    if(stat != OK)
-        particles_on = 0;
-    analy->particle_nodes_enabled = particles_on;
 
     /* Load in TI TOC if TI data is found */
     if(db_type == TAURUS)
@@ -2009,17 +2028,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     		analy->num_banned_names++;
     	}
 
-    	//class names
-//        int  qty_classes=0;
-//        char *class_names[2000];
-//        int  superclasses[2000];
-//    	status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
-//    	for(tmppos = 0; tmppos < qty_classes; tmppos++){
-//    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
-//    		strcpy(analy->banned_names[analy->num_banned_names],class_names[tmppos]);
-//    		analy->num_banned_names++;
-//    	}
-
 		Hash_table *forNames;
 		Hash_table *revNames;
 		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
@@ -2236,9 +2244,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->show_sph_ghost        = TRUE;
     analy->selectonmat           = FALSE;
 
-    for ( i=0;
-            i<MAX_PATHS;
-            i++ )
+    for ( i = 0; i < MAX_PATHS; i++ )
     {
         analy->paths[i]        = NULL;
         analy->paths_set[i]    = FALSE;
