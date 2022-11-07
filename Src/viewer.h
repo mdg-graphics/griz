@@ -969,8 +969,7 @@ typedef struct _Analysis
 
     void (*update_display)( struct _Analysis * );
     void (*display_mode_refresh)( struct _Analysis * );
-    Bool_type (*check_mod_required)( struct _Analysis *, Result_modifier_type,
-                                     int, int );
+    Bool_type (*check_mod_required)( struct _Analysis *, Result_modifier_type, int, int );
 
     Bool_type autoselect;
     void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */
@@ -984,6 +983,7 @@ typedef struct _Analysis
     char mili_timestamp[100];
     char mili_host[64];
     char xmilics_version[100];
+    char job_id[128];
 
     char title[G_MAX_STRING_LEN];
     Bool_type limit_max_state;
@@ -994,7 +994,6 @@ typedef struct _Analysis
     int previous_state;
     float *state_times;
     int reference_state;
-    //mmHisEnt previous_MM_List[50];
 
     float  *cur_ref_state_data;
     double *cur_ref_state_dataDp;
@@ -1456,9 +1455,7 @@ typedef struct _Analysis
      * Added February , 2013: IRC - Array of integration point label
      * data.
      */
-    int                 es_cnt; /* Number of element sets */
-    //Integration_points *es_intpoints;
-    //IntLabels * int_labels;
+    int es_cnt; /* Number of element sets */
     Hash_table * Element_sets;
     char **Element_set_names;
     Bool_type int_point_labels;
