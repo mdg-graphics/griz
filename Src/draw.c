@@ -15738,14 +15738,9 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
 float
 get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_type *result_defined )
 {
-    float val=0., num_nodes, *nodal_data, *activity;
-    int   node_num;
-    MO_class_data *p_node_class;
-    Bool_type nodal_result = TRUE;
-
-    int i,j;
-    int *connects_hex, *connects_particle;
-
+    float val = 0.0;
+    int num_elems;
+    float * result_data;
 
     *result_defined  = FALSE;
 
@@ -15754,44 +15749,17 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         return 0.0;
     }
 
-    p_node_class = MESH_P( analy )->node_geom;
-
-    num_nodes = p_node_class->qty;
-    if ( elem_num < 0 || elem_num > p_mo_class->qty )
+    num_elems = p_mo_class->qty;
+    if ( elem_num < 0 || elem_num > num_elems )
         return 0.0;
 
-    nodal_data = NODAL_RESULT_BUFFER( analy );
+    result_data = p_mo_class->data_buffer; /* Do not get the particle data from the nodal buffer */
+    if( result_data == NULL )
+        return 0.0;
 
-    if ( !nodal_data )
-    {
-        nodal_data = p_mo_class->data_buffer; /* Do not get the particle data from the nodal buffer */
-        nodal_result = FALSE;
-    }
+    val = result_data[elem_num];
+    *result_defined = TRUE;
 
-    if ( nodal_data != NULL )
-        *result_defined = TRUE;
-
-    if ( p_mo_class->superclass == G_HEX )
-    {
-        connects_hex = p_mo_class->objects.elems->nodes;
-        node_num     = (connects_hex+(elem_num*8))[0];
-    }
-    else
-    {
-        connects_particle = p_mo_class->objects.elems->nodes;
-        node_num          = connects_particle[elem_num];
-    }
-
-    if ( !nodal_result )
-    {
-        val = p_mo_class->data_buffer[elem_num];
-        *result_defined = TRUE;
-    }
-    else if ( nodal_data )
-    {
-        val = nodal_data[node_num];
-        *result_defined = TRUE;
-    }
     return val;
 }
 
@@ -16102,16 +16070,11 @@ draw_free_nodes( Analysis *analy )
                     data_array     = p_mo_class->data_buffer; /* Do not get the particle data from the nodal buffer */
                     part_visib     = p_mo_class->p_vis_data->visib;
 
-                    if ( analy->pn_nodal_result && analy->pn_ref_nodes[0]==NULL )
+                    if ( p_mo_class->referenced_nodes==NULL)
                     {
-                        if ( p_mo_class->referenced_nodes==NULL)
-                        {
-                            create_elem_class_node_list( analy, p_mo_class,
-                                                         &p_mo_class->referenced_node_qty,
-                                                         &p_mo_class->referenced_nodes );
-                        }
-                        analy->pn_ref_node_count[0] = p_mo_class->referenced_node_qty;
-                        analy->pn_ref_nodes[0]      = p_mo_class->referenced_nodes;
+                        create_elem_class_node_list( analy, p_mo_class,
+                                                        &p_mo_class->referenced_node_qty,
+                                                        &p_mo_class->referenced_nodes );
                     }
                 }
                 else
@@ -16243,14 +16206,6 @@ draw_free_nodes( Analysis *analy )
     /* Make a quick exit if no free nodes are to be displayed. */
     if (!free_nodes_found && !part_nodes_found)
         return;
-
-    /* If we are viewing a nodal result then map the nodal result onto the particles. */
-    if ( analy->pn_nodal_result )
-    {
-        particle_count = analy->pn_ref_node_count[0];
-        particle_nodes = analy->pn_ref_nodes[0];
-        nodal_data     = analy->pn_node_ptr[0];
-    }
 
     /* Determine a scaling range factor for the Mass/Vol data */
     mass_scale_factor = 0.5;

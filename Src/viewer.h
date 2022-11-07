@@ -1299,11 +1299,6 @@ typedef struct _Analysis
      * free_nodes.
      */
     Bool_type  particle_nodes_enabled;
-    Bool_type  pn_nodal_result;
-    float     *pn_node_ptr[10];       /* Up to 10 sets of particle objects */
-    float     *pn_buffer_ptr[10];
-    int       *pn_ref_nodes[10];
-    int        pn_ref_node_count[10];
 
     /*
      * Added January 30, 2006: IRC - Variables used for RubberBand Zoom.

@@ -3093,10 +3093,6 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
         first = TRUE;
         qty = sizeof( derive_order ) / sizeof( derive_order[0] );
 
-        analy->pn_nodal_result  = FALSE;
-        analy->pn_ref_nodes[0]  = NULL;
-        analy->pn_buffer_ptr[0] = NULL;
-
         for ( i = 0; i < qty; i++ )
         {
             for ( j = 0; j < p_r->qty; j++ )
@@ -3114,23 +3110,6 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
                     p_subrec = analy->srec_tree[srec].subrecs + subrec;
 
                     p_r->result_funcs[j]( analy, data_buffer, interpolate );
-
-                    /* Get a pointer to the result buffer for the Particle object */
-                    if ( analy->particle_nodes_enabled )
-                    {
-                        subrec   = p_r->subrecs[analy->result_index];
-                        srec     = p_r->srec_id;
-                        p_subrec = analy->srec_tree[srec].subrecs + subrec;
-
-                        if ( is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
-                        {
-                            analy->pn_nodal_result = TRUE;
-                            analy->pn_node_ptr[0]  = data_buffer;
-
-                            analy->pn_ref_nodes[0]      = p_subrec->referenced_nodes;
-                            analy->pn_ref_node_count[0] = p_subrec->ref_node_qty;
-                        }
-                    }
 
                     if ( update )
                     {
