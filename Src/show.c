@@ -348,7 +348,6 @@ lookup_global_minmax( Result *p_result, Analysis *analy )
     el_state_class  = analy->elem_state_mm.class_long_name;
     el_state_sclass = analy->elem_state_mm.sclass;
 
-
     /*
      * Lookup the global min/max for a result from the library.
      * If the global min/max is not found in the library, we must
