@@ -1461,6 +1461,8 @@ typedef struct _Analysis
     Bool_type auto_gray;
 
     Bool_type old_shell_stresses;
+
+    Bool_type render_particle_results_onto_bg_elements;
 }
 Analysis;
 
