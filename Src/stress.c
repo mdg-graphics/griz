@@ -207,7 +207,6 @@ compute_hex_es_stress( Analysis *analy, float *resultArr, Bool_type interpolate 
     int obj_qty;
     int index;
     char primal_spec[32];
-    char *primal_list[1];
     char* es_name;
     char *es_primals[2];
     MO_class_data *p_mo_class;
@@ -1575,7 +1574,7 @@ compute_es_prin_stress( Analysis *analy, float *resultArr, Bool_type interpolate
 {
     float *resultElem;
     float *(stresses)[6];
-    float pressure, interm_result;
+    float pressure;
     float Invariant[3];              /* Invariants of tensor. */
     float princStress[3];            /* Principal values. */
     float alpha, angle, value;

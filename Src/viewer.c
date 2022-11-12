@@ -190,11 +190,6 @@ char *session_file_buff[2000];
 
 /*****************************************************************/
 
-static char *non_persist_cmds[] = { "rx",    "ry",     "rz" , "tx", "ty",   "tz",    "anim", "load", "reload", "copyrt", /* 1-10 */
-                                    "scale", "scalax", "hist", "h", "exec", "alias", "quit", "animc"
-                                  }; /* 11-18 */
-static int  num_non_persist_cmds = 18;
-
 char      *history_log[MAXHIST];
 int        history_log_index=0;
 Bool_type  history_inputCB_cmd;
@@ -230,18 +225,12 @@ write_history_text( char *, Bool_type );
 int
 main( int argc, char *argv[] )
 {
+    int i;
+    Bool_type status;
     Analysis *analy;
 
-    Bool_type status;
-
-    double result[500];
-    int i;
-
-
 #ifdef SERIAL_BATCH
-    register int
-    rc;
-
+    register int rc;
     int osmesa_window_width;
     int osmesa_window_height;
 #endif
@@ -780,16 +769,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int i, j, k, l;
     int stat;
     int pos;
-    char *first_token, copy_command[512], timestamp[64], timestr[64];
+    char timestamp[64], timestr[64];
     char hist_fname[256];
-    char * datetime = NULL;
     char header[] = "# This is the history file for debugging purposes only\
 \n# and is for use by the griz team. Do not modify or alter in any way.\n";
     time_t curtime;
     struct tm *timeinfo=NULL;
     MO_class_data **class_array;
-    MO_class_data *p_mocd=NULL, *p_ml_class=NULL, *p_brick_class=NULL,
-                   *p_node_geom=NULL;
+    MO_class_data *p_mocd=NULL, *p_ml_class=NULL, *p_brick_class=NULL;
     Mesh_data *p_md, *p_mesh;
     Visibility_data *p_vd;
     Surface_data *p_surface;
@@ -813,15 +800,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int  num_entries = 0;
     int  superclass, datatype, datalength, meshid;
     int  state, matid;
-    char temp_name[128], class[32];
+    char class[32];
     char **wildcard_list = NULL;
     char particle_class_name[128];
 
     Bool_type isMeshvar=FALSE;
     Bool_type isNodal=FALSE;
     int status;
-
-    int *pn_node_list, num_ml_nodes=0;
 
     /*
      * Don't use popup_fatal() on failure before db is actually open.
@@ -830,7 +815,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     strcpy( temp_fname, fname );
     if ( !is_known_db( fname, &db_type ) )
     {
-
         /* User may have typed the full filename string with 1 or 2 char extensions */
         /* Try a name with 1 and 2 trailing characters omitted */
         if ( strlen(fname)>=3 )
@@ -1903,7 +1887,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		forNums = htable_create( 1001 );
 		revNums = htable_create( 1001 );
 
-		Htable_entry *tempEnt;
 		int pos2;
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
 		analy->num_messages = 0;
@@ -1914,7 +1897,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
 			//check if name exists
 			teststr[0] = '\0';
-			int num_items_read = 0;
 			int status = 0;
 			sprintf(teststr,"MAT_NAME_%d",pos2+1);
 			char *test;
@@ -2040,25 +2022,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		forNums = htable_create( 1001 );
 		revNums = htable_create( 1001 );
 
-		Htable_entry *tempEnt;
 		int pos2;
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
 		analy->num_messages = 0;
-		//char teststr[20];
-		char merged[label_length];
-		char temp[label_length];
-		char message[120];
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
-			//check if name exists
-			//teststr[0] = '\0';
-			int num_items_read = 0;
-			int status = 0;
-			//sprintf(teststr,"MAT_NAME_%d",pos2+1);
 			char *test;
 			char *test2;
 			test = malloc(label_length * sizeof(char));
 			test2 = malloc(label_length * sizeof(char));
-			//status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
 			char *str;
 			char *str2;
 			str = malloc(10 * sizeof(char));
@@ -2416,14 +2387,12 @@ close_analysis( Analysis *analy )
 Bool_type
 load_analysis( char *fname, Analysis *analy, Bool_type reload )
 {
-    int fid=0;
-    Database_type_griz db_type;
     Bool_type status;
-    Analysis temp_analy;
     char comment[512];
+    Database_type_griz db_type;
 
     /* We are either loading another plotfile or reloading the current one.  So if a current
- *     grizhist file is open close and delete if before creating another one */
+     * grizhist file is open close and delete if before creating another one */
     if(analy->p_histfile)
     {
         strcpy(comment, "rm ");
@@ -2692,15 +2661,12 @@ model_history_log_comment(char *comment, Analysis *analy)
 void
 model_history_log_update( char *command, Analysis *analy )
 {
-    int i;
     char *first_token;
     char *copy_command;
     char *comment;
     char timestamp[64];
     char timestr[64];
     char hist_fname[256];
-    char header[] = "# This is the history file for debugging purposes only\
-  \n# and is for use by the griz team. Do not modify or alter in any way.\n";
     int cmdlen;
     cmdlen = strlen(command);
 
@@ -2713,8 +2679,6 @@ model_history_log_update( char *command, Analysis *analy )
         return;
 
     strcpy( copy_command, command );
-
-    /*first_token = strtok( copy_command, "\t " );*/
 
     if ( history_log_index>=MAXHIST )
         history_log_index=0;
@@ -2786,7 +2750,7 @@ read_history_file( char *fname, int line_num, int loop_count,
                    Analysis *analy )
 {
     FILE *infile;
-    char c, str[2000], tmp_str[2000];
+    char str[2000], tmp_str[2000];
     int i;
     int current_line=0;
 
@@ -2801,9 +2765,7 @@ read_history_file( char *fname, int line_num, int loop_count,
     if ( loop_count<= 0 )
         loop_count = 1;
 
-    for ( i=0;
-            i<loop_count;
-            i++ )
+    for ( i = 0; i < loop_count; i++ )
     {
         current_line = 0;
         analy->hist_line_cnt = line_num;
@@ -2813,7 +2775,7 @@ read_history_file( char *fname, int line_num, int loop_count,
             /* Skip to specified line number */
 
             current_line++;
-            if ( line_num>1 && (current_line < line_num) )
+            if ( line_num > 1 && (current_line < line_num) )
                 continue;
 
             if ( str[0] != '#' && str[0] != '\0' )
@@ -2952,6 +2914,31 @@ process_serial_batch_mode( char *batch_input_file_name, Analysis *analy )
 static void
 usage( void )
 {
+    int i;
+
+#ifdef SERIAL_BATCH
+    static char *usage_text_batch[] =
+    {
+        "\nUsage (Griz Batch):  griz4s -i input_base_name -b input_file_name\n",
+        "            [-s]                          # single-buffer mode         #\n",
+        "            [-f]                          # run in foreground          #\n",
+        "            [-v]                          # size image for video       #\n",
+        "            [-V]                          # show program version       #\n",
+        "            [-q]                          # run in quiet - minimal output to screen #\n",
+        "            [-w <width_pix> <height_pix>] # set exact image size       #\n",
+        "            [-beta | -alpha]              # run a alpha or beta version of Griz #\n",
+        "            -version aaa                  # run a specific version of Griz #\n",
+        "                                          #   aaa to Grizx (-version grizex) runs the latest pre-release of Griz #\n",
+        "            [-tv ]                        # run Griz under the Totalview debugger #\n",
+        "            -b | -batch input_file_name # batch mode               #\n\n"
+        "            [-bname]                      # override banner filename with new name #\n\n"
+        "            [-checkresults]               # checks all results for corrupt numbers #\n\n"
+    };
+    int line_cnt_batch = 0;
+    line_cnt_batch = sizeof( usage_text_batch ) / sizeof( usage_text_batch[0] );
+    for ( i = 0; i < line_cnt_batch; i++ )
+        wrt_text( usage_text_batch[i] );
+#else
     static char *usage_text[] =
     {
         "\nUsage:  griz4s -i input_base_name\n",
@@ -2973,31 +2960,7 @@ usage( void )
         "            [-q]                          # run in quiet - minimal output to screen (batch only)#\n",
         "            [-checkresults] [-cr]         # checks all results for corrupt numbers (Nan)#\n\n"
     };
-
-    static char *usage_text_batch[] =
-    {
-        "\nUsage (Griz Batch):  griz4s -i input_base_name -b input_file_name\n",
-        "            [-s]                          # single-buffer mode         #\n",
-        "            [-f]                          # run in foreground          #\n",
-        "            [-v]                          # size image for video       #\n",
-        "            [-V]                          # show program version       #\n",
-        "            [-q]                          # run in quiet - minimal output to screen #\n",
-        "            [-w <width_pix> <height_pix>] # set exact image size       #\n",
-        "            [-beta | -alpha]              # run a alpha or beta version of Griz #\n",
-        "            -version aaa                  # run a specific version of Griz #\n",
-        "                                          #   aaa to Grizx (-version grizex) runs the latest pre-release of Griz #\n",
-        "            [-tv ]                        # run Griz under the Totalview debugger #\n",
-        "            -b | -batch input_file_name # batch mode               #\n\n"
-        "            [-bname]                      # override banner filename with new name #\n\n"
-        "            [-checkresults]               # checks all results for corrupt numbers #\n\n"
-    };
-    int i, line_cnt=0, line_cnt_batch=0;
-
-#ifdef SERIAL_BATCH
-    line_cnt_batch = sizeof( usage_text_batch ) / sizeof( usage_text_batch[0] );
-    for ( i = 0; i < line_cnt_batch; i++ )
-        wrt_text( usage_text_batch[i] );
-#else
+    int line_cnt = 0;
     line_cnt = sizeof( usage_text ) / sizeof( usage_text[0] );
     for ( i = 0; i < line_cnt; i++ )
         wrt_text( usage_text[i] );
@@ -3136,7 +3099,6 @@ void process_update_session( int operation, void *ptr, int cnt,
     char   *session_char_var_ptr;
 
     FILE *fp=NULL;
-    char **session_buff=NULL;
     int    i;
 
     switch ( type )

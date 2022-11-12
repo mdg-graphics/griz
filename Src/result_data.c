@@ -616,8 +616,6 @@ elem_get_minmax( float *val_elem, int qty, Analysis *analy )
     float *mm_val, *activity;
     int *mats;
 
-    Bool_type disable_obj = FALSE;
-
     p_result = analy->cur_result;
     srec = p_result->srec_id;
     idx = analy->result_index;
@@ -1063,24 +1061,10 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     Bool   particle_class = FALSE;
 
     /* Error Indicator Arrays */
-
     float *ei_elem, *ei_nodal, *ei_nodal_weight;
-    float  ei_elem_val;
 
     /* Set the next line to FALSE to compare with TAURUS output. */
     volume_average = analy->vol_averaging;
-
-    /*
-     * ORIGINAL:
-     *
-    p_result = analy->cur_result;
-    srec = p_result->srec_id;
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL,
-                     (void *) &mesh );
-    p_mesh = analy->mesh_table + mesh;
-     *
-     * REPLACEMENT:
-     */
 
     if ( is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name ) )
         particle_class = TRUE;
@@ -1105,9 +1089,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
     nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
 
-    for ( i=0;
-            i<p_node_geom->qty;
-            i++ )
+    for ( i = 0; i < p_node_geom->qty; i++ )
     {
         val_nodal_input[i] = val_nodal[i];
         nodes_updated[i]   = FALSE;
@@ -1125,9 +1107,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
             ei_nodal_weight[i] = 0.0;
         }
 
-        for ( i = 0;
-                i <  hex_qty;
-                i++ )
+        for ( i = 0; i < hex_qty; i++ )
             ei_elem[i] = 0.0;
     }
 
@@ -1404,9 +1384,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     /* Average out nodes that were already computed with other subrecords
      * or element sets.
      */
-    for ( i=0;
-            i<p_node_geom->qty;
-            i++ )
+    for ( i = 0; i < p_node_geom->qty; i++ )
     {
         if ( !particle_class && nodes_updated[i] &&  val_nodal_input[i]!=0.0 )
         {
@@ -1441,7 +1419,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
     MO_class_data *p_node_geom;
     Mesh_data *p_mesh;
     float *activity, *mm_val;
-    int i, j, nd;
+    int i, nd;
     int *el_id, *sclasses;
     char **classes;
     int (*connects)[1];
@@ -1450,11 +1428,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
 
     Bool_type ignore_elem=FALSE;
 
-    float temp_nodal;
-
     int num_nodes=0;
-
-    int status;
 
     p_mesh = MESH_P( analy );
 
@@ -1475,9 +1449,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
     classes = analy->tmp_elem_mm.class_long_name;
 
     /* Loop to get the averaged values and extract state element min/max. */
-    for ( i = 0;
-            i < part_qty;
-            i++ )
+    for ( i = 0; i < part_qty; i++ )
     {
         /* Get the element identifier. */
         part_id = part_ids ? part_ids[i] : i;
@@ -1561,7 +1533,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
     char **classes;
     int *sclasses;
     int (*connects)[8];
-    int hex_id, hex_ids;
+    int hex_id;
     int elem_block_qty;
     int start, stop;
     int cur_mat;
@@ -2408,14 +2380,9 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
     int *sclasses;
     int (*connects)[4];
     int facet_qty;
-    int *mats;
     int surf_id;
 
     double *val_nodal_dbl=NULL, val_dbl=0.0;
-
-    /*
-     * NOTE:  Original coding as per "quad_to_nodal"
-     */
 
     p_mesh = MESH_P( analy );
 
@@ -2425,7 +2392,6 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_surf_class->elem_class_index]
                : NULL;
-
 
     adj_cnt       = NEW_N( int,    p_node_geom->qty, "Tmp surf result cnts" );
     val_nodal_dbl = NEW_N( double, p_node_geom->qty, "Tmp surf double result values" );
@@ -2445,9 +2411,7 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
         }
     }
 
-    for ( i = 0;
-            i < p_node_geom->qty;
-            i++ )
+    for ( i = 0; i < p_node_geom->qty; i++ )
         val_nodal_dbl[i] = val_nodal[i];
 
     /* Prepare to extract element min/max (values init'd in load_result()). */
@@ -2987,16 +2951,12 @@ init_mm_obj( Minmax_obj *p_mmo )
 void
 load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type extreme_result )
 {
-    Result *p_r;
-    float *data_buffer;
-    int qty;
     int i, j;
+    int qty;
+    int subrec=0, srec=0;
+    float *data_buffer;
     Bool_type first;
-    int idcnt=0;
-    int num_nodes=0;
-
-    int        particle_count, *particle_nodes;
-    int        subrec=0, srec=0;
+    Result *p_r;
     Subrec_obj *p_subrec;
 
     if ( extreme_result == FALSE && analy->extreme_result == TRUE )
@@ -3155,31 +3115,23 @@ load_subrecord_result( Analysis *analy, int subrec_id, Bool_type update,
 
 int *get_free_nodes( Analysis *analy )
 {
-    MO_class_data *p_element_class,
-                  *p_node_class,
+    MO_class_data *p_node_class,
                   *p_mo_class,
                   **mo_classes;
 
-    Mesh_data     *p_mesh;
-
-    List_head     *p_lh;
+    Mesh_data *p_mesh;
+    List_head *p_lh;
 
     int  *free_nodes_list;
     int   nd;
 
     float *activity, active_element=0.;
     float *data_array;
-    float verts[3], leng[3];
     float **sand_arrays;
 
-    int  elem_qty;
-    int  node_index, node_num, num_nodes, node_qty, num_fn=0;
-    int  class_index, class_qty;
-    int  conn_qty;
-
     int  i, j, k, l;
-    int  dim, obj_qty;
-
+    int  num_nodes, node_qty, num_fn=0;
+    int  conn_qty;
     int  *connects;
 
     /* Variables related to materials */
@@ -3310,19 +3262,17 @@ dump_result( Analysis *analy, char *fname_input )
     FILE  *fp;
     int   i,j,k;
     char  fname[128], state_string[10];
-    float *data_buffer=NULL, *data_result=NULL;
+    float *data_result=NULL;
     int   *data_sclass=NULL, *data_mat=NULL;
     int   *data_ids=NULL;
     Bool_type *data_hide=NULL;
     int   result_index=0;
     int   class_qty=0;
-    int   class_type;
     int   num_nodes=0;
     int   num_objects=1;
     int   superclass=0;
     MO_class_data *p_node_class, *p_class;
     Result *p_r;
-    Subrec_obj *p_subrec;
     char *class_names[100];
     int  *class_name_index;
     int  class_index=0, class_label_index=0;

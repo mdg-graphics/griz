@@ -588,15 +588,18 @@ static void
 load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
               int *p_tbl_sz, int start, int stop )
 {
-    int (*connects)[8];
-    Bool_type valid;
-    int **hex_adj;
-    int face_entry[6];
-    int tmp_faces[6];
-    int *idx, new_idx, tmp;
-    int el, fc, elem1, face1, elem2, face2;
     int i, j;
+    int el, fc, elem1, face1, elem2, face2;
+    int *idx, new_idx, tmp;
+    int face_entry[6];
+    int (*connects)[8];
+    int **hex_adj;
+    Bool_type valid;
+
+#ifdef DUMP_TABLES
+    int tmp_faces[6];
     FILE *fp;
+#endif
 
     /*
      * The table face_tbl contains for each face entry
@@ -2117,17 +2120,19 @@ void
 particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class,
                     GVec3D *nodes, unsigned char *particle_visib )
 {
-    int i, j;
+    int i;
     int node, particle_qty;
     int (*connects)[8];
-    float node_radius=0.0, ppt[3];
-    double distance=0.0, distance_abs=0.0;
+    float ppt[3];
+    float node_radius = 0.0;
+    double distance = 0.0;
+    double distance_abs = 0.0;
     Bool_type set_cut_width=FALSE;
 
     analy->show_particle_cut = TRUE;
 
     node_radius = calc_particle_radius( analy, 0.0 );
-    if ( analy->free_nodes_cut_width>0. )
+    if ( analy->free_nodes_cut_width > 0.0 )
     {
         node_radius = calc_particle_radius( analy, analy->free_nodes_cut_width );
         set_cut_width = TRUE;
@@ -2138,9 +2143,8 @@ particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_dat
 
     for ( i = 0; i < particle_qty; i++ )
     {
-        node = connects[i][0]; /* All nodes at same point for particles so
-				  * just need to consider 1 node.
-				  */
+        /* All nodes at same point for particles so just need to consider 1 node. */
+        node = connects[i][0];
 
         /* Get position of the node */
         get_node_vert_2d_3d( node, NULL, analy, ppt );
@@ -2152,20 +2156,21 @@ particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_dat
         distance     = VEC_DOT( norm, ppt );
         distance_abs = fabs( distance );
 
-        /* If particle intersects plane then mark it as invisible.
-         */
-        if ( distance<=0 )
+        /* If particle intersects plane then mark it as invisible. */
+        if ( distance <= 0 )
+        {
             if ( set_cut_width )
             {
-                if ( distance_abs<=node_radius )
+                if ( distance_abs <= node_radius )
                 {
-                    particle_visib[i]     = TRUE;
+                    particle_visib[i] = TRUE;
                 }
             }
             else
             {
-                particle_visib[i]     = TRUE;
+                particle_visib[i] = TRUE;
             }
+        }
     }
 }
 
@@ -2179,21 +2184,12 @@ particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_dat
 void
 set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
 {
-    Plane_obj *plane;
-    unsigned char *part_visib, *hide_mtl;
-    int *materials;
-    float *activity;
-    Bool_type hidden_matls;
-    int part_qty, mtl_qty, plane_qty=0;
     int i, j;
-
-    Bool_type hide_obj=FALSE;
-
-    int hide_qty = 0;
-    int damage_count = 0;
+    int part_qty, plane_qty=0;
+    unsigned char *part_visib;
+    Plane_obj *plane;
 
     part_visib = p_part_class->p_vis_data->visib;
-
     part_qty = p_part_class->qty;
 
     /* Initialize all elements to be visible. */
@@ -2208,8 +2204,10 @@ set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
         for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
         {
             if ( plane_qty==0 )
+            {
                 for ( i = 0; i < part_qty; i++ )
                     part_visib[i] = FALSE;
+            }
 
             particle_rough_cut( analy, plane->pt, plane->norm, p_part_class,
                                 analy->state_p->nodes.nodes3d, part_visib );
@@ -2245,7 +2243,6 @@ set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
 void
 set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
 {
-    Plane_obj *plane;
     unsigned char *pyramid_visib, *pyramid_visib_damage, *hide_mtl;
     int *materials;
     float *activity;
@@ -2317,21 +2314,7 @@ set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
     }
 
     /*
-     * Perform the roughcuts.
-     */
-    /*if ( analy->show_roughcut )
-    {
-        for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
-            pyramid_rough_cut( plane->pt, plane->norm, p_pyramid_class,
-                           analy->state_p->nodes.nodes3d, pyramid_visib );
-    } */
-
-    /*
      * Set the visibility for damaged elements.
-     */
-
-    /* Added 09/15/04: IRC - The field visib_damage is used to control the
-     * display of damaged elements.
      */
     if (analy->damage_hide && analy->damage_result)
     {
@@ -2951,8 +2934,7 @@ void
 get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class,
                     Analysis *analy, int *faceNodes )
 {
-    float orig;
-    int nd, i;
+    int i;
     int (*connects)[8];
     GVec3D *nodes, *onodes;
 
@@ -2960,9 +2942,7 @@ get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class,
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
 
-    for ( i = 0;
-            i < 4;
-            i++ )
+    for ( i = 0; i < 4; i++ )
     {
         faceNodes[i] = connects[elem][ fc_nd_nums[face][i] ];
     }
@@ -3098,18 +3078,17 @@ void
 get_particle_verts( int elem, MO_class_data *p_class, Analysis *analy,
                     float verts[][3] )
 {
-    GVec3D *nodes, *onodes;
+    int i, nd;
     int (*connects)[1];
-    float orig;
-    int nd, i, j;
+    GVec3D *nodes, *onodes;
 
     nodes    = analy->state_p->nodes.nodes3d;
     onodes   = (GVec3D *) analy->cur_ref_state_data;
     connects = (int (*)[1]) p_class->objects.elems->nodes;
 
     nd = connects[elem][0];
-    for ( j = 0; j < 3; j++ )
-        verts[0][j] = nodes[nd][j];
+    for ( i = 0; i < 3; i++ )
+        verts[0][i] = nodes[nd][i];
 }
 
 /************************************************************
@@ -4786,12 +4765,11 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
     MO_class_data *p_mocd;
     Visibility_data *p_vd;
     Surface_data *p_surface;
-    Bool_type has_degen;
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_SURFACE].list;
     class_qty = p_mesh->classes_by_sclass[G_SURFACE].qty;
     
-    for (i = 0; i<3 ;i++)
+    for (i = 0; i < 3; i++)
     {
         node_norm[i] = analy->node_norm[i];
     }
@@ -5477,7 +5455,6 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
     float line_pt[3], line_dir[3];
     char comstr[80];
     int near_num, node_near_num, p_near;
-    int i;
     Mesh_data *p_mesh;
 
     /* Get a ray in the scene from the pick point. */
@@ -6179,7 +6156,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
     GVec2D *nodes2d, *onodes2d;
     int *connects=NULL;
     int j, k, l;
-    int ii, jj, kk;
+    int ii;
     int facet_qty;
     int conn_qty = 4;
     static float zdir[] = { 0.0, 0.0, 1.0 };
@@ -6187,7 +6164,6 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
     float pt[3], vec[3];
     float near_dist, orig, dist;
     int node_base, nd, near_num;
-    int near_facet;
 
     /* for now assume quad connects */
     connects = p_mo_class->objects.elems->nodes;
@@ -7035,8 +7011,7 @@ select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
                       MO_class_data *p_ml_class, int near_node,
                       int *p_near )
 {
-    int ml_qty;
-    int i, j, near_num;
+    int i;
     GVec3D *nodes3d;
 
     int num_ml, num_nodes, ml_node;
@@ -7056,13 +7031,11 @@ select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
     else
         connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
 
-    nodes3d     = analy->state_p->nodes.nodes3d;
+    nodes3d = analy->state_p->nodes.nodes3d;
 
     /* Choose node whose distance from line is smallest. */
 
-    for ( i = 0;
-            i < num_ml;
-            i++ )
+    for ( i = 0; i < num_ml; i++ )
     {
         if ( p_ml_class->superclass==G_PARTICLE )
             ml_node = connects_particle[i][0];
@@ -7088,11 +7061,9 @@ select_meshless_node( Analysis *analy, Mesh_data *p_mesh,
                       MO_class_data *p_ml_class, int elem_id,
                       int *p_near )
 {
-    int ml_qty;
-    int i, j, near_num;
     GVec3D *nodes3d;
 
-    int num_ml, num_nodes, ml_node;
+    int num_ml, num_nodes;
 
     int (*connects_ml)[8];
     int (*connects_particle)[1];
@@ -7108,7 +7079,7 @@ select_meshless_node( Analysis *analy, Mesh_data *p_mesh,
         connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
     else
         connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
-    nodes3d     = analy->state_p->nodes.nodes3d;
+    nodes3d = analy->state_p->nodes.nodes3d;
 
     /* Choose node whose distance from line is smallest. */
 

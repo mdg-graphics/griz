@@ -173,7 +173,6 @@ global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     int nd;
     GVec3D *coords;
     int (*connects)[4];
-    int index;
 
     connects = (int (*)[4]) p_mo_class->objects.elems->nodes;
     coords = analy->state_p->nodes.nodes3d;
@@ -239,7 +238,6 @@ global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     int nd;
     GVec3D *coords;
     int (*connects)[3];
-    int index;
 
     connects = (int (*)[3]) p_mo_class->objects.elems->nodes;
     coords = analy->state_p->nodes.nodes3d;
@@ -422,7 +420,7 @@ transform_es_tensors_1p( int qty, float *p_sx, float *p_sy, float* p_sz,
 {
     double new[6], sub1[3], sub2[3], sub3[3];
     float *sx, *sy, *sz, *sxy, *syz, *szx;
-    int i, j;
+    int i;
 
     for ( i = 0; i < qty; i++ )
     {

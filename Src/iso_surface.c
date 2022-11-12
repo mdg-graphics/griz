@@ -671,7 +671,6 @@ gen_cuts( Analysis *analy )
     static Bool_type warn_once = TRUE;
     Classed_list *p_cl;
     Triangle_poly *p_tp;
-    unsigned char *part_visib;
 
     for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
     {

@@ -242,7 +242,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
      */
     Bool_type map_timehist_coords = FALSE;
     int       elem_index;
-    int       obj_cnt=0, obj_num=0, *obj_ids=NULL;
+    int       obj_cnt=0, *obj_ids=NULL;
     GVec3D2P  *new_nodes;
 
     p_result = analy->cur_result;
@@ -1257,7 +1257,7 @@ void
 compute_es_strain_inv_one( Analysis *analy,float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
-    int i, j, k, rval;
+    int i, rval;
     int ipt_index;
     Result *p_result;
     char **primals;
@@ -1520,7 +1520,7 @@ compute_es_strain_inv_two( Analysis *analy,float *resultArr, Bool_type interpola
     float devStrain[3];
     float trace_strain;
     int obj_qty;
-    int i, j, k, l;
+    int i, j;
     int rval, ipt_index;
     Result *p_result;
     char **primals;
@@ -1869,7 +1869,7 @@ compute_es_prin_strain( Analysis *analy,float *resultArr, Bool_type interpolate 
 {
     float *resultElem;
     float *(strains)[6];
-    float trace_strain, interm_result;
+    float trace_strain;
     float Invariant[3];              /* Invariants of tensor. */
     float princStrain[3];            /* Principal values. */
     float alpha, angle, value;
@@ -2522,7 +2522,6 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     Ref_frame_type ref_frame;
     float *resultElem, *res1, *res2;
     float eps[6];
-    double (*p_tensors)[6];
     float localMat[3][3];
     int comp_idx, i, j, obj_qty, obj_id, obj_index,
         index;
@@ -2542,7 +2541,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
      *      calculations for timehistory databases
      */
     Bool_type map_timehist_coords = FALSE;
-    int       obj_cnt, obj_num, *obj_ids=NULL;
+    int       obj_cnt, *obj_ids=NULL;
     GVec3D2P  *new_nodes;
     Bool_type single_prec_pos;
 
@@ -2908,26 +2907,6 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
             }
             break;
         }
-
-        if ( ref_surf != MIDDLE )
-        {
-            /* Transform INNER and OUTER surface results. */
-
-            /* p_tensors = (double (*)[6]) analy->tmp_result[0];
-
-            obj_id = 0;
-            for ( i = 0; i < obj_qty; i++ )
-            {
-                obj_id = ( object_ids == NULL ) ? i : object_ids[i];
-
-                global_to_local_mtx( analy, p_quad_class, obj_id,
-                             map_timehist_coords, new_nodes,
-            	     localMat );
-                transform_tensors( 1, p_tengriz4ssors + i, localMat );
-
-                resultElem[obj_id] = p_tensors[i][comp_idx];
-            } */
-        }
     }
 
     /* Perform the Engineering Strain conversion if necessary. */
@@ -3258,7 +3237,6 @@ void
 rotate_quad_result( Analysis *analy, char *primal,
                     int single_obj_id, float *result )
 {
-    Htable_entry *p_hte;
     Result     *p_result;
     Subrec_obj *p_subrec;
     MO_class_data *p_quad_class;
@@ -3276,7 +3254,6 @@ rotate_quad_result( Analysis *analy, char *primal,
     GVec3D2P *new_nodes            = NULL;
     Bool_type  map_timehist_coords = FALSE;
     Bool_type single_prec_pos;
-    int status;
 
     ref_frame = analy->ref_frame;
 

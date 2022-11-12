@@ -76,10 +76,9 @@ static struct
 void
 change_state( Analysis *analy )
 {
-    Bool_type recompute_norms;
     int st_qty;
     int srec_id;
-    int status=OK;
+    Bool_type recompute_norms;
     static Bool_type warn_state = TRUE;
 
     if ( env.timing )
@@ -184,8 +183,6 @@ change_time( float time, Analysis *analy )
     int subrec_qty= 0;
     Subrec_obj *p_subrec;
     struct temp_subrecord *subrecords_b =NULL;
-    float *temp_results;
-    int s1time, s2time = 0;
     int fractsz;
 
     fractsz = analy->time_frac_size;
@@ -313,10 +310,6 @@ change_time( float time, Analysis *analy )
      * Stash the interpolated nodal values in state_a and
      * the interpolated result values in result_a.
      */
-    int max_obj,j;
-    int *obj_ids;
-    int obj_count;
-    float *class_data_buffer;
     if ( analy->dimension == 3 )
     {
         nodes3d_a = state_a->nodes.nodes3d;
@@ -351,16 +344,18 @@ change_time( float time, Analysis *analy )
     
     if ( interp_result )
     {
+        int j, max_obj;
+        float *class_data_buffer;
        // The following commented linewas the original calculation extracted  
        // from the above if else statements.
        //result_a[i] = ninterp * result_a[i] + interp * result_b[i];
-       for(i=0 ; i< analy->cur_result->qty;i++)
+       for(i = 0 ; i < analy->cur_result->qty; i++)
        {
            p_subrec = analy->srec_tree[srec_id_b].subrecs + analy->cur_result->subrecs[i];
            max_obj = p_subrec->subrec.qty_objects;
                
            class_data_buffer = p_subrec->p_object_class->data_buffer;
-           for(j=0; j<max_obj; j++)
+           for( j = 0; j < max_obj; j++ )
            {
                if(p_subrec->object_ids)
                {

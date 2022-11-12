@@ -38,41 +38,30 @@ compute_hex_damage( Analysis *analy, float *resultArr,
 {
     Bool_type single_prec_vel;
     char *vdir;
-    char **classes;
     unsigned char *disable_mat;
-    int el_id;
     int (*connects)[8];
-    int *mats;
     int *active_mats;
     int cur_mat;
-    int i, j, k, l, m, n, nd;
+    int i, j, l, m, n, nd;
     int nplot_rval, eeff_rval;
     int nrvol_rval;
     int x_rval, y_rval, z_rval;
     float vel_cutoff, relVol_cutoff, eeff_cutoff;
-    int hex_qty, hex_id;
-    int *hex_ids, *object_ids;
+    int hex_qty;
     int class_qty, mat_qty, active_qty, elem_block_qty, node_qty;
-    int index, start, stop;
-    int subrec, srec;
+    int start, stop;
     float *resultElem; /* Array for the element data. */
     float *val_hex1=NULL;
     float *val_hex2=NULL;
     float *vel_sums=NULL;
-    float localMat[3][3];
     float *vel_1p = NULL;
     double *vel_2p = NULL;
     Material_data *p_mats;
-    Mesh_data *p_mesh;
-    MO_class_data **p_hex_classes;
     MO_class_data *p_hex_class, *p_mat_class;
-    MO_class_data *p_node_geom;
     Result *nplot = NULL, *eeff = NULL;
     Result *nrvol = NULL;
     Result *velx = NULL, *vely = NULL, *velz = NULL;
     Result *p_result;
-    State_rec_obj *p_sro;
-    Subrec_obj *p_subrec;
 
     Visibility_data *p_vd;
 
@@ -185,9 +174,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
     /* Loop over all hex classes to generate results for enabled materials. */
     class_qty = MESH( analy ).classes_by_sclass[G_HEX].qty;
 
-    for ( l = 0;
-            l < class_qty;
-            l++ )
+    for ( l = 0; l < class_qty; l++ )
     {
         p_hex_class = ((MO_class_data **)
                        MESH( analy ).classes_by_sclass[G_HEX].list)[l];
@@ -202,9 +189,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         {
             analy->cur_result = nplot;
             load_result( analy, FALSE, FALSE, FALSE );
-            for ( i=0;
-                    i<hex_qty;
-                    i++ )
+            for ( i = 0; i < hex_qty; i++ )
                 val_hex1[i] = p_hex_class->data_buffer[i];
         }
         else
@@ -217,9 +202,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
 
             analy->cur_result = eeff;
             load_result( analy, FALSE, FALSE, FALSE );
-            for ( i=0;
-                    i<hex_qty;
-                    i++ )
+            for ( i = 0; i < hex_qty; i++ )
                 val_hex1[i] = p_hex_class->data_buffer[i];
         }
 
@@ -231,9 +214,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         {
             analy->cur_result = nrvol;
             load_result( analy, FALSE, FALSE, FALSE );
-            for ( i=0;
-                    i<hex_qty;
-                    i++ )
+            for ( i = 0; i < hex_qty; i++ )
                 val_hex2[i] = p_hex_class->data_buffer[i];
         }
         else
@@ -315,9 +296,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
                                     val_hex1, vel_sums, val_hex2);
 
         /* Update the classes data buffer */
-        for ( i=0;
-                i<hex_qty;
-                i++ )
+        for ( i = 0; i < hex_qty; i++ )
             p_hex_class->data_buffer[i] = resultElem[i];
 
         p_vd = p_hex_class->p_vis_data;
@@ -326,16 +305,13 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         /* Retain damage history from previous time steps */
         /* Disable for now */
 
-        for ( i=0;
-                i<hex_qty;
-                i++)
+        for ( i = 0; i < hex_qty; i++)
         {
             /* The reset flag is set to TRUE is we do not want to retain
              * damage history. If set to TRUE then all of the elements will
              * start out as viewable - damage history will be erased.
              */
-            if (analy->reset_damage_hide ||
-                    analy->min_state == analy->cur_state)
+            if (analy->reset_damage_hide || analy->min_state == analy->cur_state)
                 p_vd->visib_damage[i] = FALSE;
 
             if (!resultElem[i])
@@ -360,15 +336,13 @@ compute_hex_damage( Analysis *analy, float *resultArr,
 #ifdef DISABLE_DAMAGE_HISTORY
         if (analy->damage_hide)
         {
-            for ( i = 0;
-                    i < hex_qty;
-                    i++ )
+            for ( i = 0; i < hex_qty; i++ )
+            {
                 if ( resultElem[i] )
-                {
                     p_vd->visib_damage[i] = TRUE;
-                }
                 else
                     p_vd->visib_damage[i] = FALSE;
+            }
         }
 #endif
     }

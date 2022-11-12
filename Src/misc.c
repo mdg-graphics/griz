@@ -32,7 +32,6 @@
 #include "misc.h"
 #include "mdg.h"
 #include "io_wrap.h"
-//#include "alphanum_comp.c"
 
 extern Bool_type include_util_panel, include_mtl_panel, include_utilmtl_panel;
 
@@ -51,8 +50,6 @@ extern void get_window_attributes( void );
 
 static int _mem_total = 0;
 static int autoimg_frame_count = 1;
-
-static int temp_mem_ptr = 0;
 
 /*****************************************************************
  * TAG( qty_connects )
@@ -2027,7 +2024,6 @@ set_ref_state( Analysis *analy, int new_ref_state )
         rval,
         first_state=1;
     State_rec_obj *p_sro = NULL;
-    int index;
     int num_nodes=0;
     Mesh_data *p_md = NULL;
     MO_class_data *p_node_class = NULL;
@@ -3133,12 +3129,11 @@ int
 read_griz_session_file( Session *session, char *sessionFileName,
                         int session_id,   Bool_type global )
 {
+    int i;
     FILE *fp;
     char input[120];
-    int temp_int;
     char fullpath[256], var_name[M_MAX_NAME_LEN], var_value[64],
          session_id_string[16];
-    int i;
 
     char *session_file_buff[2000];
     int session_file_buff_cnt=0;

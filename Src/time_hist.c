@@ -230,7 +230,6 @@ static void parse_abscissa_spec( int, char [][TOKENLENGTH], Analysis *, int *,
                                  Result ** );
 static void clear_gather_resources( Gather_segment **, Analysis * );
 static void gather_time_series( Gather_segment *, Analysis * );
-static int get_result_superclass( int, Result * );
 static void remove_unused_time_series( Time_series_obj **, Time_series_obj *,
                                        Analysis * );
 static void create_oper_time_series( Analysis *, Result *, Specified_obj *,
@@ -258,8 +257,6 @@ static void push_gather( Series_evt_obj *, Gather_segment * );
 static void add_gather_tree_entry( Subrec_obj *, Time_series_obj * );
 static void add_event( Bool_type, int, Time_series_obj *, Series_evt_obj ** );
 static void prep_gather_tree( Gather_segment *, Analysis * );
-static Bool_type find_global_time_series( Result *, Analysis *,
-        Time_series_obj ** );
 static Bool_type find_time_series( Result *, int, MO_class_data *, Analysis *,
                                    Time_series_obj *, Time_series_obj ** );
 static Bool_type find_result_in_list( Result *, Result *, Result ** );
@@ -743,7 +740,7 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
 {
     int i;
     Result *res_list;
-    Specified_obj *p_so, *so_list;
+    Specified_obj *so_list;
     int idx;
     Time_series_obj *old_tsos, *gather_list, *abscissa_gather_list;
     Gather_segment *control_list;
@@ -816,10 +813,8 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
                       "found; aborting." );
             return;
         }
-        //for(old_tsos = abscissa_gather_list; old_tsos !=NULL;NEXT(old_tsos))
-        //{
-            APPEND(abscissa_gather_list, gather_list);
-        //}
+
+        APPEND(abscissa_gather_list, gather_list);
         old_tsos = NULL;
     }
     
@@ -3296,28 +3291,6 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
 
 
 /*****************************************************************
- * TAG( get_result_superclass )
- *
- * Determine the correct superclass of a result calculated on
- * the indicated subrecord.  We don't just use the superclass of
- * the data bound to the subrecord because that is not guaranteed
- * to be the same as the superclass of the final result.
- */
-static int
-get_result_superclass( int subrec_id, Result *p_result )
-{
-    int i;
-
-    for ( i = 0; i < p_result->qty; i++ )
-        if ( p_result->subrecs[i] == subrec_id )
-            return p_result->superclasses[i];
-
-    /* Shouldn't ever get here. */
-    return -1;
-}
-
-
-/*****************************************************************
  * TAG( remove_unused_time_series )
  *
  * Traverse time series list until previously existing ones are
@@ -4636,35 +4609,6 @@ add_gather_tree_entry( Subrec_obj *p_subrec, Time_series_obj *p_tso )
     p_sro = NEW( Series_ref_obj, "Series object reference" );
     p_sro->series = p_tso;
     INSERT( p_sro,  p_rmlo->mo_list );
-}
-
-
-/*****************************************************************
- * TAG( find_global_time_series )
- *
- * Search list of time series objects and attempt to match a
- * candidate. If "pp_old_tso" is not NULL, use it to pass
- * back a pointer to a found time series object.
- */
-static Bool_type
-find_global_time_series( Result *p_result, Analysis *analy,
-                         Time_series_obj **pp_old_tso )
-{
-    Time_series_obj *p_tso;
-
-    for ( p_tso = analy->time_series_list; p_tso != NULL; NEXT( p_tso ) )
-    {
-        if ( match_series_results( p_result, analy, p_tso )
-                && p_tso->mo_class->superclass == G_MESH )
-        {
-            if ( pp_old_tso != NULL )
-                *pp_old_tso = p_tso;
-
-            return TRUE;
-        }
-    }
-
-    return FALSE;
 }
 
 

@@ -66,43 +66,11 @@ void lookup_global_minmax( Result *p_result, Analysis *analy );
 int
 parse_show_command( char *token, Analysis *analy )
 {
-    Result es_result;
-    Result combined_es_result;
-    Result * res_ptr;
-    Result * ptr;
-    Result_candidate *p_rc;
-    Bool_type Match = FALSE;
     static char mat[] = "mat";
-    int index_qty=0;
-    char root[G_MAX_NAME_LEN + 1];
-    char component[G_MAX_NAME_LEN + 1];
-    char es_name[125];
-    char name[125];
-    char newcmd[64];
-    int indices[G_MAX_ARRAY_DIMS];
-    int i=0;
-    int * subrecs;
-    int j, k, ii;
-    int rval;
-    int qty_candidates;
-    int es_qty = 0;
-    int qty=0;
-    int status=OK;
-    int *map;
-    char ipt[125];
-    char c_ptr = '\0';
-    Result_candidate *p_es_rc;
-    Hash_table * p_sv_ht;
-    Htable_entry *p_hte;
-    Htable_entry *p_hte2;
-    State_variable * p_sv;
-    int subrecqty;
-    Subrec_obj * subrec;
+    int status = OK;
     int qty_classes = 0;
     char *class_names[2000];
     int  super_classes[2000];
-
-    p_sv_ht = analy->st_var_table;
 
     status = mili_get_class_names(analy, &qty_classes, class_names, super_classes);
 
@@ -234,7 +202,6 @@ cache_global_minmax( Analysis *analy )
     int *el_mm_id;
     char **el_mm_class;
     int  *el_mm_sclass;
-    int i=0;
 
     Minmax_obj *mm_list;
     int *mesh_object;
@@ -265,7 +232,6 @@ cache_global_minmax( Analysis *analy )
                 mm->interpolated_minmax[1] = test_mm[1];
                 mm->object_id[1] = mesh_object[1];
             }
-
 
             /*
              * If element result, update element minmax for use when

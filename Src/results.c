@@ -138,11 +138,6 @@ static char *node_vel_primals2[] =
     "nodpos", NULL
 };
 
-static int node_vel_primal_sclasses[] =
-{
-    G_NODE
-};
-
 static char *node_rot_vel_mag_shorts[] =
 {
     "rotvelmag", NULL
@@ -192,20 +187,6 @@ static char *node_acc_primals1[] =
 static char *node_acc_primals2[] =
 {
     "nodpos", NULL
-};
-
-
-static char *node_temp_short[] =
-{
-    "temp", NULL
-};
-static char *node_temp_long[] =
-{
-    "Temperature", NULL
-};
-static char *node_temp_primal[] =
-{
-    "temp", NULL
 };
 
 
@@ -1598,10 +1579,6 @@ parse_result_spec( char *res_spec, char *root, int *p_qty_indices,
         else /* Must be a vector comp_str short name. */
         {
             strcpy( comp_str, p_c_idx );
-
-            /* Shouldn't be anything left after a comp_str name. */
-            //if ( strtok( NULL, delimiters ) != NULL )
-            //    return FALSE;
         }
 
         p_c_idx = strtok( NULL, delimiters );
@@ -1633,40 +1610,29 @@ int
 find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
              Result *p_result, char *name )
 {
-    int rval;
-    Htable_entry *p_hte;
+    int i, j, rval;
+    int qty, index_qty = 0;
+    int mesh_id, srec_id = 0;
+    int indices[G_MAX_ARRAY_DIMS] = { 0 };
+    int * p_i;
+    Bool_type scalar = FALSE;
+    char str[16];
     char root[G_MAX_NAME_LEN + 1] = { '\0' };
     char component[G_MAX_NAME_LEN + 1] = { '\0' };
-    char str[16];
-    char col_major_name[128];
-    Bool_type scalar = FALSE;
-    Derived_result *p_dr;
-    Primal_result *p_pr;
-    State_variable *p_sv;
-    int qty;
-    int index_qty = 0;
-    int indices[G_MAX_ARRAY_DIMS] = { 0 };
-    int srec_id = 0;
-    int mesh_id;
-    Subrecord_result *p_sr;
-    int *p_i;
+    Subrecord * p_s;
+    Subrecord_result * p_sr;
     List_head *srec_map;
-    Subrecord *p_s;
-    int i, j;
-    p_dr = NULL;
-    p_pr = NULL;
-
+    Derived_result * p_dr = NULL;
+    Primal_result * p_pr = NULL;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
-				       * for hexes currently. Set to false insure that
-				       * that the EI message will not appear in the
-				       * render window.
-				       */
+                                   * for hexes currently. Set to false insure that
+                                   * that the EI message will not appear in the
+                                   * render window.
+                                   */
 
-    rval = search_result_tables( analy, table, name,
-                                 root, &index_qty, indices, component,
-                                 &srec_id, &scalar, &p_dr, &p_pr,
-                                 &srec_map);
+    rval = search_result_tables( analy, table, name, root, &index_qty, indices, component,
+                                 &srec_id, &scalar, &p_dr, &p_pr, &srec_map);
     if ( !rval )
         return 0;
 
@@ -1679,15 +1645,11 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
     /* Clean up result struct. */
     cleanse_result( p_result );
 
-    /* Initialize new result. */
-
     strcpy( p_result->original_name, name );
     strcpy( p_result->root, root );
 
-    /*
-     * Array and Vector-array names must be in column-major format
-     * for database requests.
-     */
+    /* Array and Vector-array names must be in column-major format
+     * for database requests. */
     if ( component[0] != '\0' )
         strcpy( p_result->name, component );
     else
@@ -1705,10 +1667,8 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
         /* Parallel arrays for descriptors across multiple classes. */
         p_result->superclasses = NEW_N( int, qty, "Result sclass array" );
         p_result->subrecs = NEW_N( int, qty, "Result subrec array" );
-        p_result->indirect_flags = NEW_N( Bool_type, qty,
-                                          "Result indirect flags" );
-        p_result->result_funcs = (void (**)())
-                                 calloc( qty, sizeof( void (**)() ) );
+        p_result->indirect_flags = NEW_N( Bool_type, qty, "Result indirect flags" );
+        p_result->result_funcs = (void (**)()) calloc( qty, sizeof( void (**)() ) );
     }
 
     /*
@@ -1758,7 +1718,6 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
     else
     {
         /* Primal_result-specific initializations. */
-
         p_i = (int *) srec_map[srec_id].list;
         for ( i = 0; i < qty; i++ )
         {
@@ -1791,15 +1750,16 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
 
         if ( component[0] != '\0' )
         {
-            /*
-             * Append additional specifying text onto title.  Note that
+            /* Append additional specifying text onto title.  Note that
              * this string is composed in Griz's UI standard row-major
              * format, unlike p_result->name, which is used to make
-             * db requests.
-             */
-            if( p_pr->owning_vec_count > 0 ){
-                for( j = 0; j < p_pr->owning_vec_count; j++ ){
-                    if( strcmp(p_result->root, p_pr->owning_vector_result[j]->short_name) == 0 ){
+             * db requests. */
+            if( p_pr->owning_vec_count > 0 )
+            {
+                for( j = 0; j < p_pr->owning_vec_count; j++ )
+                {
+                    if( strcmp(p_result->root, p_pr->owning_vector_result[j]->short_name) == 0 )
+                    {
                         strcpy( p_result->title, p_pr->owning_vector_result[j]->long_name);
                         strcat( p_result->title, "[" );
                         if ( index_qty > 0 )
@@ -1823,7 +1783,8 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
                         break;
                     }
                 }
-                if( j == p_pr->owning_vec_count ){
+                if( j == p_pr->owning_vec_count )
+                {
                     strcpy( p_result->title, p_pr->long_name );
                 }
             }
@@ -1850,23 +1811,19 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
                       Derived_result **pp_dr, Primal_result **pp_pr,
                       List_head **p_srec_map )
 {
-    int i;
+    int i, rval;
     int qty_states, qty, index_qty;
-    int srec_id, mesh_id;
-    int st;
-    Bool_type found, scalar;
-    Htable_entry *p_hte;
-    int rval;
-    Subrecord_result *p_sr;
-    char **comp_names;
-    int comp_qty;
+    int srec_id, mesh_id, st;
+    int indices[G_MAX_ARRAY_DIMS];
     char root[G_MAX_NAME_LEN + 1];
     char component[G_MAX_NAME_LEN + 1];
-    int indices[G_MAX_ARRAY_DIMS];
+    Bool_type found, scalar;
+    Htable_entry *p_hte;
+    Subrecord_result *p_sr;
     Derived_result *p_dr;
     Primal_result *p_pr;
-    Bool_type (*check_func)( Analysis * );
     List_head *srec_map;
+    Bool_type (*check_func)( Analysis * );
 
     /* No results if no results. */
     if ( analy->primal_results == NULL && analy->derived_results == NULL )
@@ -1877,7 +1834,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         return FALSE;
 
     /* No results if no states in db... */
-    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, (void *) &qty_states );
+    qty_states = analy->state_count;
     if ( qty_states == 0 )
         return FALSE;
 
@@ -1899,11 +1856,8 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
     p_pr = NULL;
     p_dr = NULL;
 
-    /*
-     * Search tables indicated for specified result.  If all tables
-     * are to be searched, look for a derived result first.
-     */
-
+    /* Search tables indicated for specified result.  If all tables
+     * are to be searched, look for a primal result first. */
     if ( table == PRIMAL || table == ALL )
     {
         if(component[0] == '\0')
@@ -1912,17 +1866,19 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
             rval = htable_search( analy->primal_results, component, FIND_ENTRY, &p_hte );
 
         if ( rval != OK && table == PRIMAL )
-            return FALSE; /* Unable to match requested result. */
-        else if( rval == OK ){
+        {
+            /* Unable to match requested result. */
+            return FALSE;
+        }
+        else if( rval == OK )
+        {
             /* Found Primal result matching name. */
             p_pr = (Primal_result *) p_hte->data;
             found = TRUE;
 
-            /*
-            * Determine if the specified request is ultimately scalar,
+            /* Determine if the specified request is ultimately scalar,
             * i.e., either the result is scalar or the result modified
-            * by a subset specification results in a singly-valued quantity.
-            */
+            * by a subset specification results in a singly-valued quantity. */
             switch( p_pr->var->agg_type )
             {
             case VECTOR:
@@ -1961,10 +1917,14 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         rval = htable_search( analy->derived_results, root, FIND_ENTRY, &p_hte );
 
         if ( rval != OK && table == DERIVED )
-            return FALSE; /* Unable to match requested result. */
+        {
+            /* Unable to match requested result. */
+            return FALSE;
+        }
         else if ( rval == OK )
         {
             /* Found Derived result matching name. */
+            found = TRUE;
             p_dr = (Derived_result *) p_hte->data;
 
             /* Call check functions if extant to verify derivability. */
@@ -1979,7 +1939,6 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
                     return FALSE;
             }
 
-            found = TRUE;
 
             /* Assign return parameters for derived results. */
             if ( pp_dr != NULL )
@@ -2239,27 +2198,22 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
 Bool_type
 result_has_superclass( Result *p_result, int superclass, Analysis *analy )
 {
-    Derived_result *p_dr;
-    Primal_result *p_pr = NULL;
-    Subrecord_result *p_sr;
-    int *p_i;
-    int i, j, index;
-    Bool_type found = FALSE;
+    int i, j;
+    int index, qty;
+    int * p_i;
     Bool_type is_derived = FALSE;
     Bool_type is_elemset = FALSE;
     Subrec_obj *p_subr;
-    int qty;
+    Primal_result *p_pr = NULL;
 
     if ( p_result == NULL )
         return FALSE;
-
 
     /* with element sets we now need to deal with a result
      * that is a mixture of primal and derived results
      * so if the passed in superclass has a results function 
      * that is not load_primal_result then it needs
-     * to be treated as derived even if the origin flag is set to primal
-     */
+     * to be treated as derived even if the origin flag is set to primal */
     for(i = 0; i < p_result->qty; i++)
     {
         if(p_result->superclasses[i] == superclass)
@@ -2269,9 +2223,7 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
                 is_derived = TRUE;
                 index = i;
                 if(p_result->original_names != NULL && strstr(p_result->original_names[i], "es_") != NULL)
-                {
                     is_elemset = TRUE;
-                } 
                 break;
             }
         }
@@ -2284,9 +2236,7 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
            for(i = 0; i < p_result->qty; i++)
            {
                if(p_result->superclasses[i] == superclass)
-               {
                    return TRUE;
-               }
            }
            return FALSE; 
         }
@@ -2296,9 +2246,7 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
             {
                 p_pr = (Primal_result *) analy->original_results[superclass];
                 if(p_pr == NULL)
-                {
                     return FALSE;
-                }
             }
         }
     }
@@ -2314,10 +2262,11 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
                 p_subr = analy->srec_tree[i].subrecs;
 
                 for ( j = 0; j < qty; j++ )
-                    if ( p_subr[p_i[j]].p_object_class->superclass
-                            == superclass )
+                {
+                    if ( p_subr[p_i[j]].p_object_class->superclass == superclass )
                         /* Found superclass match. */
                         return TRUE;
+                }
             }
         }
     }
@@ -2479,21 +2428,21 @@ int find_matching_subrec_index(int subrec, Primal_result *primal_result){
  * database. Handle array and vector array naming formats.
  */
 char * construct_result_query_string(Analysis* analy){
-    int i, j, k, l;
+    int i, j, k;
     int rval, ipt_index;
-    char target[15];
-    Result* p_result;
     int index, subrec, srec;
-    Subrec_obj* p_subrec;
+    int owning_vec_idx, owning_owning_vec_idx;
+    char target[15];
+    char * query_string;
     Bool_type found = FALSE;
     Bool_type is_old_shell_stress_result = FALSE;
+
+    Result* p_result;
+    Subrec_obj* p_subrec;
     Primal_result* primal_result;
     Htable_entry *table_result;
-
-    int owning_vec_idx, owning_owning_vec_idx;
     Primal_result *owning_vec, *owning_owning_vec;
 
-    char * query_string;
     query_string = NEW_N(char, 64, "Result query string");
 
     p_result = analy->cur_result;
@@ -2503,26 +2452,25 @@ char * construct_result_query_string(Analysis* analy){
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
 
     rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
-
     if(rval == OK)
-    {
         primal_result = (Primal_result*)table_result->data;
-    }
 
     /* Get index of subrecord from primal_result that is being queried */
     i = find_matching_subrec_index(subrec, primal_result);
 
     target[0] = '\0';
-    if( primal_result->owning_vec_count > 0 && primal_result->owning_vec_map[i] != -1 ){
-
+    if( primal_result->owning_vec_count > 0 && primal_result->owning_vec_map[i] != -1 )
+    {
         /* Get the owning vector for this result */
         owning_vec_idx = primal_result->owning_vec_map[i];
         owning_vec = primal_result->owning_vector_result[owning_vec_idx];
 
         /* Check if we are trying to show an old shell stress result. */
-        if( analy->old_shell_stresses ){
+        if( analy->old_shell_stresses )
+        {
             char* short_name = owning_vec->short_name;
-            if(!strcmp(short_name, "stress_in") || !strcmp(short_name, "stress_mid") || !strcmp(short_name, "stress_out") ){
+            if(!strcmp(short_name, "stress_in") || !strcmp(short_name, "stress_mid") || !strcmp(short_name, "stress_out") )
+            {
                 is_old_shell_stress_result = TRUE;
             }
         }
@@ -2530,16 +2478,20 @@ char * construct_result_query_string(Analysis* analy){
         found = FALSE;
 
         /* Handle stress_in, stress_mid, stress_out results */
-        if( is_old_shell_stress_result ){
+        if( is_old_shell_stress_result )
+        {
             /* 2 Possibilities:
              *    1. asked for stress_[in|mid|out][component]
              *    2. asked for stress component and need to check reference surface
              */
-            if(!strcmp(p_result->root, "stress_in") || !strcmp(p_result->root, "stress_mid") || !strcmp(p_result->root, "stress_out") ){
+            if(!strcmp(p_result->root, "stress_in") || !strcmp(p_result->root, "stress_mid") || !strcmp(p_result->root, "stress_out") )
+            {
                 strcpy(target, p_result->root);
             }
-            else{
-                switch(analy->ref_surf){
+            else
+            {
+                switch(analy->ref_surf)
+                {
                     case INNER:
                         strcpy(target, "stress_in");
                         break;
@@ -2561,11 +2513,14 @@ char * construct_result_query_string(Analysis* analy){
              * in the same subrecord which invalidates the owning_vec_map. Need to lookup
              * correct owning vector */
             found = FALSE;
-            for( j = 0; j < primal_result->owning_vec_count; j++ ){
+            for( j = 0; j < primal_result->owning_vec_count; j++ )
+            {
                 owning_vec = primal_result->owning_vector_result[j];
-                if( target[0] == '\0' || !strcmp(target, owning_vec->short_name) ){
+                if( target[0] == '\0' || !strcmp(target, owning_vec->short_name) )
+                {
                     k = find_matching_subrec_index( subrec, owning_vec );
-                    if ( k != owning_vec->qty_subrecs ){
+                    if ( k != owning_vec->qty_subrecs )
+                    {
                         found = TRUE;
                         break;
                     }
@@ -2586,20 +2541,20 @@ char * construct_result_query_string(Analysis* analy){
         {
             /* Get subrecord in owning vector that matches subrecord of component */
             j = find_matching_subrec_index(subrec, owning_vec);
-            if(j != owning_vec->qty_subrecs){
+            if(j != owning_vec->qty_subrecs)
                 found = TRUE;
-            }
 
-            if( found ){
+            if( found )
+            {
                 /* Check for vector array containing the owning vector of the current result. */
                 found = FALSE;
-                if( owning_vec->in_vector_array && owning_vec->owning_vec_map[j] != -1 ){
+                if( owning_vec->in_vector_array && owning_vec->owning_vec_map[j] != -1 )
+                {
                     owning_owning_vec_idx = owning_vec->owning_vec_map[j];
                     owning_owning_vec = owning_vec->owning_vector_result[owning_owning_vec_idx];
                     k = find_matching_subrec_index( subrec, owning_owning_vec );
-                    if ( k != owning_owning_vec->qty_subrecs ){
+                    if ( k != owning_owning_vec->qty_subrecs )
                         found = TRUE;
-                    }
                     
                     if( found )
                     {
@@ -2617,7 +2572,8 @@ char * construct_result_query_string(Analysis* analy){
                         sprintf(query_string, "%s[%s]" , query_string, p_result->name);
                     }
                 }
-                else if(p_subrec->element_set){
+                else if(p_subrec->element_set)
+                {
                     strcpy(query_string, owning_vec->original_names_per_subrec[j]);
                     if(p_subrec->element_set->tempIndex < 0)
                         ipt_index = p_subrec->element_set->current_index+1;
@@ -2632,7 +2588,8 @@ char * construct_result_query_string(Analysis* analy){
                     sprintf(query_string, "%s[%s]" , query_string, p_result->name);
                 }
             }
-            else{
+            else
+            {
                 sprintf(query_string, "%s", p_result->name);
             }
         }
@@ -2713,19 +2670,16 @@ stress_strain_rloc_warning_message( Analysis * analy )
 void
 load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    float *resultElem;
-    int i, rval;
-    float *result_buf;
-    Result *p_result;
-    Result test_result;
+    int i;
     int subrec, srec;
-    int obj_qty, len;
-    int es_qty;
-    int index, j, k, l;
-    int ipt_index;
+    int obj_qty, len, index;
     int *object_ids;
-    Subrec_obj *p_subrec;
+    float *resultElem;
+    float *result_buf;
+    Bool_type particle_class;
     char *primals[2];
+    Result *p_result;
+    Subrec_obj *p_subrec;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -2734,7 +2688,6 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
-    float * activity;
 
     /* Get the name to search for in the Mili database */
     primals[0] = construct_result_query_string(analy);
@@ -2743,56 +2696,33 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     stress_strain_rloc_warning_message( analy );
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
-			                       * for hexes currently. Set to false insure that
-				                   * that the EI message will not appear in the
-				                   * render window. */
+                                   * for hexes currently. Set to false insure that
+                                   * that the EI message will not appear in the
+                                   * render window. */
 
-    if(analy->state_p->sand_present && p_subrec->p_object_class->elem_class_index >= 0)
-        activity = analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index];
-    else
-        activity = NULL;
-
-    if ( !analy->particle_nodes_enabled
-            && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
+    /* If particles are not enabled and this is a particle class, return*/
+    particle_class = is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name );
+    if ( !analy->particle_nodes_enabled && particle_class )
         return;
 
     if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) && analy->ref_frame == LOCAL)
     {
         /* we have a shell result in the LOCCAL coordinate system. Now check for a stress result */
-        len = strlen(primals[0]);
-        if(len == 2)
+        if( !strcmp(primals[0], "sx") || !strcmp(primals[0], "sy") || !strcmp(primals[0], "sz") 
+            || !strcmp(primals[0], "sxy") || !strcmp(primals[0], "szy") || !strcmp(primals[0], "szx")
+            || !strcmp(primals[0], "stress") )
         {
-            if(!strcmp(primals[0], "sx") || !strcmp(primals[0], "sy") || !strcmp(primals[0], "sz"))
-            {
-                load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
-                return;
-            }
-        } else if(len == 3)
-        {
-            if(!strcmp(primals[0], "sxy") || !strcmp(primals[0], "szy") || !strcmp(primals[0], "szx"))
-            {
-                load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
-                return;
-            }
-        } else if(len > 6)
-        { 
-                if(!strncmp(primals[0], "stress", 6) )
-                {
-                    load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
-                    return;
-                }
+            load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
+            return;
         }
-        
     }    
 
     if ( object_ids )
     {
-        /*
-         * Assign result_buf to a temp array for db read below, and assign
+        /* Assign result_buf to a temp array for db read below, and assign
          * resultElem to put the sorted data into the correct array by
          * superclass.  This will leave non-interpolated data in the
-         * correct location to support such needs as time-history extraction.
-         */
+         * correct location to support such needs as time-history extraction. */
         result_buf = analy->tmp_result[1];
 
         if ( p_result->origin.is_node_result )
@@ -2818,17 +2748,13 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         for ( i = 0; i < obj_qty; i++ )
             resultElem[object_ids[i]] = result_buf[i];
 
-        /*
-         * Re-assign result_buf with data now sorted in class-sized arrays
-         * to support interpolation and/or min/max extraction below.
-         */
+        /* Re-assign result_buf with data now sorted in class-sized arrays
+         * to support interpolation and/or min/max extraction below. */
         result_buf = resultElem;
     }
 
-    /*
-     * Interpolate element results back to the nodes and/or
-     * extract object data min/max.
-     */
+    /* Interpolate element results back to the nodes and/or
+     * extract object data min/max. */
     if ( p_result->origin.is_elem_result )
     {
         if ( interpolate )
@@ -2885,14 +2811,6 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         {
             if(  p_result->superclasses[index] != G_SURFACE )
                 elem_get_minmax( result_buf, 0, analy );
-
-            if ( p_result->superclasses[index] == G_QUAD )
-            {
-                if (is_primal_quad_strain_result( p_result->name ))
-                {
-                    i=0;
-                }
-            }
         }
     }
     else if ( !p_result->origin.is_node_result )
@@ -2923,29 +2841,30 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
  * load_primal_result(...) where the current result involves the shell class
  * a stress result and when analy->ref_frame == LOCAL 
  */
-
 void
 load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    float * resultElem;
-    float * result_buf;
-    int i, j, subrec, srec, obj_qty, rval;
-    int qty = 0;
-    int es_qty;
+    int i, subrec, srec, obj_qty;
     int index, idx, elem_idx;
     int * object_ids;
-    Result *p_result;
-    Subrec_obj *p_subrec;
-    char *primals[2];
-    char *primal_list[7];
-    char primal_spec[32];
-    char name[32];
-    char *p;
-    Bool_type map_timehist_coords = FALSE;
-    Bool_type found = FALSE;
-    GVec3D2P *new_nodes = NULL;
+
+    float * resultElem;
+    float * result_buf;
     float localMat[3][3];
     float (* sigma)[6];
+
+    char * p;
+    char * primals[2];
+    char * primal_list[7];
+    char primal_spec[32];
+    char name[32];
+
+    Bool_type map_timehist_coords = FALSE;
+    Bool_type found = FALSE;
+
+    Result *p_result;
+    Subrec_obj *p_subrec;
+    GVec3D2P *new_nodes = NULL;
     MO_class_data *p_mo_class;
    
     p_result = analy->cur_result;
@@ -2955,20 +2874,12 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
-    Hash_table *p_sv_ht;
-    Htable_entry *p_hte;
-    State_variable *p_sv;
-    p_sv_ht = analy->st_var_table;
 
     /* initialize char pointers to NULL */
     for(i = 0; i < 7; i++)
-    {
         primal_list[i] = NULL;
-        if(i < 2)
-        {
-            primals[i] = NULL;
-        }
-    } 
+    for(i = 0; i < 2; i++)
+        primals[i] = NULL;
 
     if(p_result->qty > 1 && p_result->original_names != NULL)
     {
@@ -2989,25 +2900,26 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
     p_mo_class = p_subrec->p_object_class;
 
     /* we know that we are in the local coordinate system or this function would not be called.  We also know that
- *     we are dealing with shell stresses.  Just need to get the primal name like "sx", "szx" etc.  
- *     or one of sx sy sz sxy syz szx */
-   if(strlen(primal_spec) <= 3)
-   {
-       idx = (int) primal_spec[1] - (int) 'x' + ((primal_spec[2] ) ? 3: 0);
-   } else
-   {
-       for(p = &primal_spec[0]; *p != '['; p++);
-       p++;
-       i = 0;
-       while(*p != ']' && *p != ',')
-       {
-          name[i] = *p;
-          p++;
-          i++; 
-       }
-       name[i] = '\0';
-       idx = (int) name[1] - (int) 'x' + ((name[2] ) ? 3: 0);
-   }
+     * we are dealing with shell stresses. Just need to get the primal name like "sx", "szx" etc.  
+     * or one of sx sy sz sxy syz szx */
+    if(strlen(primal_spec) <= 3)
+    {
+        idx = (int) primal_spec[1] - (int) 'x' + ((primal_spec[2] ) ? 3: 0);
+    }
+    else
+    {
+        for(p = &primal_spec[0]; *p != '['; p++);
+        p++;
+        i = 0;
+        while(*p != ']' && *p != ',')
+        {
+            name[i] = *p;
+            p++;
+            i++; 
+        }
+        name[i] = '\0';
+        idx = (int) name[1] - (int) 'x' + ((name[2] ) ? 3: 0);
+    }
 
     for(i = 0; i < 6; i++)
     {
@@ -3017,33 +2929,24 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
     if(p_result->original_names != NULL)
     {
         if(strstr(p_result->original_names[index], "stress_in") != NULL)
-        {
             strcpy(name, "stress_in");
-        } else if(strstr(p_result->original_names[index], "stress_mid") != NULL)
-        {
+        else if(strstr(p_result->original_names[index], "stress_mid") != NULL)
             strcpy(name, "stress_mid");
-        } else if(strstr(p_result->original_names[index], "stress_out") != NULL)
-        {
+        else if(strstr(p_result->original_names[index], "stress_out") != NULL)
             strcpy(name, "stress_out");
-        } else
-        {
+        else
             strcpy(name, "stress");
-        }
-    } else
+    } 
+    else
     {
         if(strstr(p_result->original_name, "stress_in") != NULL)
-        {
             strcpy(name, "stress_in");
-        } else if(strstr(p_result->original_name, "stress_mid") != NULL)
-        {
+        else if(strstr(p_result->original_name, "stress_mid") != NULL)
             strcpy(name, "stress_mid");
-        } else if(strstr(p_result->original_name, "stress_out") != NULL)
-        {
+        else if(strstr(p_result->original_name, "stress_out") != NULL)
             strcpy(name, "stress_out");
-        } else
-        {
+        else
             strcpy(name, "stress");
-        }
     }
         
     found = FALSE;
@@ -3051,88 +2954,86 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
     strcpy(primals[0], name);
     primals[1] = NULL;
 
-   primal_list[6] = NULL;
+    primal_list[6] = NULL;
  
-   resultElem = p_subrec->p_object_class->data_buffer;
-   result_buf = analy->tmp_result[0];
+    resultElem = p_subrec->p_object_class->data_buffer;
+    result_buf = analy->tmp_result[0];
 
-   if(found)
-   {
-       analy->db_get_results(analy->db_ident, analy->cur_state + 1, subrec, 6, primal_list, (void *) result_buf);
-   } else
-   {
-       analy->db_get_results(analy->db_ident, analy->cur_state + 1, subrec, 1, primals, (void *) result_buf);
-   }
+    if(found)
+        analy->db_get_results(analy->db_ident, analy->cur_state + 1, subrec, 6, primal_list, (void *) result_buf);
+    else
+        analy->db_get_results(analy->db_ident, analy->cur_state + 1, subrec, 1, primals, (void *) result_buf);
    
-   sigma = (float(*)[6]) result_buf;
+    sigma = (float(*)[6]) result_buf;
 
-   if(object_ids)
-   {
-           if(p_mo_class->superclass == G_QUAD)
-           {   for(i = 0; i < obj_qty; i++)
-               {
-                   elem_idx = object_ids[i];
-                   global_to_local_mtx(analy, p_mo_class, elem_idx, map_timehist_coords, new_nodes, localMat);
-                   transform_tensors_1p(1, sigma + i, localMat);
-                   resultElem[elem_idx] = sigma[i][idx];
-               }
-           } else if(p_mo_class->superclass == G_TRI)
-           {   for(i = 0; i < obj_qty; i++)
-               {
-                   elem_idx = object_ids[i];
-                   global_to_local_tri_mtx(analy, p_mo_class, elem_idx, map_timehist_coords, new_nodes, localMat);
-                   transform_tensors_1p(1, sigma + i, localMat);
-                   resultElem[elem_idx] = sigma[i][idx];
-               }
-           }
-   } else
-   {
-       if(p_mo_class->superclass == G_QUAD)
-       {
-           for(i = 0; i < obj_qty; i++)
-           {
-               global_to_local_mtx(analy, p_mo_class, i, map_timehist_coords, new_nodes, localMat);
-               transform_tensors_1p(1, sigma + i, localMat);
-               resultElem[i] = sigma[i][idx];
-           }
-       } else if(p_mo_class->superclass == G_TRI)
-       {
-           for(i = 0; i < obj_qty; i++)
-           {
-               global_to_local_tri_mtx(analy, p_mo_class, i, map_timehist_coords, new_nodes, localMat);
-               transform_tensors_1p(1, sigma + i, localMat);
-               resultElem[i] = sigma[i][idx];
-           }
-       }
-   } 
-   p_result->modifiers.use_flags.use_ref_frame = 1;
-   p_result->modifiers.ref_frame = analy->ref_frame;
-   p_result->modifiers.use_flags.use_ref_surface = 1;
-   p_result->modifiers.ref_surf = analy->ref_surf;
+    if(object_ids)
+    {
+        if(p_mo_class->superclass == G_QUAD)
+        {   
+            for(i = 0; i < obj_qty; i++)
+            {
+                elem_idx = object_ids[i];
+                global_to_local_mtx(analy, p_mo_class, elem_idx, map_timehist_coords, new_nodes, localMat);
+                transform_tensors_1p(1, sigma + i, localMat);
+                resultElem[elem_idx] = sigma[i][idx];
+            }
+        }
+        else if(p_mo_class->superclass == G_TRI)
+        {
+            for(i = 0; i < obj_qty; i++)
+            {
+                elem_idx = object_ids[i];
+                global_to_local_tri_mtx(analy, p_mo_class, elem_idx, map_timehist_coords, new_nodes, localMat);
+                transform_tensors_1p(1, sigma + i, localMat);
+                resultElem[elem_idx] = sigma[i][idx];
+            }
+        }
+    }
+    else
+    {
+        if(p_mo_class->superclass == G_QUAD)
+        {
+            for(i = 0; i < obj_qty; i++)
+            {
+                global_to_local_mtx(analy, p_mo_class, i, map_timehist_coords, new_nodes, localMat);
+                transform_tensors_1p(1, sigma + i, localMat);
+                resultElem[i] = sigma[i][idx];
+            }
+        }
+        else if(p_mo_class->superclass == G_TRI)
+        {
+            for(i = 0; i < obj_qty; i++)
+            {
+                global_to_local_tri_mtx(analy, p_mo_class, i, map_timehist_coords, new_nodes, localMat);
+                transform_tensors_1p(1, sigma + i, localMat);
+                resultElem[i] = sigma[i][idx];
+            }
+        }
+    } 
+    p_result->modifiers.use_flags.use_ref_frame = 1;
+    p_result->modifiers.ref_frame = analy->ref_frame;
+    p_result->modifiers.use_flags.use_ref_surface = 1;
+    p_result->modifiers.ref_surf = analy->ref_surf;
 
-   if(interpolate)
-   {
-       if(p_mo_class->superclass == G_QUAD)
-       {
-           quad_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, analy, TRUE);
-       } else if(p_mo_class->superclass == G_TRI)
-       {
-           tri_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, analy, TRUE );
-       }
-   }
+    if(interpolate)
+    {
+        if(p_mo_class->superclass == G_QUAD)
+        {
+            quad_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, analy, TRUE);
+        } 
+        else if(p_mo_class->superclass == G_TRI)
+        {
+            tri_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, analy, TRUE );
+        }
+    }
 
     if(primal_list[0] != NULL)
     {
         for(i = 0; i < 6; i++)
-        {
             free(primal_list[i]);    
-        }
     }
     if(primals[0] != NULL)
-    {
         free(primals[0]);
-    }
-  
 }
 
 /*****************************************************************
@@ -3142,33 +3043,23 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
  * converting it to single precision.
  */
 void
-load_primal_result_double( Analysis *analy, float *resultArr,
-                           Bool_type interpolate )
+load_primal_result_double( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    float *resultElem;
-    int i, j, k, l, rval;
-    Result *p_result;
+    int i;
     int subrec, srec;
-    int obj_qty;
-    int index;
+    int obj_qty, index;
     int *object_ids;
-    Subrec_obj *p_subrec;
-    char *primals[2];
-    char primal_spec[32];
-    char target[15];
+    float *resultElem;
     double *dbuffer;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
-    int ipt_index;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
-
+    char *primals[2];
+    Subrec_obj *p_subrec;
+    Result *p_result;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
-				   * for hexes currently. Set to false insure that
-				   * that the EI message will not appear in the
-				   * render window.
-				   */
+                                   * for hexes currently. Set to false insure that
+                                   * that the EI message will not appear in the
+                                   * render window.
+                                   */
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -3207,10 +3098,8 @@ load_primal_result_double( Analysis *analy, float *resultArr,
 
     free( dbuffer );
 
-    /*
-     * Interpolate element results back to the nodes and/or
-     * extract object data min/max.
-     */
+    /* Interpolate element results back to the nodes and/or
+     * extract object data min/max. */
     if ( p_result->origin.is_elem_result )
     {
         if ( interpolate )
@@ -3295,29 +3184,21 @@ void
 load_primal_result_int( Analysis *analy, float *resultArr,
                         Bool_type interpolate )
 {
-    float *resultElem;
-    int i, j, k, l, rval;
-    Result *p_result;
+    int i;
     int subrec, srec;
-    int obj_qty;
-    int index;
+    int obj_qty, index;
     int *object_ids;
-    Subrec_obj *p_subrec;
-    char *primals[2];
-    char primal_spec[32];
-    char target[15];
     int *ibuffer;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
-    int ipt_index;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
+    float *resultElem;
+    char *primals[2];
+    Result *p_result;
+    Subrec_obj *p_subrec;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
-				   * for hexes currently. Set to false insure that
-				   * that the EI message will not appear in the
-				   * render window.
-				   */
+                                   * for hexes currently. Set to false insure that
+                                   * that the EI message will not appear in the
+                                   * render window.
+                                   */
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -3346,20 +3227,18 @@ load_primal_result_int( Analysis *analy, float *resultArr,
     if ( object_ids )
     {
         for ( i = 0; i < obj_qty; i++ )
-            resultElem[object_ids[i]] = (float) ibuffer[i]/1.0;
+            resultElem[object_ids[i]] = (float) ibuffer[i] / 1.0;
     }
     else
     {
         for ( i = 0; i < obj_qty; i++ )
-            resultElem[i] = (float) ibuffer[i]/1.0;
+            resultElem[i] = (float) ibuffer[i] / 1.0;
     }
 
     free( ibuffer );
 
-    /*
-     * Interpolate element results back to the nodes and/or
-     * extract object data min/max.
-     */
+    /* Interpolate element results back to the nodes and/or
+     * extract object data min/max. */
     if ( p_result->origin.is_elem_result )
     {
         if ( interpolate )
@@ -3444,29 +3323,21 @@ void
 load_primal_result_long( Analysis *analy, float *resultArr,
                          Bool_type interpolate )
 {
-    float *resultElem;
-    int i, j, k, l, rval;
-    Result *p_result;
+    int i;
     int subrec, srec;
-    int obj_qty;
-    int index;
+    int obj_qty, index;
     int *object_ids;
-    Subrec_obj *p_subrec;
-    char *primals[2];
-    char primal_spec[32];
-    char target[15];
+    float *resultElem;
     long *ibuffer;
-    Primal_result* primal_result;
-    Htable_entry *table_result;
-    int ipt_index;
-    Bool_type found = FALSE;
-    Bool_type is_old_shell_stress_result = FALSE;
+    char *primals[2];
+    Subrec_obj *p_subrec;
+    Result *p_result;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
-				   * for hexes currently. Set to false insure that
-				   * that the EI message will not appear in the
-				   * render window.
-				   */
+                                   * for hexes currently. Set to false insure that
+                                   * that the EI message will not appear in the
+                                   * render window.
+                                   */
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -4346,34 +4217,24 @@ set_default_intpoints ( int num_intpoints, int num_labels,
 
 Result * create_result_list( char * token, Analysis *analy)
 {
-    char * class_names[2000];
-    char name[64];
+    int i, j, k, rval;
+    int status, qty_classes;
+    int *subrecs;
     int super_classes[2000];
     int super_classes_found[QTY_SCLASS];
-    int status, qty_classes;
-    int i, j, k, l, n, rval, copied;
-    int *subrecs;
-    char ipt[125];
+    char * class_names[2000];
     char raw_primal[64];
-    int qty_candidates;
-    Result * res_ptr = NULL;
-    Result * p1;
-    Result * p2;
-    Result result;
-    Result_candidate *p_rc;
-    Result_candidate *p_es_rc;
     Bool_type raw = TRUE;
-    Bool_type match = FALSE;
+    Result result;
+    Result * res_ptr = NULL;
+    Result_candidate *p_rc;
 
     for(i = 0; i < QTY_SCLASS; i++)
-    {
         super_classes_found[i] = 0;
-    } 
+
     status = mili_get_class_names(analy, &qty_classes, class_names, super_classes);
     if(status != 0)
-    {
         return NULL;
-    } 
    
     /* allocate for a 1 based array so that the subrec number equals the indes into the array */
     subrecs = (int *) calloc(analy->srec_tree->qty + 1, sizeof(int));
@@ -4383,7 +4244,7 @@ Result * create_result_list( char * token, Analysis *analy)
         parse_command("quit", analy);
     }
 
-    for(i = 0; possible_results[i].valid_superclasses[0] != -1; i++)
+    for( i = 0; possible_results[i].valid_superclasses[0] != -1; i++ )
     {
         p_rc = &possible_results[i];
         for(j = 0; p_rc->short_names[j] != NULL; j++)
@@ -4419,7 +4280,8 @@ Result * create_result_list( char * token, Analysis *analy)
             {
                 res_ptr = insert_result(res_ptr, result, analy);
             }
-        } else
+        }
+        else
         {
             init_result(&result);
             rval = find_result(analy, analy->result_source, TRUE, &result, raw_primal);
@@ -4429,11 +4291,12 @@ Result * create_result_list( char * token, Analysis *analy)
                 {
                     res_ptr = insert_result(res_ptr, result, analy);
                 }
-            } else
+            }
+            else
             {
                 init_result(&result);
                 rval = find_result(analy, analy->result_source, TRUE, &result, token);
-                if(rval == 1)
+                if(rval == TRUE)
                 {
                     if(subrecs[result.subrecs[0]] == 0)
                     {

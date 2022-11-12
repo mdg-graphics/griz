@@ -103,7 +103,6 @@ determine_naming( char *p_name , State_variable *p_sv)
     int int_array[6]={0};
     int i,j;
     int valid;
-    char *return_value = NULL;
 
     if(p_sv->agg_type != VEC_ARRAY && p_sv->agg_type != VECTOR)
     {
@@ -318,8 +317,8 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     Mesh_data *p_md;
     int mesh_qty, qty_classes;
     int obj_qty;
-    int i, j, k, l;
-    int idx, index;
+    int i, j, k;
+    int index;
     int int_args[3];
     int dims;
     static int elem_sclasses[] =
@@ -347,13 +346,11 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int qty_facets;
     int total_facets;
 
-    int label_index;
     int *temp_labels, *temp_elems;
     int obj_id;
-    int ii;
 
     int block_qty=0, block_index=0, block_range_index=0,
-        *block_range=NULL, elem_sclass=0, mat_index=0;
+        *block_range=NULL, mat_index=0;
 
     Analysis *p_analysis;
 
@@ -1787,14 +1784,13 @@ extern int
 mili_db_get_st_descriptors( Analysis *analy, int dbid )
 {
     int srec_qty, svar_qty, subrec_qty, mesh_node_qty;
-    int stat;
     Famid fid;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrecs;
     Subrecord *p_subr;
     int rval;
     Hash_table *p_sv_ht, *p_primal_ht;
-    int i, j, k, l;
+    int i, j, k;
     char **svar_names;
     int mesh_id;
     Htable_entry *p_hte;
@@ -2249,20 +2245,19 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                       Subrec_obj *p_subr_obj, Hash_table *p_primal_ht,
                       int qty_srec_fmts, char *p_name, Hash_table *p_sv_ht, Analysis * analy )
 {
-    int rval, rval2,rval3;
+    int rval, rval2;
     Htable_entry *p_hte, *p_hte2, *p_hte3=NULL, *p_hte4;
     State_variable *p_sv;
     Primal_result *p_pr;
-    ES_in_menu *p_es;
     Subrec_obj **p_subrec;
-    int i, j, k, l, array_index, dim_index, size;
+    int i, j, l;
+    int array_index, dim_index;
     int *p_i;
     int *p_owning_vec_map;
     int mapped_index;
     int superclass;
     char *p_sand_var;
     const char * es_short_name = NULL;
-    static int first = 0;
     char label[M_MAX_NAME_LEN];
 
     // Look up state variable by name and check if it is an element set.
@@ -3069,7 +3064,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     int *object_ids;
     Mesh_data *p_md;
     char *primal, *svar;
-    int infoStringId=0, lenInfoString=0;
+    int lenInfoString=0;
     char infoString[256];
     float *p_float;
 
@@ -3632,11 +3627,9 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
     MO_class_data *p_hex_class;
 
     State_rec_obj *p_state_rec;
-    Subrec_obj    *p_subr_obj;
     Subrecord     *p_subr;
     State_variable *p_stvar;
     Famid fid;
-    int matnum=1;
     int ordering;
 
     char *axis_string[3] = {"hx", "hy", "hz"};
@@ -3871,7 +3864,7 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
 
     int   dbid = analy->db_ident;
     int   rval;
-    int   subrec_coord_index, subrec_conn_index, subrec_size;
+    int   subrec_coord_index, subrec_size;
 
     void    *ibuf;
     float   *input_buf_flt;
@@ -3884,7 +3877,6 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     MO_class_data *p_quad_class;
 
     State_rec_obj *p_state_rec;
-    Subrec_obj    *p_subr_obj;
     Subrecord     *p_subr;
     State_variable *p_stvar;
     Famid fid;
@@ -3977,14 +3969,11 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
 
     /* Object Ordered Results */
     /* X Coordinates */
-
     if ( ordering == OBJECT_ORDERED )
-        for (axis_index = 0;
-                axis_index < 3;
-                axis_index++)
-            for (j = 0;
-                    j < 8;
-                    j++)
+    {
+        for (axis_index = 0; axis_index < 3; axis_index++)
+        {
+            for (j = 0; j < 8; j++)
             {
                 sprintf(primal_coord,"shlcoord[%s,%1d]", axis_string[axis_index], j+1);
 
@@ -4029,11 +4018,12 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
                         new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
                 }
             }
+        }
+    }
     /* RESULT_ORDERED */
     else
-        for (axis_index = 0;
-                axis_index < 3;
-                axis_index++)
+    {
+        for (axis_index = 0; axis_index < 3; axis_index++)
         {
             sprintf(primal_coord,"shlcoord[%s]", axis_string[axis_index]);
 
@@ -4097,6 +4087,7 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
                 obj_index+=4;
             }
         }
+    }
 
     *obj_map   = obj_map_tmp;
     *new_nodes = new_nodes_tmp;
@@ -4113,25 +4104,15 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
 extern int
 load_quad_objids_timehist( Analysis *analy, int *obj_cnt, int **obj_ids )
 {
-    int  i;
-    int *temp_ids;
-    int   subrec_coord_index, subrec_conn_index, subrec_size;
-
-    int     class_qty, node_qty;
-    MO_class_data *p_quad_class;
-
+    int i;
+    int subrec_coord_index;
     State_rec_obj *p_state_rec;
-    Subrec_obj    *p_subr_obj;
-    Subrecord     *p_subr;
-    State_variable *p_stvar;
-
+    Subrecord *p_subr;
     Bool_type quadcoord_found=FALSE;
 
     p_state_rec = analy->srec_tree;
 
-    for ( i = 0;
-            i < p_state_rec->qty;
-            i++ )
+    for ( i = 0; i < p_state_rec->qty; i++ )
     {
         p_subr = &p_state_rec->subrecs[i].subrec;
 
@@ -5557,171 +5538,6 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
     return OK;
 }
 
-/************************************************************
- * TAG( taurus_db_set_results )
- *
- * Evaluate which derived result calculations may occur for
- * a database and fill load-result table for derived
- * results.
- */
-extern int
-taurus_db_set_results( Analysis *analy )
-{
-    Result_candidate *p_rc;
-    int i, j, k, m;
-    int qty_candidates;
-    int pr_qty, subr_qty;
-    Hash_table *p_pr_ht;
-    Hash_table *p_dr_ht;
-    Htable_entry *p_hte;
-    int **counts;
-    int rval;
-    Primal_result *p_pr;
-    Subrec_obj *p_subrecs;
-    int *p_i;
-    Mesh_data *meshes;
-
-    ///* Count derived result candidates. */
-    //for ( qty_candidates = 0;
-    //        possible_results[qty_candidates].superclass != QTY_SCLASS;
-    //        qty_candidates++ );
-    //p_pr_ht = analy->primal_results;
-
-    ///* Base derived result table size on primal result table size. */
-    //if ( p_pr_ht->qty_entries < 151 )
-    //    p_dr_ht = htable_create( 151 );
-    //else
-    //    p_dr_ht = htable_create( 1009 );
-
-    ///* Create counts tree. */
-    //counts = NEW_N( int *, analy->qty_srec_fmts, "Counts tree trunk" );
-    //for ( j = 0; j < analy->qty_srec_fmts; j++ )
-    //    counts[j] = NEW_N( int, analy->srec_tree[j].qty,
-    //                       "Counts tree branch" );
-
-    //for ( i = 0; i < qty_candidates; i++ )
-    //{
-    //    p_rc = &possible_results[i];
-
-    //    /* Ensure mesh dimensionality matches result requirements. */
-    //    if ( analy->dimension == 2 )
-    //    {
-    //        if ( !p_rc->dim.d2 )
-    //            continue;
-    //    }
-    //    else
-    //    {
-    //        if ( !p_rc->dim.d3 )
-    //            continue;
-    //    }
-
-    //    /*
-    //     * Ensure there exists a mesh object class with a superclass
-    //     * which matches the candidate.  Some results may be calculated
-    //     * from results from a different class (i.e., hex strain from
-    //     * nodal positions), so we need to make sure there's an object
-    //     * class to provide the derived result on.
-    //     */
-    //    meshes = analy->mesh_table;
-
-    //    for ( j = 0; j < analy->mesh_qty; j++ )
-    //        if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
-    //            break;
-
-    //    if ( j == analy->mesh_qty )
-    //        continue;
-
-    //    /*
-    //     * Loop over primal results required for current possible derived
-    //     * result calculation; increment per-subrec counter for each
-    //     * subrecord which contains each required result.
-    //     */
-    //    for ( j = 0; p_rc->primals[j] != NULL; j++ )
-    //    {
-    //        rval = htable_search( p_pr_ht, p_rc->primals[j], FIND_ENTRY,
-    //                              &p_hte );
-    //        if ( rval == OK )
-    //            p_pr = (Primal_result *) p_hte->data;
-    //        else
-    //            continue;
-
-    //        /* Increment counts for subrecords which contain primal result. */
-    //        for ( k = 0; k < analy->qty_srec_fmts; k++ )
-    //        {
-    //            p_i = (int *) p_pr->srec_map[k].list;
-    //            subr_qty = p_pr->srec_map[k].qty;
-    //            for ( m = 0; m < subr_qty; m++ )
-    //                counts[k][p_i[m]]++;
-    //        }
-    //    }
-
-    //    pr_qty = j;
-    //    if ( pr_qty > 0 )
-    //    {
-    //        /*
-    //         * Each subrecord count equal to the quantity of primals required
-    //         * for current possible result indicates a subrecord on which
-    //         * the result derivation can take place.
-    //        */
-    //        for ( j = 0; j < analy->qty_srec_fmts; j++ )
-    //        {
-    //            for ( k = 0; k < analy->srec_tree[j].qty; k++ )
-    //            {
-    //                if ( counts[j][k] == pr_qty )
-    //                    create_derived_results( analy, j, k, p_rc, p_dr_ht );
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        /*
-    //         * No primal result dependencies for this derived result.  We
-    //         * need to associate with a subrecord in order to generate a
-    //         * correct menu entry, so search the subrecords for a superclass
-    //         * match.
-    //         *
-    //         * This is a hack, because it depends on having data in the
-    //         * database to give the derived result something to piggy-back
-    //         * on, when there really is no dependency.  The current design
-    //         * needs to be extended to allow for such "dynamic" results as
-    //         * "pvmag" which is a nodal derived result but doesn't require
-    //         * nodal data in the db to be calculable.  This will probably
-    //         * be a necessary addition to support interpreted results
-    //         * anyway.
-    //         */
-
-    //        for ( j = 0; j < analy->qty_srec_fmts; j++ )
-    //        {
-    //            p_subrecs = analy->srec_tree[j].subrecs;
-    //            for ( k = 0; k < analy->srec_tree[j].qty; k++ )
-    //            {
-    //                if ( p_subrecs[k].p_object_class->superclass
-    //                        == p_rc->superclass )
-    //                {
-    //                    create_derived_results( analy, j, k, p_rc, p_dr_ht );
-
-    //                    /* Just do one per state record format. */
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
-    //    /* Clear counts tree. */
-    //    for ( j = 0; j < analy->qty_srec_fmts; j++ )
-    //        for ( k = 0; k < analy->srec_tree[j].qty; k++ )
-    //            counts[j][k] = 0;
-
-    //}
-
-    //for ( j = 0; j < analy->qty_srec_fmts; j++ )
-    //    free( counts[j] );
-    //free( counts );
-
-    //analy->derived_results = p_dr_ht;
-
-    //return OK;
-}
-
 
 /************************************************************
  * TAG( taurus_db_get_state )
@@ -6073,7 +5889,7 @@ mili_get_class_names( Analysis *analy, int *qty_classes,
     int class_qty=0, sclass=0;
     MO_class_data **mo_classes;
     int i, j;
-    int class_names_index=0, class_found_index=0;
+    int class_names_index=0;
     Bool_type class_found=FALSE;
 
 
@@ -6197,9 +6013,7 @@ get_hex_volumes( int dbid, Analysis *analy )
     if ( qty_nodes==0 )
         return OK;
 
-    for ( i = 0;
-            i < mesh_qty;
-            i++ )
+    for ( i = 0; i < mesh_qty; i++ )
     {
         int_args[0] = i;
         sclass = M_HEX;
@@ -6217,10 +6031,8 @@ get_hex_volumes( int dbid, Analysis *analy )
         if ( p_mesh->hex_vol_sums==NULL )
             p_mesh->hex_vol_sums = NEW_N( float, qty_nodes, "Sum of vol for Hexes at nodes" );
         else
-            for ( i = 0;
-                    i < qty_nodes;
-                    i++ )
-                p_mesh->hex_vol_sums[i] = 0.;
+            for ( j = 0; j < qty_nodes; j++ )
+                p_mesh->hex_vol_sums[j] = 0.;
 
         qty_classes = p_mesh->classes_by_sclass[sclass].qty;
 
@@ -6234,9 +6046,7 @@ get_hex_volumes( int dbid, Analysis *analy )
         else
             coords = (GVec3D *) p_node_class->objects.nodes;
 
-        for ( k = 0;
-                k < qty_classes;
-                k++ )
+        for ( k = 0; k < qty_classes; k++ )
         {
             p_mocd = mo_classes[k];
 
@@ -6249,15 +6059,11 @@ get_hex_volumes( int dbid, Analysis *analy )
                     p_mocd->objects.elems->volume = NEW_N( float, p_mocd->qty, "Volume for Hexes at nodes" );
 
                 connects = (int (*)[8]) p_mocd->objects.elems->nodes;
-                for ( hex_id=0;
-                        hex_id<p_mocd->qty;
-                        hex_id++ )
+                for ( hex_id = 0; hex_id < p_mocd->qty; hex_id++ )
                 {
 
                     /* Compute volume sums */
-                    for ( l = 0;
-                            l < 8;
-                            l++ )
+                    for ( l = 0; l < 8; l++ )
                     {
                         nd = connects[hex_id][l];
 
@@ -6270,9 +6076,7 @@ get_hex_volumes( int dbid, Analysis *analy )
                     p_mocd->objects.elems->volume[hex_id] = volume;
 
                     /* Compute volume sums */
-                    for ( l = 0;
-                            l < 8;
-                            l++ )
+                    for ( l = 0; l < 8; l++ )
                     {
                         nd = connects[hex_id][l];
                         p_mesh->hex_vol_sums[nd] += volume;

@@ -1240,8 +1240,6 @@ max_id_string_width( int *connects, int node_cnt )
  */
 static int num_digits(int x)
 {
-    int y;
-
     if(x >= 0)
     {
         return floor(log10(abs(x))) + 1;

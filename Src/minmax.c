@@ -50,9 +50,8 @@ static void write_mm_report( Analysis *, FILE *, int, int, float *, int *,
 extern void
 get_global_minmax( Analysis *analy )
 {
-    int cur_state, max_state, min_state;
     int i;
-    int rval;
+    int cur_state, max_state, min_state;
     Minmax_obj mm_save;
     if ( analy->cur_result == NULL )
         return;
@@ -1088,7 +1087,6 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
 {
     int i, j, k, l;
     float minval, maxval;
-    int qty_mats;
     int min_id, max_id;
     int qty_blocks;
     Int_2tuple *obj_blocks;
@@ -1687,34 +1685,20 @@ extern void
 get_extreme_minmax( Analysis *analy, int minmax,
                     int view_state)
 {
-    int id_qty, class_qty, elem_qty, node_qty, obj_index, obj_qty;
-    int cur_state, max_state, min_state;
-    int index, class_index, elem_index, node_index;
+    int node_qty, obj_qty;
+    int max_state, min_state;
+    int index, node_index;
     int i, j, k, l;
-    int mat_qty;
+    int obj_id;
     int sclass;
-    Bool sclass_ok=FALSE;
-
-    unsigned char *disable_mat;
+    int subrec, subrec_qty, srec=0;
 
     float max_val=-1.0;
-
     float *data_buffer;
-    float  temp_mm[2];
 
-    int    result_qty;
-
-    MO_class_data *p_class,
-                  *p_node_class,
-                  **mo_classes;
-
-    Result     *p_result;
-    int         subrec, subrec_qty, srec=0, obj_id, *object_ids, result_index=0;
+    MO_class_data *p_class, *p_node_class;
+    Result *p_result;
     Subrec_obj *p_subrec;
-
-    Bool_type interp=TRUE;
-
-    /* Pointer to current mesh. */
 
     analy->extreme_result = TRUE;
     p_result = analy->cur_result;
@@ -1734,9 +1718,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
     p_class     = p_subrec->p_object_class;
 
     /* Initialize Class data buffers */
-    for ( i=0;
-            i<subrec_qty;
-            i++ )
+    for ( i = 0; i < subrec_qty; i++ )
     {
         subrec = p_result->subrecs[i];
         srec   = p_result->srec_id;
@@ -1745,15 +1727,12 @@ get_extreme_minmax( Analysis *analy, int minmax,
         if ( p_class->data_buffer_mm==NULL )
         {
             p_class->data_buffer_mm = NEW_N( float, p_class->qty, "Class data buffer for min/max data" );
-            for ( j=0;
-                    j<p_class->qty;
-                    j++ )
+            for ( j=0; j < p_class->qty; j++ )
             {
                 if (minmax==EXTREME_MIN)
                     p_class->data_buffer_mm[j] = MAXFLOAT;
                 else
                     p_class->data_buffer_mm[j] = -MAXFLOAT;
-
             }
         }
     }
@@ -1772,9 +1751,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
         analy->extreme_node_mm = NEW_N( float , node_qty,  "analy->extreme_node_mm" );
 
     /* Loop over all states  - reading the result value for each element or node */
-    for ( i  = min_state;
-            i <= max_state;
-            i++ )
+    for ( i = min_state; i <= max_state; i++ )
     {
         analy->cur_state = i;
         wrt_text( "\n\n");
@@ -1786,9 +1763,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
         data_buffer = NODAL_RESULT_BUFFER( analy );
 
         /* Update min/max for nodal data */
-        for (l=0;
-                l<node_qty;
-                l++)
+        for( l = 0; l < node_qty; l++ )
         {
             obj_id = l;
             if (minmax==EXTREME_MIN)
@@ -1803,20 +1778,16 @@ get_extreme_minmax( Analysis *analy, int minmax,
             }
         }
 
-        for ( j=0;
-                j<subrec_qty;
-                j++ )
+        for ( j = 0; j < subrec_qty; j++ )
         {
             subrec = p_result->subrecs[j];
             srec   = p_result->srec_id;
             p_subrec = analy->srec_tree[srec].subrecs + subrec;
             p_class = p_subrec->p_object_class;
-            for ( k=0;
-                    k<p_class->qty;
-                    k++ )
+            for ( k = 0; k < p_class->qty; k++ )
             {
 
-                if (minmax==EXTREME_MIN)
+                if( minmax == EXTREME_MIN )
                 {
                     if ( p_class->data_buffer[k] < p_class->data_buffer_mm[k] )
                         p_class->data_buffer_mm[k] = p_class->data_buffer[k];
@@ -1837,9 +1808,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
      *      * Nodal data is stored in array analy->extreme_node_mm
      *      * Element data (by sclass) is stored in array minmax_elem
      */
-    for (node_index=0;
-            node_index<node_qty;
-            node_index++)
+    for( node_index = 0; node_index < node_qty; node_index++ )
     {
         data_buffer[node_index] = analy->extreme_node_mm[node_index];
         if (data_buffer[node_index]>max_val)
@@ -1848,9 +1817,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
 
     /* update_extreme_mm( analy ); */
 
-    for ( j=0;
-            j<subrec_qty;
-            j++ )
+    for( j = 0; j < subrec_qty; j++ )
     {
         analy->result_index = j;
         subrec = p_result->subrecs[j];
@@ -1860,9 +1827,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
 
         if ( p_class->data_buffer_mm )
         {
-            for ( k=0;
-                    k<p_class->qty;
-                    k++ )
+            for ( k = 0; k < p_class->qty; k++ )
                 p_class->data_buffer[k] = p_class->data_buffer_mm[k];
 
             if ( p_result->origin.is_elem_result )
@@ -1872,10 +1837,7 @@ get_extreme_minmax( Analysis *analy, int minmax,
     }
 
     free_extreme_mm( analy );
-
     update_min_max( analy );
-
-    /* Free up temporary storage */
 
     analy->cur_result     = p_result;
     analy->extreme_result = TRUE;
@@ -1891,11 +1853,9 @@ get_extreme_minmax( Analysis *analy, int minmax,
 extern void
 free_extreme_mm( Analysis *analy )
 {
-    int j,k;
-    int index, obj_qty, sclass;
-    Result     *p_result;
-    int         subrec, subrec_qty, srec=0, obj_id, *object_ids, result_index=0;
-
+    int i;
+    int subrec, subrec_qty, srec=0;
+    Result * p_result;
     MO_class_data *p_class;
     Subrec_obj *p_subrec;
 
@@ -1903,28 +1863,19 @@ free_extreme_mm( Analysis *analy )
         return;
 
     analy->extreme_result = FALSE;
+    if ( analy->extreme_node_mm != NULL )
+    {
+        free( analy->extreme_node_mm );
+        analy->extreme_node_mm = NULL;
+    }
 
     p_result   = analy->cur_result;
     subrec_qty = p_result->qty;
-    index      = analy->result_index;
-    subrec     = p_result->subrecs[index];
-    srec       = p_result->srec_id;
-    p_subrec   = analy->srec_tree[srec].subrecs + subrec;
-    sclass     = p_result->superclasses[index];
-    obj_qty    = p_subrec->subrec.qty_objects;
     p_class    = p_subrec->p_object_class;
 
-    if ( analy->extreme_node_mm!=NULL )
+    for ( i = 0; i < subrec_qty; i++ )
     {
-        free( analy->extreme_node_mm );
-        analy->extreme_node_mm=NULL;
-    }
-
-    for ( j=0;
-            j<subrec_qty;
-            j++ )
-    {
-        subrec   = p_result->subrecs[j];
+        subrec   = p_result->subrecs[i];
         srec     = p_result->srec_id;
         p_subrec = analy->srec_tree[srec].subrecs + subrec;
         p_class  = p_subrec->p_object_class;
@@ -1945,15 +1896,14 @@ free_extreme_mm( Analysis *analy )
 extern void
 update_extreme_mm( Analysis *analy )
 {
-    int j,k;
-    int index, obj_qty, node_index=0, node_qty=0, sclass;
-    Result     *p_result;
-    int         subrec, subrec_qty, srec=0, obj_id, *object_ids, result_index=0;
+    int j, k;
+    int node_index=0, node_qty=0;
+    int subrec, subrec_qty, srec=0;
+    float *data_buffer;
 
+    Result *p_result;
     MO_class_data *p_class, *p_node_class;;
     Subrec_obj *p_subrec;
-
-    float *data_buffer;
 
     if ( !analy->extreme_result )
         return;
@@ -1963,26 +1913,16 @@ update_extreme_mm( Analysis *analy )
     p_node_class = MESH_P( analy )->node_geom;
     node_qty     = p_node_class->qty;
 
-    p_result   = analy->cur_result;
-    subrec_qty = p_result->qty;
-    index      = analy->result_index;
-    srec       = p_result->srec_id;
-    subrec = p_result->subrecs[index];
-    p_subrec   = analy->srec_tree[srec].subrecs + subrec;
-    sclass     = p_result->superclasses[index];
-    obj_qty    = p_subrec->subrec.qty_objects;
-    p_class    = p_subrec->p_object_class;
+    p_result = analy->cur_result;
 
-    for (node_index=0;
-            node_index<node_qty;
-            node_index++)
+    for (node_index = 0; node_index < node_qty; node_index++)
         data_buffer[node_index] = analy->extreme_node_mm[node_index];
     update_nodal_min_max( analy );
 
     if ( p_result->origin.is_elem_result )
-        for ( j=0;
-                j<subrec_qty;
-                j++ )
+    {
+        subrec_qty = p_result->qty;
+        for ( j = 0; j < subrec_qty; j++ )
         {
             subrec = p_result->subrecs[j];
             srec   = p_result->srec_id;
@@ -1990,17 +1930,15 @@ update_extreme_mm( Analysis *analy )
             p_class = p_subrec->p_object_class;
             if ( p_class->data_buffer_mm )
             {
-                for ( k=0;
-                        k<p_class->qty;
-                        k++ )
+                for ( k = 0; k < p_class->qty; k++ )
                     p_class->data_buffer[k] = p_class->data_buffer_mm[k];
 
                 elem_get_minmax(p_class->data_buffer, p_class->qty, analy );
             }
         }
+    }
 
     update_min_max( analy );
-
     analy->cur_result = p_result;
 }
 

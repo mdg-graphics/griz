@@ -78,7 +78,7 @@ compute_fnmass( Analysis *analy, float *resultArr,
                 Bool_type interpolate )
 {
     int   all_nodes = FALSE;
-    int   i, index;
+    int   index;
     int   subrec, srec;
     int   num_elements;
     int   num_nodes, node_index, *fn_list, num_fn;
@@ -98,13 +98,9 @@ compute_fnmass( Analysis *analy, float *resultArr,
 
     fn_mass = resultArr;
 
-    num_nodes = gather_free_nodes(analy,     &num_fn, MASS,
-                                  all_nodes, &fn_list,
-                                  &fn_mass);
+    num_nodes = gather_free_nodes(analy, &num_fn, MASS, all_nodes, &fn_list, &fn_mass);
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
 
         if (fn_list[node_index] < 0)
@@ -114,9 +110,7 @@ compute_fnmass( Analysis *analy, float *resultArr,
         mass_total += fn_mass[node_index];
     }
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
         fn_mass[node_index] = mass_total;
     }
@@ -142,7 +136,7 @@ compute_anmass( Analysis *analy, float *resultArr,
                 Bool_type interpolate )
 {
     int   all_nodes = TRUE;
-    int   i, index;
+    int   index;
     int   subrec, srec;
     int   num_elements;
     int   num_nodes, node_index, *fn_list, num_fn;
@@ -162,14 +156,10 @@ compute_anmass( Analysis *analy, float *resultArr,
 
     fn_mass = resultArr;
 
-    num_nodes = gather_free_nodes(analy,     &num_fn, MASS,
-                                  all_nodes, &fn_list,
-                                  &fn_mass);
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
-    {
+    num_nodes = gather_free_nodes(analy, &num_fn, MASS, all_nodes, &fn_list, &fn_mass);
 
+    for (node_index=0; node_index < num_nodes; node_index++)
+    {
         if (fn_list[node_index] < 0)
         {
             fn_mass[node_index] = 0.0;
@@ -177,9 +167,7 @@ compute_anmass( Analysis *analy, float *resultArr,
         mass_total += fn_mass[node_index];
     }
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
         fn_mass[node_index] = mass_total;
     }
@@ -379,7 +367,7 @@ compute_fnvol( Analysis *analy, float *resultArr,
                Bool_type interpolate )
 {
     int   all_nodes = FALSE;
-    int   i, index;
+    int   index;
     int   subrec, srec;
     int   num_elements;
     int   num_nodes, node_index, *fn_list, num_fn;
@@ -399,12 +387,9 @@ compute_fnvol( Analysis *analy, float *resultArr,
 
     fn_mass = resultArr;
 
-    num_nodes = gather_free_nodes(analy,     &num_fn, VOL,
-                                  all_nodes, &fn_list,
-                                  &fn_mass);
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    num_nodes = gather_free_nodes(analy, &num_fn, VOL, all_nodes, &fn_list, &fn_mass);
+
+    for (node_index=0; node_index < num_nodes; node_index++)
     {
 
         if (fn_list[node_index] < 0)
@@ -414,9 +399,7 @@ compute_fnvol( Analysis *analy, float *resultArr,
         vol_total += fn_mass[node_index];
     }
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
         fn_mass[node_index] = vol_total;
     }
@@ -443,8 +426,7 @@ gather_free_nodes( Analysis *analy,  int *num_fn, int mass_flag,
                    int   **fn_list_ptr,
                    float **free_nodes_data)
 {
-    MO_class_data *p_element_class,
-                  *p_node_class,
+    MO_class_data *p_node_class,
                   *p_mo_class,
                   **mo_classes;
 
@@ -452,22 +434,17 @@ gather_free_nodes( Analysis *analy,  int *num_fn, int mass_flag,
 
     List_head     *p_lh;
 
-    char *cname;
-
-    int   nd;
+    int nd;
 
     float *activity, *temp_activity;
     float *data_array;
     float **sand_arrays;
 
-    int  elem_qty;
-    int  node_index, node_num, num_nodes, node_qty;
-    int  class_index, class_qty;
+    int  num_nodes, node_qty;
     int  conn_qty;
-    int  vert_cnt;
 
     int i, j, k, l;
-    int dim, obj_qty;
+    int dim;
 
     int  *connects;
 

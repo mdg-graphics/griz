@@ -215,7 +215,6 @@ static void send_mtl_cmd( char *cmd, int tok_qty );
 static size_t load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt );
 static size_t load_selected_mtls( char *p_buf, int *p_tok_cnt );
 static size_t load_mtl_properties( char *p_buf, int *p_tok_cnt );
-static void select_mtl_mgr_mtl( int mtl );
 static void send_surf_cmd( char *cmd, int tok_qty );
 static size_t load_surf_mgr_funcs( char *p_buf, int *p_token_cnt );
 static size_t load_selected_surfs( char *p_buf, int *p_tok_cnt );
@@ -234,7 +233,6 @@ static Bool_type surf_func_active( void );
 static void action_create_app_widg( Widget w, XEvent *event, String params[], int *qty );
 static void resize_mtl_scrollwin( Widget , XtPointer, XtPointer );
 static void resize_surf_scrollwin( Widget w, XEvent *event, String params[], int qty );
-static void gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
 static void gress_surf_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
 static void string_convert( XmString str, char *buf );
 static Boolean animate_workproc_CB();
@@ -265,8 +263,6 @@ String fallback_resources[] =
 {
     "*fontList: -misc-fixed-medium-r-normal-*-14-*-*-*-*-*-*-*", "*background: grey", "*monitor*height: 130", "*monitor*columns: 60", "*foreground: Black", NULL
 };
-
-static void load_colormap( Analysis *analy, char *colormap );
 
 /* Material manager function button values. */
 typedef enum
@@ -370,10 +366,8 @@ static Widget menu_widg = NULL;
 static Widget ti_menu_widg = NULL;
 static Widget monitor_widg = NULL;
 static Widget mtl_mgr_widg = NULL;
-static Widget mtl_mgr_button = NULL;
 static Widget mtl_base = NULL;
 static Widget surf_mgr_widg = NULL;
-static Widget surf_mgr_button = NULL;
 static Widget surf_base = NULL;
 static Widget mtl_mgr_func_toggles[5];
 static Widget select_buttons[4];
@@ -384,7 +378,6 @@ static Widget surf_row_col = NULL;
 static Widget mtl_quick_select = NULL;
 static Widget surf_quick_select = NULL;
 static Widget color_editor = NULL;
-/*static Widget color_comps[EMISSIVE + 1];*/
 static Widget color_comps[MTL_PROP_QTY];
 static Widget prop_checks[MTL_PROP_QTY];
 static Widget col_ed_scales[2][4];
@@ -413,7 +406,7 @@ static Window surf_mgr_top_win = 0;
 static Window util_panel_top_win = 0;
 
 /* Griz Window attributes */
-static XWindowAttributes ctl_attrib, render_attrib, mtl_atrib, surf_attrib, util_attrib;
+static XWindowAttributes ctl_attrib;
 
 /* Parameterized names for derived and primal result menus. */
 static char *derived_menu_name = "Derived";
@@ -556,17 +549,7 @@ test()
 
 static GC gc_rubber;
 static XGCValues xgcvalues;
-static Pixel p1;
 static XColor    rb_color, rb_dummy;
-static Colormap  rb_cmap;
-static Status    rb_status;
-
-static XColor border_color, border_dummy;
-
-static int line_style = LineSolid;  /* LineSolid */
-static int cap_style  = CapButt;  /* CapRound */
-static int join_style = 0;  /* JoinRound */
-static int line_width = 1; /* Pixels */
 
 static int label_length = 32;
 
@@ -666,25 +649,21 @@ update_gui( Analysis *analy, Render_mode_type new_rmode, Render_mode_type old_rm
 void
 gui_start( int argc, char **argv , Analysis * analy )
 {
-    Widget mainwin_widg, pane, x_label_widg, y_label_widg;
-    Drawable d1;
-    XmString command_label;
-    Arg args[20];
-    char title[MAXFILENAMELENGTH], path[MAXPATHLENGTH]="";
-    int n;
-    XtActionsRec global_actions[3];
-    Atom  WM_DELETE_WINDOW;
     int gid=0;
     int status;
-    int i;
+    int n;
+    char title[MAXFILENAMELENGTH];
+    Arg args[20];
+    Drawable d1;
+    XmString command_label;
+    XtActionsRec global_actions[3];
+    Atom  WM_DELETE_WINDOW;
+    Widget mainwin_widg, pane, x_label_widg, y_label_widg;
 
     /* Read in the session initialization data */
 
-    /*
-     * Create an application shell to hold all of the interface except
-     * the rendering window.
-     */
-
+    /* Create an application shell to hold all of the interface except
+     * the rendering window. */
     char * path_string = make_path_str( analy );
     if ( env.bname )
         sprintf( title, "Control:  %s%s", path_string, env.bname );
@@ -1481,12 +1460,9 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
         }
         else
         {
-            int vec_size = p_pr->var->vec_size;
-
+            int i, j;
             Widget result_menu;
             Htable_entry * p_hte;
-            int i;
-            int j;
             if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type == VEC_ARRAY )
             {
                 /* Non-scalar types require another submenu level. */
@@ -1533,7 +1509,6 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                         for ( j = 0; j < p_pr->var->dims[0]; j++ )
                         {
                             htable_search( analy->st_var_table, p_pr->var->components[i], FIND_ENTRY, &p_hte );
-                            State_variable * comp_svar = (State_variable *) p_hte->data;
 
                             analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
                             sprintf( label_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
@@ -1668,18 +1643,18 @@ add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_d
 static void
 create_derived_res_menu( Analysis * analy, Widget parent )
 {
-    int num_in_menu = 0;
-    int ii = 0;
-    Analysis * p_analy = get_analy_ptr();
+    int rval, qty_dr = 0;
+    void ** p_dr_data = NULL;
+    Hash_table * p_dr_ht = env.curr_analy->derived_results;
+
     Widget derived_menu_widg = add_pulldown_submenu( parent, derived_menu_name );
     add_show_button( derived_menu_widg, "Result off", "mat", DERIVED );
+
     // Go no further if there aren't actually any derived results.
-    Hash_table * p_dr_ht = env.curr_analy->derived_results;
     if ( p_dr_ht == NULL )
         return;
-    void ** p_dr_data = NULL;
-    int qty_dr = 0;
-    int rval = htable_get_data( p_dr_ht, &p_dr_data, &qty_dr );
+
+    rval = htable_get_data( p_dr_ht, &p_dr_data, &qty_dr );
     if( rval == OK )
     {
         const char ** snames = NEW_N(const char*,qty_dr,"pointers to the names to use to order the derived results");
@@ -1717,17 +1692,17 @@ create_derived_res_menu( Analysis * analy, Widget parent )
 static void
 create_primal_res_menu( Analysis * analy, Widget parent )
 {
-    Widget primal_menu_widg = add_pulldown_submenu( parent, primal_menu_name );
-    add_show_button( primal_menu_widg, "Result off", "mat", PRIMAL );
-    Hash_table * p_pr_ht = env.curr_analy->primal_results;
-    if ( p_pr_ht == NULL )
-        return;
-    void ** p_pr_data = NULL;
-
+    int i, j, k, l, rval;
     Primal_result *p_pr, *p_pr_es_component;
     Subrec_obj* p_subrec;
     Htable_entry* p_hte;
-    int i, j, k, l, rval;
+
+    Widget primal_menu_widg = add_pulldown_submenu( parent, primal_menu_name );
+    add_show_button( primal_menu_widg, "Result off", "mat", PRIMAL );
+
+    Hash_table * p_pr_ht = env.curr_analy->primal_results;
+    if ( p_pr_ht == NULL )
+        return;
 
     /* We loop over the subrecords here instead of the primal result hashtable in order
      * to mimic the order in which the simulation codes output the results in Griz's
@@ -1778,11 +1753,8 @@ create_primal_res_menu( Analysis * analy, Widget parent )
 static void
 create_ti_res_menu( Widget parent )
 {
-    Analysis * analy = env.curr_analy;
     Widget ti_menu_widg = add_pulldown_submenu( parent, ti_menu_name );
     add_show_button( ti_menu_widg, "Result off", "mat", ALL );
-    // for ti_result in ti_results...
-    /* add_ti_result_button( parent, p_pr ); */
 }
 
 /*****************************************************************
@@ -1794,15 +1766,7 @@ create_ti_res_menu( Widget parent )
 void
 regenerate_result_menus( void )
 {
-    int position;
     Analysis * analy = env.curr_analy;
-
-    /* Destroy the existing pulldown menus. */
-    // XtDestroyWidget( derived_menu_widg );
-    // derived_menu_widg = NULL;
-
-    // XtDestroyWidget( primal_menu_widg );
-    // primal_menu_widg = NULL;
 
     if ( analy->ti_data_found && ti_menu_widg != NULL )
     {
@@ -1826,14 +1790,6 @@ regenerate_result_menus( void )
 
     find_labelled_child( menu_widg, primal_menu_name, &child, &idx );
     XtVaSetValues( child, XmNsubMenuId, NULL, NULL );
-
-    /*
-    if ( analy->ti_data_found )
-    {
-        // child = XtNameToWidget( menu_widg, ti_menu_widg );
-        // XtVaSetValues( child, XmNsubMenuId, ti_menu_widg, NULL );
-    }
-    */
 }
 
 
@@ -1845,21 +1801,13 @@ regenerate_result_menus( void )
 static Widget
 create_mtl_manager( Widget main_widg )
 {
-    Widget widg, func_select, scroll_win, sep1, sep2, sep3, vert_scroll, func_operate, mtl_label, frame, col_comp;
-    Arg args[10];
-    char win_title[256];
+    int gid=3;
+    int n, i, mtl, qty_mtls;
+    short func_width, max_cols, rows;
+    int scale_len, val_len, vert_space, vert_height, vert_pos, hori_offset, vert_offset, loc;
     char mtl_toggle_name[256];
     static int ambient = 0, diffuse = 1, specular = 2, emissive = 3, visible = FUNC_VISIBLE, invisible = FUNC_INVISIBLE, enable = FUNC_ENABLE, disable = FUNC_DISABLE, color = FUNC_COLOR, all = SELECT_ALL, none = SELECT_NONE, invert = SELECT_INVERT, by_func = SELECT_BY_FUNC;
-
-    int n, i, mtl, qty_mtls;
-    int gid=3;
     Dimension width, max_child_width, margin_width, spacing, scrollbar_width, name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
-    short func_width, max_cols, rows;
-    XtActionsRec rec;
-
-    //static Widget *ctl_buttons[2];
-    XmString val_text;
-    int scale_len, val_len, vert_space, vert_height, vert_pos, hori_offset, vert_offset, loc;
 
     char *func_names[] =
     {
@@ -1872,18 +1820,18 @@ create_mtl_manager( Widget main_widg )
     char *op_names[] = { "Preview", "Cancel", "Apply", "Default" };
     char *scale_names[] = { "Red", "Green", "Blue", "Shininess" };
     char *comp_names[] = { "Ambient", "Diffuse", "Specular", "Emissive" };
+
     Pixel fg, bg;
-    String trans =
-        "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
+    Widget widg, func_select, scroll_win, sep1, sep2, sep3, vert_scroll, func_operate, mtl_label, frame, col_comp;
+    String trans = "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
     XtTranslations key_trans;
-    Analysis *p_analy;
+    XmString val_text;
 
     key_trans = XtParseTranslationTable( trans );
 
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
 
     /* Use a Form widget to manage everything else. */
-
     mtl_base = XtVaCreateManagedWidget( "mtl_base", xmFormWidgetClass, main_widg, NULL );
 
     XtAddCallback( mtl_base, XmNdestroyCallback, destroy_mtl_mgr_CB, (XtPointer) NULL );
@@ -1997,7 +1945,6 @@ create_mtl_manager( Widget main_widg )
     XtAddCallback( color_comps[0], XmNdisarmCallback, col_comp_disarm_CB, &ambient );
 
     prop_val_changed[0] = FALSE;
-    //property_vals[0] = NEW_N( GLfloat, 3, "Col comp val" );
 
     //Diffuse property
     color_comps[1] = XtVaCreateManagedWidget( comp_names[1], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
@@ -2106,8 +2053,6 @@ create_mtl_manager( Widget main_widg )
     XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_CB, &diffuse );
     XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_update_CB, &diffuse );
 
-
-
     //Specular color selection
     i = 2;
     vert_pos = vert_offset + i * vert_height + i * vert_space;
@@ -2155,7 +2100,6 @@ create_mtl_manager( Widget main_widg )
     XtAddCallback( col_ed_scales[0][i], XmNdragCallback, col_ed_scale_CB, &emissive );
     XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_CB, &emissive );
     XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_update_CB, &emissive );
-
 
     XmStringFree( val_text );
     /* Reset the shininess scale text to an integer rep. */
@@ -2234,7 +2178,6 @@ create_mtl_manager( Widget main_widg )
     XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
     if ( width > max_child_width )
         max_child_width = width;
-
 
     /*
      * Now set the right offset so that the middle of the RowColumn
@@ -2366,8 +2309,7 @@ create_mtl_manager( Widget main_widg )
     if ( rows > 3 ) /* Note: XmNmarginWidth = XmNmarginHeight */
         sw_height = 3 * height + 2 * (spacing + margin_width) + fudge;
     else
-        sw_height = rows * height + (rows - 1) * spacing + 2 * margin_width
-                    + fudge;
+        sw_height = rows * height + (rows - 1) * spacing + 2 * margin_width + fudge;
     XtVaSetValues( scroll_win, XmNheight, sw_height, NULL );
 
     /* Make color editor & children insensitive. */
@@ -2376,8 +2318,6 @@ create_mtl_manager( Widget main_widg )
     /* Buffer to hold commands for parser. */
     n = (int) (ceil( log10( (double) qty_mtls ) )) + 1;
     mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * label_length, "Mtl mgr cmd bufr" );
-
-    //XtOverrideTranslations( mtl_base, key_trans );
 
     return mtl_base;
 }
@@ -2391,18 +2331,18 @@ create_mtl_manager( Widget main_widg )
 static Widget
 create_surf_manager( Widget main_widg )
 {
-    Widget surf_shell, widg, func_select = NULL, scroll_win, sep1, sep2, sep3, vert_scroll, func_operate, surf_label, frame, col_comp;
-    Arg args[10];
+    int gid=0;
+    int n, i, surf, qty_surfs;
+    short func_width, max_cols, rows;
     char win_title[256];
     char surf_toggle_name[64];
-    int n, i, surf, qty_surfs;
-    Dimension width, max_child_width, margin_width, spacing, scrollbar_width, name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
-    short func_width, max_cols, rows;
+    Dimension width, max_child_width, margin_width, spacing, scrollbar_width, max_mgr_width, height, sw_height, fudge;
+    Widget surf_shell, widg, func_select = NULL, scroll_win, sep1, sep2, vert_scroll, func_operate, surf_label;
+    Arg args[10];
     XtActionsRec rec;
     static Widget select_buttons[4];
     static Widget *ctl_buttons[2];
-    XmString val_text;
-    int scale_len, val_len, vert_space, vert_height, vert_pos, hori_offset, vert_offset, loc;
+
     char *func_names[] =
     {
         "Visible", "Invisible", "Enable", "Disable"
@@ -2412,11 +2352,9 @@ create_surf_manager( Widget main_widg )
         "All", "None", "Invert", "By func"
     };
     char *op_names[] = { "Apply", "Default" };
-    Pixel fg, bg;
-    String trans =
-        "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
+
+    String trans = "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
     XtTranslations key_trans;
-    int gid=0;
 
     key_trans = XtParseTranslationTable( trans );
 
@@ -2626,8 +2564,7 @@ create_surf_manager( Widget main_widg )
     if ( rows > 3 ) /* Note: XmNmarginWidth = XmNmarginHeight */
         sw_height = 3 * height + 2 * (spacing + margin_width) + fudge;
     else
-        sw_height = rows * height + (rows - 1) * spacing + 2 * margin_width
-                    + fudge;
+        sw_height = rows * height + (rows - 1) * spacing + 2 * margin_width + fudge;
     XtVaSetValues( scroll_win, XmNheight, sw_height, NULL );
 
     /* Buffer to hold commands for parser. */
@@ -2688,7 +2625,6 @@ create_free_mtl_panel( Widget main_widg )
 
     static int mtl_panel_shell_win = MTL_MGR_SHELL_WIN;
 
-    /* XtAddEventHandler( util_shell, ExposureMask, False, stack_init_EH,  */
     XtAddEventHandler( mtl_shell, StructureNotifyMask, False, stack_init_EH, &mtl_panel_shell_win );
 
     session->win_util_active = 1;
@@ -2938,7 +2874,6 @@ create_utility_panel( Widget main_widg )
 
 
     /* IRC: May 04, 2007 - Added buttons on utility panel for Wireframe render modes */
-
     util_render_btns[VIEW_WIREFRAME] = XtVaCreateManagedWidget( "Wireframe", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn,  False, XmNset,  ( analy->mesh_view_mode == RENDER_WIREFRAME ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_WIREFRAME], XmNwidth, &width, NULL );
     if ( width > child_width )
@@ -2949,7 +2884,6 @@ create_utility_panel( Widget main_widg )
     XtOverrideTranslations( util_render_btns[VIEW_WIREFRAME], key_trans );
 
     /* IRC: Jan 09, 2008 - Added buttons on utility panel for Greyscale render modes */
-
     util_render_btns[VIEW_GS] = XtVaCreateManagedWidget( "Greyscale", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn,  False, XmNset,  ( analy->material_greyscale ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_GS], XmNwidth, &width, NULL );
     if ( width > child_width )
@@ -3174,12 +3108,10 @@ create_pick_submenu( Widget parent, int *btn_type, char *cascade_name, Widget *p
 
             for ( j = 0; j < p_lh->qty; j++ )
             {
-                /**/
                 /* Change this when/if G_PARTICLE superclass is available. */
                 /* For G_UNIT, only allow if it's the particle class. */
                 if ( pick_sclasses[i] == G_UNIT
-                        && strcmp( p_mo_classes[j]->short_name, particle_cname )
-                        != 0 )
+                        && strcmp( p_mo_classes[j]->short_name, particle_cname ) != 0 )
                     continue;
 
                 button = XmCreatePushButtonGadget( pick_submenu, p_mo_classes[j]->long_name, args, n );
@@ -3201,9 +3133,7 @@ create_pick_submenu( Widget parent, int *btn_type, char *cascade_name, Widget *p
                         if ( p_mo_classes[j] == *pref_class )
                             init_class = button;
                     }
-                    else if ( init_class == NULL
-                              && pick_sclasses[i] == pref_sclass
-                              && j == 0 )
+                    else if ( init_class == NULL && pick_sclasses[i] == pref_sclass && j == 0 )
                     {
                         init_class = button;
                         *pref_class = p_mo_classes[j];
@@ -3257,11 +3187,9 @@ create_colormap_menu( Widget parent, Util_panel_button_type dummp, char *cascade
 static Widget
 create_colormap_submenu( Widget parent, colormap_type btn_type, Widget *p_initial_button )
 {
-    int n, i, j;
+    int n;
     Arg args[5];
     Widget pick_submenu, button;
-    Mesh_data *p_mesh;
-    Widget init_class;
 
     n = 0;
     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
@@ -3370,10 +3298,9 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
     Mesh_data *p_mesh;
     MO_class_data *p_mo_class;
     int *b1_pref_order = pick_sclasses; /* File-scope array. */
-    /**/
+
     /* Replace all G_UNIT references to G_PARTICLE when/if available and remove
-       special test in loop below
-    */
+       special test in loop below */
     static int b2_pref_order[] =
     {
         G_QUAD, G_BEAM, G_UNIT, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID, G_HEX, G_NODE, G_SURFACE, G_PARTICLE
@@ -3432,12 +3359,11 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
 extern void
 regenerate_pick_menus( void )
 {
+    int idx = -1;
     Widget submenu, child;
-    int position;
+    child = NULL;
 
     /* Get the Picking menu, which is the parent of the setpick menus. */
-    child = NULL;
-    int idx = -1;
     find_labelled_child( menu_widg, "Picking", &child, &idx );
 
     /* Destroy the existing setpick1 menu. */
@@ -3899,8 +3825,6 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
         /* Update the window attributes */
 
-        /*	    update_session( GET, NULL ); */
-
         put_window_attributes() ;
         break;
 
@@ -4250,11 +4174,8 @@ process_keyboard_input( XKeyEvent *p_xke )
     int klen;
     XEvent send_evt;
 
-    /* No Control-modified key sequences are part of Griz commands. */
-    /* Exception: Rubberband Zoom uses control sequences
-     *            if ( p_xke->state & ControlMask )
-     *	          return;
-     */
+    /* No Control-modified key sequences are part of Griz commands.
+     * Exception: Rubberband Zoom uses control sequences */
     if ( p_xke->state & ControlMask )
         return;
 
@@ -4322,7 +4243,6 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     MO_class_data *p_class;
     Mesh_data *p_mesh;
     GLwDrawingAreaCallbackStruct *cb_data;
-    XWindowChanges xwc;
     Analysis *analy;
     static int mode;
     static int posx, posy;
@@ -4343,8 +4263,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     history_inputCB_cmd = TRUE;
 
     /* Allows operation in the render window if we are using the material manager
-     * color editor.
-     */
+     * color editor. */
     if (mtl_color_active)
     {
         mtl_color_active=FALSE;
@@ -4360,9 +4279,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     control_shift_click = shift_click && control_click;
 
     /* Switch on event types
-     *
-     * Event types include: ButtonPress, ButtonRelease, MotionNotify
-     */
+     * Event types include: ButtonPress, ButtonRelease, MotionNotify */
     switch( cb_data->event->type )
     {
     case ButtonPress:
@@ -4485,10 +4402,9 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
         /* Rubberband Zoom - ctrl+click+move to select where to zoom in. */
         if ( (control_click && !control_shift_click) && mode == RB_MOVE )
         {
-            int       rb_x, rb_y, rb_size;
-            int       win_center_x, win_center_y;
-            int       rb_center_x, rb_center_y;
-            int       identify_only=-1;
+            int rb_x, rb_y, rb_size;
+            int rb_center_x, rb_center_y;
+            int identify_only=-1;
 
             lastX  = cb_data->event->xbutton.x;
             lastY  = cb_data->event->xbutton.y;
@@ -5032,8 +4948,6 @@ parse_CB( Widget w, XtPointer client_data, XtPointer call_data )
     char text[200];
     string_convert( ((XmCommandCallbackStruct *) call_data)->value, text );
 
-    /* pushpop_window( PUSHPOP_ABOVE ); */
-
     /* Call the parsing guys. */
     parse_command( text, env.curr_analy );
 }
@@ -5054,13 +4968,8 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Mtl_mgr_func_type compliment;
     XmToggleButtonCallbackStruct *cb_data;
 
-    //function_toggles = (Widget *) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
-    /* Find the index of the complimentary function to the widget executed. */
-    //for ( i = 0; i < 4; i++ )
-    //    if ( w == function_toggles[i] )
-    //        break;
     switch ( i )
     {
     case VIS:
@@ -5160,15 +5069,14 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Widget **ctl_buttons;
-    Boolean set, vis_set, invis_set, enable_set, disable_set;
-    unsigned char *mtl_invis, *mtl_disable;
     int qty_mtls, i;
+    unsigned char *mtl_invis, *mtl_disable;
+    Boolean set, vis_set, invis_set, enable_set, disable_set;
+    Widget **ctl_buttons;
     WidgetList children;
     Material_list_obj *p_mtl;
     Material_list_obj *temp_mtl;
     Mesh_data *p_mesh;
-    char* tempName;
     Htable_entry *tempEnt;
 
     p_mesh = env.curr_analy->mesh_table;
@@ -5417,23 +5325,22 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             /* Set all if color function selected, else unset all. */
             XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &set, NULL );
             if ( set )
+            {
                 for ( i = 0; i < qty_mtls; i++ )
                 {
-//                	Htable_entry *tempEnt;
-//                	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-//                	int mat_num = atoi((char*)tempEnt);
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
                     INSERT( p_mtl, mtl_select_list );
                 }
+            }
             else
-                for ( i = 0; i < qty_mtls; i++ ){
-//                	Htable_entry *tempEnt;
-//                	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-//                	int mat_num = atoi((char*)tempEnt);
+            {
+                for ( i = 0; i < qty_mtls; i++ )
+                {
                     XtVaSetValues( children[i], XmNset, False, NULL );
                 }
+            }
         }
     }
 
@@ -5469,7 +5376,6 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    int mtl;
     Material_list_obj *p_mtl = (Material_list_obj *)client_data;
     XmToggleButtonCallbackStruct *cb_data;
 
@@ -5546,7 +5452,7 @@ col_comp_disarm_CB( Widget w, XtPointer client_data, XtPointer call_data )
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /* Find which component has been set/unset. */
-    for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
+    for( j = AMBIENT; j < MTL_PROP_QTY; j++ )
         if ( w == color_comps[j] )
             break;
 
@@ -5725,7 +5631,6 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     switch_opengl_win( MESH_VIEW );
 
-    /* memset( mtl_mgr_cmd, 0, 128 + env.curr_analy->mesh_table[0].material_qty * 4 ); */
     memset(mtl_mgr_cmd, 0, sizeof(mtl_mgr_cmd));
 
     /* Command always starts with "mtl ". */
@@ -5873,8 +5778,6 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Material_property_type i;
-
     switch_opengl_win( MESH_VIEW );
 
     if (!mtl_mgr_widg)
@@ -5883,23 +5786,6 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
     if ( preview_set )
         send_mtl_cmd( "mtl cancel", 2 );
 
-    /*for ( i = AMBIENT; i < MTL_PROP_QTY; i++ )
-    {
-        if (property_vals[i])
-            free( property_vals[i] );
-        property_vals[i] = NULL;
-    } */
-
-    /*if (mtl_mgr_func_toggles)
-        free( mtl_mgr_func_toggles );
-    */
-    //mtl_mgr_func_toggles = NULL;
-
-    /*if ( op_buttons)
-        free( op_buttons );
-
-    op_buttons = NULL;
-    */
     if (mtl_select_list)
         DELETE_LIST( mtl_select_list );
     if (mtl_deselect_list)
@@ -5911,18 +5797,11 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
         free( mtl_mgr_cmd );
     mtl_mgr_cmd = NULL;
 
-    //if ( mtl_check)
-    //    XFreePixmap( dpy, mtl_check );
-    //mtl_check = (Pixmap)NULL;
-
     mtl_mgr_top_win = 0;
     XtDestroyWidget( mtl_mgr_widg );
     mtl_mgr_widg = NULL;
 
     session->win_mtl_active = 0;
-
-    //destroy_mtl_mgr();
-
 
 }
 
@@ -5936,9 +5815,8 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 surf_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Widget *function_toggles;
-    Boolean set, comp_set, color_set;
     int i;
+    Widget *function_toggles;
     Surf_mgr_func_type compliment;
     XmToggleButtonCallbackStruct *cb_data;
 
@@ -5979,8 +5857,8 @@ static void
 surf_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     int *op;
+    int t_cnt, token_cnt;
     char *p_src, *p_dest;
-    int t_cnt, token_cnt, i;
     size_t len;
 
     op = (int*) client_data;
@@ -6062,7 +5940,6 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     if ( w == ctl_buttons[1][ALL_SURF] )
     {
         /* Select all surfaces. */
-
         if ( surf_deselect_list != NULL )
         {
             APPEND( surf_deselect_list, surf_select_list );
@@ -6079,7 +5956,6 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     else if ( w == ctl_buttons[1][NONE] )
     {
         /* Deselect all surfaces. */
-
         if ( surf_select_list != NULL )
         {
             APPEND( surf_select_list, surf_deselect_list );
@@ -6139,6 +6015,7 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         if ( vis_set && enable_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( !surf_invis[i] && !surf_disable[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6149,10 +6026,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( vis_set && disable_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( !surf_invis[i] && surf_disable[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6163,10 +6042,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( invis_set && enable_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( surf_invis[i] && !surf_disable[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6177,10 +6058,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( invis_set && disable_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( surf_invis[i] && surf_disable[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6191,10 +6074,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( vis_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( !surf_invis[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6205,10 +6090,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( invis_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( surf_invis[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6219,10 +6106,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( enable_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( !surf_disable[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6233,10 +6122,12 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( disable_set )
         {
             for ( i = 0; i < qty_surf; i++ )
+            {
                 if ( surf_disable[i] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
@@ -6247,6 +6138,7 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
     }
 
@@ -6514,24 +6406,7 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
             parse_command( "sw pichil", env.curr_analy );
         }
         break;
-        /*
-                case BTN2_BEAM:
-                    if ( cb_data->set )
-                    {
-                        text[item_cnt] = XmStringCreateSimple( "sw picbm" );
-                        item_cnt++;
-                        parse_command( "sw picbm", env.curr_analy );
-                    }
-                    break;
-                case BTN2_SHELL:
-                    if ( cb_data->set )
-                    {
-                        text[item_cnt] = XmStringCreateSimple( "sw picsh" );
-                        item_cnt++;
-                        parse_command( "sw picsh", env.curr_analy );
-                    }
-                    break;
-        */
+
     case BTN1_PICK:
     case BTN2_PICK:
     case BTN3_PICK:
@@ -6728,13 +6603,11 @@ menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    XmString text=NULL;
-    Widget hist_list;
     int *btn;
-    int btn_num;
-
     Analysis *analy;
     static char cmd[256];
+    XmString text = NULL;
+    Widget hist_list;
 
     analy = env.curr_analy;
 
@@ -6790,46 +6663,6 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
     }
 }
 
-/*****************************************************************
- * TAG( load_colormap )
- *
- *
- */
-static void load_colormap( Analysis *analy, char *colormap )
-{
-    XmString text= NULL;
-    char *griz_home, cm_filename[256], cm_cmd[256], file_spec[256];
-    struct stat statbuf;
-    Widget hist_list;
-    Bool_type griz_home_set=FALSE;
-
-    griz_home = getenv( "GRIZHOME" );
-    if ( griz_home==NULL )
-    {
-        griz_home = strdup( "." );
-        griz_home_set=TRUE;
-    }
-
-    if ( griz_home != NULL )
-    {
-        sprintf( cm_cmd, "ldmap %s/ColorMaps/%s", griz_home, colormap );
-
-        if ( stat( cm_cmd, &statbuf ) != 0 )
-        {
-            parse_command( cm_cmd ,analy );
-            text = XmStringCreateSimple( cm_cmd );
-            hist_list=XmCommandGetChild(command_widg, XmDIALOG_HISTORY_LIST);
-            XmListAddItem( hist_list, text, 0 );
-            XmListSetBottomPos( hist_list, 0 );
-            XmStringFree( text );
-        }
-        else
-            popup_dialog( WARNING_POPUP, "Unable to find designated colormap [%s].", file_spec );
-
-        if ( griz_home_set )
-            free( griz_home );
-    }
-}
 
 /*****************************************************************
  * TAG( set_pick_class )
@@ -6892,12 +6725,6 @@ create_app_widg( Btn_type btn )
     if ( *app_widg == NULL )
     {
         *app_widg = create_func( ctl_shell_widg );
-
-        /* Add the creation translations to the app widget. */
-        /*
-                XtVaGetValues( *app_widg, XmNchildren, &children, NULL );
-                XtOverrideTranslations( children[0], XtParseTranslationTable( action_spec ) );
-        */
     }
     else
     {
@@ -6918,24 +6745,18 @@ create_app_widg( Btn_type btn )
 void
 update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
 {
-    Boolean set;
-    Bool_type ok;
-    Widget pulldown, new_class;
-    int position;
-    char stride_str[8];
     int idx = -1;
+    char stride_str[8];
+    Boolean set;
+    Widget pulldown, new_class;
 
-
-    /*
-     * If utility panel not up or this called as a result of
-     * button activity on utility panel, nothing to do.
-     */
+    /* If utility panel not up or this called as a result of
+     * button activity on utility panel, nothing to do. */
     if ( util_panel_widg == NULL || util_panel_CB_active )
         return;
 
     /* Don't try to set a button for modes that aren't implemented as such. */
-    if ( button != VIEW_POINT_CLOUD && button != VIEW_NONE
-            && button != STRIDE_EDIT )
+    if ( button != VIEW_POINT_CLOUD && button != VIEW_NONE && button != STRIDE_EDIT )
     {
         XtVaGetValues( util_render_btns[button], XmNset, &set, NULL );
         if ( !set && button != VIEW_EDGES )
@@ -6983,7 +6804,6 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
             XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
             if ( set )
             {
-                /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, NULL );*/
                 parse_command( "off edges", env.curr_analy );
             }
         }
@@ -7086,96 +6906,6 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
             popup_dialog( WARNING_POPUP, "Unable to update utility panel pick class." );
         break;
     }
-}
-//#endregion
-
-/*****************************************************************
- * TAG( select_mtl_mgr_mtl )
- *
- * "Software" select of a Material Manager material.
- */
-static void
-select_mtl_mgr_mtl( int mtl )
-{
-    Boolean set;
-    WidgetList children;
-    Material_list_obj *p_mtl;
-
-    /* Sanity check. */
-    if ( mtl_mgr_widg == NULL )
-    {
-        popup_dialog( INFO_POPUP, "No Material Manager..." );
-        return;
-    }
-
-    /* Get the material toggles. */
-    XtVaGetValues( mtl_row_col, XmNchildren, &children, NULL );
-
-    /* Get the current state of the specified material. */
-    XtVaGetValues( children[mtl], XmNset, &set, NULL );
-    if ( set )
-    {
-        /* Toggle from selected to deselected. */
-        XtVaSetValues( children[mtl], XmNset, False, NULL );
-
-        /* Find material's entry in the appropriate list. */
-        for ( p_mtl = mtl_select_list; p_mtl != NULL; NEXT( p_mtl ) )
-            if ( p_mtl->mtl == mtl + 1 )
-                break;
-
-        if ( p_mtl == NULL )
-        {
-            popup_dialog( WARNING_POPUP, "Material toggle selection state inconsistent\n%s", "with selection list." );
-            return;
-        }
-
-        /* Remove from one list and put on other. */
-        UNLINK( p_mtl, mtl_select_list );
-        INSERT( p_mtl, mtl_deselect_list );
-    }
-    else
-    {
-        /* Toggle from deselected to selected. */
-        XtVaSetValues( children[mtl], XmNset, True, NULL );
-
-        /*
-         * Pop a node off the deselect list, init it, and insert in the select
-         * list.  Only the material numbers of nodes in the select list
-         * matter (although the quantity of nodes in both lists must be
-         * correct).
-         */
-        p_mtl = mtl_deselect_list;
-        UNLINK( p_mtl, mtl_deselect_list );
-        INSERT( p_mtl, mtl_select_list );
-    }
-
-    /*
-     * Reset all color component value change flags regardless of
-     * current function.  Component changes are remembered only
-     * for a constant set of materials.
-     */
-    prop_val_changed[AMBIENT] = FALSE;
-    prop_val_changed[DIFFUSE] = FALSE;
-    prop_val_changed[SPECULAR] = FALSE;
-    prop_val_changed[EMISSIVE] = FALSE;
-    prop_val_changed[SHININESS] = FALSE;
-
-    /* If color function selected, update the rgb scales. */
-    if ( XtIsSensitive( color_editor ) )
-    {
-        OpenGL_win save_win;
-
-        /* Switch rendering context to allow swatch update. */
-        save_win = cur_opengl_win;
-        switch_opengl_win( SWATCH );
-
-        update_swatch_label();
-        set_scales_to_mtl();
-
-        switch_opengl_win( save_win );
-    }
-
-    update_actions_sens();
 }
 
 
@@ -7316,7 +7046,7 @@ set_scales_to_mtl( void )
     {
         /* Get material index. */
         Htable_entry *tempEnt;
-        int status = htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[mtl_select_list->mtl - 1],FIND_ENTRY,&tempEnt);
+        htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[mtl_select_list->mtl - 1],FIND_ENTRY,&tempEnt);
         idx = atoi(tempEnt->data)-1;
 
         /*
@@ -7571,7 +7301,6 @@ send_surf_cmd( char *cmd, int tok_qty )
 static size_t
 load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
 {
-    Boolean set;
     Boolean visset;
     Boolean invisset;
     Boolean enableset;
@@ -7704,8 +7433,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
 
     if ( mtl_select_list != NULL && mtl_deselect_list == NULL )
     {
-        /* If mtl_deselect_list is NULL then all materials are selected, * this is the equivalent of "all"
-         */
+        /* If mtl_deselect_list is NULL then all materials are selected, * this is the equivalent of "all" */
         sprintf( p_dest, "%s", "all");
         p_dest += strlen( p_dest );
         t_cnt = 1;
@@ -7973,20 +7701,6 @@ update_surf_actions_sens( void )
     }
 }
 
-/*****************************************************************
- * TAG( gress_mtl_mgr_EH )
- *
- * Event handler for when pointer enters or leaves the material
- * manager to set the proper rendering context and window.
- */
-static void
-gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
-{
-    if ( event->xcrossing.type == EnterNotify && XtIsSensitive( color_editor ) )
-        switch_opengl_win( SWATCH );
-    else
-        switch_opengl_win( MESH_VIEW );
-}
 
 /*****************************************************************
  * TAG( gress_surf_mgr_EH )
@@ -8372,63 +8086,51 @@ write_start_text( void )
 void
 wrt_standard_db_text( Analysis *analy, Bool_type advance )
 {
-    int i, j, k;
-    int look_ahead_index=0;
-
-    int cnt, first, qty_states;
-    float start_t, end_t;
+    int i, j;
     int db_ident;
-    MO_class_data *class_ptr=NULL;
-    char class_name[M_MAX_NAME_LEN];
-    int  particle_count=0;
-
+    int cnt, first, qty_states;
+    int  particle_count = 0;
     int block_label_start, block_label_end;
     int block_start, block_end, block_count=0, num_blocks=0;
     int *blocks;
+    int qty_objects = 0;
+    int  qty_classes=0;
+    int  superclasses[2000];
+    int sum, type;
+    int rval;
+    int block_index, st_qty;
+    int sclass;
+    int status = OK;
+    int fractsz = analy->time_frac_size;
 
-    int num_class_blocks=0, qty_objects=0, temp_label, block_total;
+    float start_t, end_t;
 
     Bool_type labels_found=FALSE;
 
-    int  qty_classes=0;
+    char class_name[M_MAX_NAME_LEN];
     char *class_names[2000];
-    int  superclasses[2000];
+    char *start_text[MAX_DBTEXT_LINES], temp_text[512];
+
+    MO_class_data *class_ptr=NULL;
+    Mesh_data *p_mesh;
+    List_head *p_lh;
+    State_rec_obj *p_state_rec;
 
     static int traverse_order[] =
     {
         G_HEX, G_TET, G_QUAD, G_TRI
     };
+
     static char *labels[] =
     {
         "Unit", "Node", "Truss", "Beam", "Tri", "Quad", "Tet", "Pyramid", "Wedge", "Hex"
     };
 
-    Mesh_data *p_mesh;
-    List_head *p_lh;
-    int sum, type;
-    char *start_text[MAX_DBTEXT_LINES], temp_text[512];
-    int rval;
-
-    int block_index, temp_block_index, st_qty;
-    int labels_min, labels_max;
-    int sclass, superclass;
-
-    State_rec_obj *p_state_rec;
-    Subrecord     *p_subr;
-    Subrec_obj    *p_subr_obj;
-    Famid fid;
-    int sclass_cnt=0;
-
-    int status = OK;
-
-    int fractsz = analy->time_frac_size;
-
     db_ident = analy->db_ident;
     p_mesh   = MESH_P( analy );
 
     /* For TH databases we could get many lines of block data
-     * so we need to allow for this.
-     */
+     * so we need to allow for this. */
 
     status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
 
@@ -8542,8 +8244,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     }
 
     /* IRC: Added March 29, 2005 - Print list of selected objects
-     * in state records.
-     */
+     * in state records. */
     p_state_rec = analy->srec_tree;
     if (p_state_rec != NULL)
         if(p_state_rec->qty > 0)
@@ -8553,9 +8254,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
             analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &st_qty );
 
             /* Loop over classes */
-            for ( j = 0;
-                    j < qty_classes;
-                    j++ )
+            for ( j = 0; j < qty_classes; j++ )
             {
 
                 strcpy( class_name, class_names[j] );
@@ -8572,7 +8271,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                 labels_found = class_ptr->labels_found;
 
                 if ( !analy->stateDB &&  num_blocks==0 )
-                    if ( num_blocks==0 )
+                    if ( num_blocks == 0 )
                         continue;
 
                 if ( qty_objects > 0 )
@@ -8594,7 +8293,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                         if ( !labels_found )
                         {
                             block_start = 1;
-                            block_end   = qty_objects;
+                            block_end = qty_objects;
 
                             if ( block_start!=block_end )
                                 sprintf( temp_text, "\tblock[%d]: %d-%d\n", 1, block_start, block_end );
@@ -8610,12 +8309,6 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                             /* Case 2 - State DB with labels */
                             block_label_start = class_ptr->labels_min;
                             block_label_end   = class_ptr->labels_max;
-
-                            /*
-                             * Used for debugging Labels
-                             * if ( !strcmp(class_ptr->short_name, "brick") )
-                             *    dump_class_labels(class_ptr);
-                             */
 
                             if ( block_label_start!=block_label_end )
                                 sprintf( temp_text, "\tblock[%d]: %d-%d (Labels: %d-%d)\n", 1, 1, qty_objects, block_label_start, block_label_end);
@@ -8638,9 +8331,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                         {
                             block_count = 1;
                             block_index = 0;
-                            for ( i = 0;
-                                    i< num_blocks;
-                                    i++ )
+                            for ( i = 0; i < num_blocks; i++ )
                             {
                                 /* Check for overflow of text buffer */
                                 if ( cnt >= MAX_DBTEXT_LINES )
@@ -8651,8 +8342,8 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                                     break;
                                 }
 
-                                block_start       = blocks[block_index] ;
-                                block_end         = blocks[block_index+1] ;
+                                block_start = blocks[block_index] ;
+                                block_end = blocks[block_index+1] ;
 
                                 sprintf( temp_text, "\tblock[%d]: %d-%d\n", block_count++, block_start, block_end );
 
@@ -8676,9 +8367,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                             /* Case 4 - TH DB with labels */
                             block_count = 1;
                             block_index = 0;
-                            for ( i = 0;
-                                    i< num_blocks;
-                                    i++ )
+                            for ( i = 0; i < num_blocks; i++ )
                             {
                                 /* Check for overflow of text buffer */
                                 if ( cnt >= MAX_DBTEXT_LINES )
@@ -8689,11 +8378,10 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                                     break;
                                 }
 
-                                block_start       = blocks[block_index] ;
-                                block_end         = blocks[block_index+1] ;
+                                block_start = blocks[block_index] ;
+                                block_end = blocks[block_index+1] ;
                                 /* Unfortunately this is one spot that I am stuck leaving a -1 for the
-                                *  indexing.  It derives from the blocking which 1 based.
-                                */
+                                 * indexing.  It derives from the blocking which 1 based. */
                                 block_label_start = get_class_label( class_ptr, block_start-1 );
                                 block_label_end   = get_class_label( class_ptr, block_end-1 );
 
@@ -8723,7 +8411,6 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         int pos = 0;
         for(pos = 0; pos < analy->num_messages; pos++){
             start_text[cnt++] = (char *) strdup(analy->conflict_messages[pos]) ;
-            //wrt_text();
         }
     }
 
@@ -8731,16 +8418,12 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     start_text[cnt] = (char *) strdup(temp_text) ;
 
 #ifdef SERIAL_BATCH
-    for ( i = 0;
-            i < cnt;
-            i++ )
+    for ( i = 0; i < cnt; i++ )
     {
         wrt_text( "%s\n", start_text[i] );
     }
 #else
-    for ( i = 0;
-            i < cnt;
-            i++ )
+    for ( i = 0; i < cnt; i++ )
     {
         XmTextInsert( monitor_widg, wpr_position, start_text[i] );
         wpr_position += strlen( start_text[i] );
@@ -8753,15 +8436,11 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     }
 #endif /* SERIAL_BATCH */
 
-    for ( i=0;
-            i<cnt;
-            i++ )
+    for ( i = 0; i < cnt; i++ )
         free( start_text[i] );
 
     /* Free up space for class names & superclasses */
-    for ( i=0;
-            i<qty_classes;
-            i++ )
+    for ( i = 0; i < qty_classes; i++ )
         free( class_names[i] );
 }
 
@@ -8774,26 +8453,21 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 MO_class_data *
 assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objects, int *label_block_qty, int *total_blocks, int *blocks, int *blocks_labels )
 {
+    int i,j, k;
     int st_qty;
-
+    int superclass=0;
+    int block_index=0, mo_id_index=0, num_blocks=0, new_blocks=0;
+    int block_start, block_end;
+    Bool_type id_found=FALSE;
     MO_class_data *class_ptr;
     State_rec_obj *p_state_rec;
-    Subrecord     *p_subr;
-    Subrec_obj    *p_subr_obj;
-
-    int block_index=0, mo_id_index=0, num_blocks=0, new_blocks=0;
-    int block_start, block_end, block_count=0;
-    Bool_type id_found=FALSE;
-
-    int i,j, k;
-
-    int superclass=0;
-    int sclass_cnt=0;
+    Subrecord *p_subr;
 
     p_state_rec   = analy->srec_tree;
     *total_blocks = 0;
 
     if (p_state_rec != NULL)
+    {
         if(p_state_rec->qty <=0 )
         {
             *label_block_qty = 0;
@@ -8801,13 +8475,12 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objec
             *total_blocks    = 0;
             return NULL;
         }
+    }
 
     analy->cur_state = 0;
 
     analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &st_qty );
-    for ( j = 0;
-            j < p_state_rec->qty;
-            j++ )
+    for ( j = 0; j < p_state_rec->qty; j++ )
     {
         superclass = p_state_rec->subrecs[j].p_object_class->superclass;
 
@@ -8818,7 +8491,7 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objec
         *qty_objects = p_subr->qty_objects;
 
         strcpy( class_name, p_subr->class_name );
-        class_ptr        = mili_get_class_ptr( analy, superclass, p_subr->class_name );
+        class_ptr = mili_get_class_ptr( analy, superclass, p_subr->class_name );
         *label_block_qty = class_ptr->label_blocking.block_qty;
 
         if ( *label_block_qty==0 || !analy->stateDB )
@@ -8832,9 +8505,7 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objec
         mo_id_index = 0;
         new_blocks  = 0;
 
-        for ( i = 0;
-                i< num_blocks;
-                i++ )
+        for ( i = 0; i < num_blocks; i++ )
         {
             new_blocks++;
 
@@ -8851,9 +8522,7 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objec
 
             /* Make sure that this id is not already in list */
             id_found = FALSE;
-            for ( k = 0;
-                    k < block_index;
-                    k+=2 )
+            for ( k = 0; k < block_index; k += 2 )
                 if ( blocks[k] == block_start )
                 {
                     id_found = TRUE;
@@ -8887,30 +8556,27 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objec
 MO_class_data *
 get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_objects, int *total_blocks, int **blocks )
 {
-    MO_class_data *class_ptr;
-    State_rec_obj *p_state_rec;
-    Subrecord     *p_subr;
-    int           superclass;
-    int           i=0, j=0, k=0;
-
+    int i=0, j=0;
+    int superclass;
     int block_index=0, mo_id_index=0, num_blocks=0;
     int block_max_id = -1;
     int block_id=0, block_start, block_end, block_count=0;
     int list_count=0;
-
     int num_blocks_total=0, *temp_blocks, *block_dup_check, *pib;
     int *blocks_list;
-
     int status=OK;
+    MO_class_data *class_ptr;
+    State_rec_obj *p_state_rec;
+    Subrecord *p_subr;
 
-    *qty_objects     = 0;
+    *qty_objects = 0;
 
-    class_ptr        = mili_get_class_ptr( analy, sclass, class_name );
-    *qty_objects     = class_ptr->qty;
+    class_ptr = mili_get_class_ptr( analy, sclass, class_name );
+    *qty_objects = class_ptr->qty;
 
     /* Get the block list */
-    p_state_rec   = analy->srec_tree;
-    p_subr        = &p_state_rec->subrecs[j].subrec;
+    p_state_rec = analy->srec_tree;
+    p_subr = &p_state_rec->subrecs[j].subrec;
     *total_blocks = 0;
 
     if ( analy->stateDB )
@@ -8924,9 +8590,7 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
     }
 
     /* First count the total number of blocks for memory allocation */
-    for ( i = 0;
-            i < p_state_rec->qty;
-            i++ )
+    for ( i = 0; i < p_state_rec->qty; i++ )
     {
         superclass = p_state_rec->subrecs[i].p_object_class->superclass;
 
@@ -8939,9 +8603,7 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
         num_blocks = p_subr->qty_blocks;
         num_blocks_total += num_blocks;
 
-        for ( j = 0;
-                j< num_blocks*2;
-                j++ )
+        for ( j = 0; j < num_blocks*2; j++ )
         {
             block_id = p_subr->mo_blocks[j];
             if ( block_id > block_max_id )
@@ -8951,18 +8613,14 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
 
     temp_blocks     = NEW_N( int, num_blocks_total*3, "Array of block numbers - TH Database");
     block_dup_check = NEW_N( int, block_max_id*2, "Array of block indexes used");
-    for ( i=0;
-            i<block_max_id;
-            i++ )
+    for ( i = 0; i < block_max_id; i++ )
     {
         block_dup_check[i] = -1;
     }
 
     block_index = 0;
 
-    for ( i = 0;
-            i < p_state_rec->qty;
-            i++ )
+    for ( i = 0; i < p_state_rec->qty; i++ )
     {
         superclass = p_state_rec->subrecs[i].p_object_class->superclass;
 
@@ -8979,9 +8637,7 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
 
         mo_id_index = 0;
 
-        for ( j = 0;
-                j< num_blocks;
-                j++ )
+        for ( j = 0; j < num_blocks; j++ )
         {
             block_start = p_subr->mo_blocks[mo_id_index];
             block_end   = p_subr->mo_blocks[mo_id_index+1];
@@ -9004,31 +8660,25 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
         }
     }
 
-    for ( i=0;
-            i<block_count*2;
-            i++ )
+    for ( i = 0; i < block_count*2; i++ )
     {
         if ( temp_blocks[i] > block_max_id )
             block_max_id = temp_blocks[i];
     }
 
     blocks_list = NEW_N( int, block_max_id*2, "Array of block numbers");
-    for ( i=0;
-            i<block_max_id*2;
-            i++ )
+    for ( i = 0; i < block_max_id*2; i++ )
     {
         blocks_list[i] = -1;
     }
 
     blocks_to_list( block_count, temp_blocks, blocks_list, FALSE );
-    for ( i=0;
-            i<block_max_id*2;
-            i++ )
+    for ( i = 0; i < block_max_id*2; i++ )
     {
-        if ( blocks_list[i]<0 ) break;
+        if ( blocks_list[i]<0 )
+            break;
         else
             list_count++;
-
     }
 
     status = list_to_blocks( list_count, blocks_list, &pib, &num_blocks_total );
@@ -9048,7 +8698,6 @@ get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_obj
  *
  * Used by the qsort routine to sort block indexes
  */
-
 int
 assemble_compare_blocks( int *block1, int *block2 )
 {
@@ -9069,18 +8718,13 @@ assemble_compare_blocks( int *block1, int *block2 )
  * active, else to stderr. (Essentially "wprint" from O'Reilly's
  * "Motif Programming Manual".)
  */
-/*STDARG*/
 void
-/* wrt_text( va_alist ) */
 wrt_text( char *fmt, ... )
-/* va_dcl */
 {
     char msgbuf[BUFSIZ]; /* we're not getting huge strings */
-    /*    char *fmt; */
     va_list args;
 
     va_start( args, fmt );
-    /*    fmt = va_arg( args, char * ); */
 #ifndef NO_VPRINTF
     (void) vsprintf( msgbuf, fmt, args );
 #else /* !NO_VPRINTF */
@@ -9100,8 +8744,6 @@ wrt_text( char *fmt, ... )
         XmTextInsert( monitor_widg, wpr_position, msgbuf );
         wpr_position += strlen( msgbuf );
         XtVaSetValues( monitor_widg, XmNcursorPosition, wpr_position, NULL );
-
-        /* XtVaSetValues( monitor_widg,  XmNforeground,  env.dialog_text_color, NULL ); */
 
         XmTextShowPosition( monitor_widg, wpr_position );
     }
@@ -9138,16 +8780,12 @@ remove_widget_CB( Widget w, XtPointer client_data, XtPointer reason )
  *
  * Popup a warning dialog with the error message.
  */
-/*STDARG*/
 void
-/* popup_dialog( va_alist ) */
 popup_dialog( int dtype, ... )
-/* va_dcl */
 {
     va_list vargs;
     char msgbuf[BUFSIZ]; /* we're not getting huge strings */
     char *fmt;
-    /*    Popup_Dialog_Type dtype; */
 
 #ifdef SERIAL_BATCH
 #else
@@ -9170,9 +8808,7 @@ popup_dialog( int dtype, ... )
      * explicitly in the argument list as the first argument.
      */
 
-    /*    va_start( vargs ); */
     va_start( vargs, dtype );
-    /*    dtype = (Popup_Dialog_Type) va_arg( vargs, int ); */
     fmt = va_arg( vargs, char * );
 #ifndef NO_VPRINTF
     (void) vsprintf( msgbuf, fmt, vargs );
@@ -9204,10 +8840,7 @@ popup_dialog( int dtype, ... )
 
     if ( !gui_up )
     {
-        /*
-         * If in SERIAL_BATCH mode then code should branch here.
-         */
-
+        /* * If in SERIAL_BATCH mode then code should branch here. */
         fprintf( stderr, "%s\n", dialog_msg );
         return;
     }
@@ -9220,7 +8853,6 @@ popup_dialog( int dtype, ... )
         wrt_text( "\n**************** Notice *******************\n" );
         return;
     }
-
 
 #ifdef SERIAL_BATCH
 #else
@@ -9363,19 +8995,15 @@ popup_fatal( char *message )
     error_dialog = XmCreateErrorDialog( ctl_shell_widg, "error", args, n );
     XtAddCallback( error_dialog, XmNokCallback, (XtCallbackProc) exit_CB, NULL );
 
-    /*
-     * Link the window manager "close" function to the exit callback to
+    /* Link the window manager "close" function to the exit callback to
      * prevent the user from using the window manager to close the popup
-     * and then trying to continue with GRIZ.
-     */
+     * and then trying to continue with GRIZ. */
     dialog_shell = XtParent( error_dialog );
     WM_DELETE_WINDOW = XmInternAtom( XtDisplay( ctl_shell_widg ), "WM_DELETE_WINDOW", FALSE );
     XmAddWMProtocolCallback( dialog_shell, WM_DELETE_WINDOW, (XtCallbackProc) exit_CB, (XtPointer)error_dialog );
 
-    XtUnmanageChild(
-        XmMessageBoxGetChild( error_dialog, XmDIALOG_CANCEL_BUTTON ) );
-    XtUnmanageChild(
-        XmMessageBoxGetChild( error_dialog, XmDIALOG_HELP_BUTTON ) );
+    XtUnmanageChild( XmMessageBoxGetChild( error_dialog, XmDIALOG_CANCEL_BUTTON ) );
+    XtUnmanageChild( XmMessageBoxGetChild( error_dialog, XmDIALOG_HELP_BUTTON ) );
 
     XmStringFree( error_string );
     XmStringFree( ok_label );

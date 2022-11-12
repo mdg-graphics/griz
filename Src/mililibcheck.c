@@ -59,7 +59,6 @@
 #include "io_wrap.h"
 int main(int argc, char *argv[])
 {
-    int   status;
     char  mili_version[64], griz_mili_version[16];
     double mili_version_float, griz_mili_version_float;
 

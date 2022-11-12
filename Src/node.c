@@ -107,15 +107,10 @@ compute_node_displacement( Analysis *analy, float *resultArr,
     Result *p_result;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrec;
-    int obj_qty;
     int index;
     int subrec, srec;
     int *object_ids;
     int  node_idx;
-    Bool_type single_prec_pos;
-    Bool_type map_timehist_coords = FALSE;
-    int       elem_index;
-    int       obj_cnt, obj_num, *obj_ids;
 
     /* Added December 04, 2008: IRC
      *  Add logic to use DP nodal coordinates.
@@ -273,15 +268,10 @@ compute_node_radial_displacement( Analysis *analy, float *resultArr,
     Result *p_result;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrec;
-    int obj_qty;
     int index;
     int subrec, srec;
     int *object_ids;
     int  node_idx;
-    Bool_type single_prec_pos;
-    Bool_type map_timehist_coords = FALSE;
-    int       elem_index;
-    int       obj_cnt, obj_num, *obj_ids;
 
     /* Added December 04, 2008: IRC
      *  Add logic to use DP nodal coordinates.
@@ -454,7 +444,6 @@ compute_node_displacement_mag( Analysis *analy, float *resultArr,
     Result *p_result;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrec;
-    int obj_qty;
     int index;
     int subrec, srec;
     int *object_ids;
@@ -622,11 +611,9 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
     int obj_qty;
     int index;
     int node_qty;
-    int  node_idx;
     int *object_ids;
     State_variable sv;
     Subrec_obj *p_subrec;
-    MO_class_data *p_node_class;
     char *primal_list[1];
     int rval=0;
 

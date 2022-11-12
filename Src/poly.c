@@ -2422,13 +2422,12 @@ write_geom_file( char *fname, Analysis *analy, Bool_type surface_only )
 
     int qty_mat_classes=0;
     int qty_hex_classes=0, qty_shell_classes=0, qty_beam_classes=0, qty_truss_classes=0;
-    int qty_hex_elems=0, qty_shell_elems=0, qty_beam_elems=0, qty_truss_elems=0;
+    int qty_hex_elems=0, qty_shell_elems=0, qty_beam_elems=0;
 
     Bool_type *nodesUsed; /* A list of active nodes */
     int qty_nodes=0, nodeIndex=0, nodes_used_cnt=0;
     int qty_mats=0;
 
-    float verts[4][3];
     double nodePos=0.0;
 
     /* Face variables */

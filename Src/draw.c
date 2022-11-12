@@ -1913,8 +1913,6 @@ GLfloat vechd_default[] = { 0.0, 0.0, 0.0 };    /* Black. */
 /* Local routines. */
 static void look_rot_mat( float [3], float [3], float [3], Transf_mat * );
 static void create_color_prop_arrays( Color_property *, int);
-//static void create_color_prop_arrays( Color_property *, int, Analysis *, int**);
-//static void define_color_properties( Color_property *, int *, int, GLfloat *, int, int* );
 static void define_one_color_property( Color_property *, int, int, GLfloat [][3], int );
 static void color_lookup( float [4], float, float, float, float, int, Bool_type, Bool_type );
 static void surf_color_lookup( float [4], float, float, float, float, int, Bool_type );
@@ -1923,17 +1921,11 @@ static int check_for_tri_face( int, int, MO_class_data *, float [4][3],
                                int [4] );
 static void get_min_max( Analysis *, Bool_type, float *, float * );
 
-/*static void draw_grid( Analysis * );
-static void draw_grid_2d( Analysis * ); */
-
 static void draw_hexs( Bool_type, Bool_type, Bool_type, Bool_type,
                        MO_class_data *, char* , Analysis * );
 
 static void draw_pyramids( Bool_type, Bool_type, Bool_type, Bool_type,
                            MO_class_data *, char* , Analysis * );
-
-static void draw_wedges( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                         Analysis * );
 
 static void draw_tets( Bool_type, Bool_type, Bool_type, Bool_type,
                        MO_class_data *, char*, Analysis * );
@@ -2187,34 +2179,15 @@ init_mesh_window( Analysis *analy )
               : analy->max_mesh_mat_qty;
 
     if(env.ti_enable){
-        int* defaultsList;
-        defaultsList = (int*) malloc(mtl_qty*sizeof(int));
-
-        //test code
         int  num_entries = 0;
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
+        int testi = 0;
+        int dummy = 0;
         char **wildcard_list = NULL;
+        int* defaultsList = (int*) malloc(mtl_qty*sizeof(int));
+
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
         wildcard_list=(char**) malloc( num_entries*sizeof(char *));
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
-        int testi = 0;
-        for(testi = 0; testi < num_entries; testi++){
-            char* teststr = wildcard_list[testi];
-            //printf("RGB: %c",wildcard_list[testi]);
-            int num_items_read = 0;
-            float* testset = NULL;
-            testset = (float*)malloc(3*sizeof(float));
-            int status = 0;
-            status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
-            int testo = 0;
-            for(testo = 0; testo < 3; testo++){
-                float val1 = testset[testo];
-            }
-        }
-        //test code - works I think
-
-        //create defaultslist and init
-        int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
-        int dummy = 0;
         for(dummy = 0; dummy < mtl_qty;dummy++){
             defaultsList[dummy] = 0;
         }
@@ -2223,7 +2196,6 @@ init_mesh_window( Analysis *analy )
             char* fullname = wildcard_list[testi];
             int pos = 0;
             temp[0] = '\0';
-            int status = 0;
             while(fullname[pos] != '\0'){
                 pos++;
             }
@@ -4020,7 +3992,6 @@ extern void
 draw_grid( Analysis *analy )
 {
     Triangle_poly *tri;
-    Surface_data *p_sd;
     Bool_type show_node_result, show_mesh_result, showgs=FALSE;
     Bool_type show_mat_result, show_surf_result;
     Bool_type show_particle_result;
@@ -4032,7 +4003,7 @@ draw_grid( Analysis *analy )
     float rdiff;
     float scl_max;
     float rmin, rmax;
-    int i, j, k;
+    int i, k;
     Bool_type show_result;
     Mesh_data *p_mesh;
     unsigned char *disable_mtl;
@@ -4041,9 +4012,6 @@ draw_grid( Analysis *analy )
     int qty_classes;
     char* selected_materials;
     MO_class_data **mo_classes;
-    MO_class_data *p_mo_class;
-    Htable_entry *p_hte;
-    int rval;
 
     /* Cap for colorscale interpolation. */
     scl_max = SCL_MAX;
@@ -4080,10 +4048,8 @@ draw_grid( Analysis *analy )
                 show_particle_result = TRUE;
         }
     }
-    /*
-     * Draw iso-surfaces.
-     */
 
+    /* Draw iso-surfaces. */
     if ( analy->show_isosurfs )
     {
         /* Difference between result min and max. */
@@ -4441,17 +4407,14 @@ extern void
 draw_grid_2d( Analysis *analy )
 {
     int i;
-    Specified_obj *p_so;
-    MO_class_data **mo_classes;
-    MO_class_data *p_mo_class;
     int qty_classes;
-    Mesh_data *p_mesh;
+    char *selected_materials;
     Bool_type show_node_result, show_mat_result, show_mesh_result;
     Bool_type show_particle_result;
     Bool_type show_surf_result;
-    Htable_entry *p_hte;
-    int rval;
-    char *selected_materials;
+    Specified_obj *p_so;
+    MO_class_data **mo_classes;
+    Mesh_data *p_mesh;
 
     /*
      * Loop through selected objects and gather all materials that are selected
@@ -4461,7 +4424,6 @@ draw_grid_2d( Analysis *analy )
     /*
      * Draw the elements.
      */
-
     p_mesh = MESH_P( analy );
     show_node_result = result_has_superclass( analy->cur_result, G_NODE, analy );
     show_mat_result = result_has_superclass( analy->cur_result, G_MAT, analy );
@@ -5352,11 +5314,9 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
     Interp_mode_type save_interp_mode;
 
     Bool_type hidden_poly;
-    Bool_type inactive_element=FALSE;
     Bool_type disable_gray = FALSE;
     Bool_type disable_flag = FALSE;
     Bool_type is_unit_result;
-    Result * p_result;
 
     char * results_map = NULL;
     Bool_type result_exists_for_quad;
@@ -7873,10 +7833,9 @@ draw_surfaces_2d( Color_property *p_cp,
     Bool_type show_result, showgs=FALSE;
     float verts[4][3];
     float cols[4][4];
-    float pts[12];
     float res[4];
     float rmin, rmax;
-    int surf, matl, cnt, nd, i, j, k, mesh_idx;
+    int surf, matl, nd, i, j, k, mesh_idx;
     int (*connects)[4];
     unsigned char *hide_surf, *disable_surf;
     Mesh_data *p_mesh;
@@ -8031,7 +7990,7 @@ draw_surfaces_3d( Color_property *p_cp,
     float cols[4][4];
     float res[4];
     float rmin, rmax;
-    int surf, matl, cnt, nd, i, j, k, mesh_idx;
+    int surf, cnt, nd, i, j, k, mesh_idx;
     int (*connects)[4];
     unsigned char *disable_surf, *hide_surf;
     Mesh_data *p_mesh;
@@ -8494,12 +8453,9 @@ draw_edges_3d( Analysis *analy )
     int edge_qty;
     Edge_obj *eo_array;
     int enodes[2];
-    float cols[4][4];
 
-    /* Variables used for removing edges on reflection
-     * planes.
-     */
-    float reflect_pts[10][6], num_refl_sets = 0, point_diff;
+    /* Variables used for removing edges on reflection planes. */
+    float reflect_pts[10][6], point_diff;
     Refl_plane_obj *plane;
 
     Bool_type draw_refl_edge[10] = {TRUE,TRUE,TRUE,TRUE,TRUE,
@@ -8683,7 +8639,6 @@ draw_edges_2d( Analysis *analy )
     int edge_qty;
     Edge_obj *eo_array;
     int enodes[2];
-    float cols[4][4];
 
     p_mesh = MESH_P( analy );
 
@@ -8769,7 +8724,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     Bool_type particle_hilite = FALSE;
     float *data_array;
     Surface_data *p_surface;
-    int facet_qty, facet;
+    int facet_qty;
 
     Bool_type pn_hilite=FALSE, result_defined=FALSE, valid_free_node=FALSE;
     float particle_select_col[3] = {.4, .4, .4};
@@ -13061,22 +13016,13 @@ draw_foreground( Analysis *analy )
         hrightjustify( TRUE );
 
         p_mesh = MESH_P( analy );
-        //NEW
-        //check if name exists
-        char teststr[20];
-        teststr[0] = '\0';
-        int num_items_read = 0;
         int status = 0;
-        char test[100];
-        test[0] = '\0';
-        //NEW
-      Htable_entry *tempEnt;
-      char *name;
-      int mat_number;
+        Htable_entry *tempEnt;
+        char *name;
+        int mat_number;
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
             name =  analy->sorted_labels[i];
-
             status = htable_search(analy->mat_labels,name,FIND_ENTRY,&tempEnt);
             if(status != OK)
             {
@@ -15262,12 +15208,10 @@ log_variable_scale( float data_minimum, float data_maximum,
 
     Bool_type logFound = FALSE;
 
-    float data_range;
-
     double a,
            al,
            b,
-           dist, distl,
+           distl,
            fm1,  fm2,
            xmin, xminl, xminp,
            xmax, xmaxl, xmaxp;
@@ -15279,7 +15223,6 @@ log_variable_scale( float data_minimum, float data_maximum,
           index,
           m1, m2,
           nal,
-          magnitude,
           n,
           np, nx;
 
@@ -15289,11 +15232,6 @@ log_variable_scale( float data_minimum, float data_maximum,
 
     /* Establish compensation for computer round-off */
     static float epsilon = 0.00002;
-    /*
-     * Establish acceptable scale interval values (times an integer power
-     * of 10
-     */
-    static float interval_size[4] = { 1.0, 2.0, 5.0, 10.0 };
 
     /* Shift data to be in a positive range */
     val = 0.0;
@@ -15863,8 +15801,7 @@ get_particle_node_num( Analysis *analy, MO_class_data *p_mo_class,
 void
 check_for_free_nodes( Analysis *analy )
 {
-    MO_class_data *p_element_class,
-                  *p_mo_class,
+    MO_class_data *p_mo_class,
                   **mo_classes;
 
     Mesh_data     *p_mesh;
@@ -15946,8 +15883,7 @@ check_for_free_nodes( Analysis *analy )
 static void
 draw_free_nodes( Analysis *analy )
 {
-    MO_class_data *p_element_class=NULL,
-                  *p_node_class=NULL,
+    MO_class_data *p_node_class=NULL,
                   *p_mo_class=NULL,
                   *p_ml_class=NULL,
                   **p_ml_classes=NULL,
@@ -15955,9 +15891,7 @@ draw_free_nodes( Analysis *analy )
 
     Mesh_data *p_mesh;
     List_head *p_lh;
-    Visibility_data *p_vd;
     unsigned char *part_visib;
-    char *cname;
 
     int *free_nodes_list=NULL;
     int *free_nodes_elem_list=NULL;
@@ -15966,9 +15900,9 @@ draw_free_nodes( Analysis *analy )
 
     int nd;
 
-    float *activity, activity_flag=0.0, temp_activity_flag=0.0;
+    float *activity, activity_flag=0.0;
     float *data_array;
-    float col[4], *hilite_col;
+    float col[4];
     float verts[3], leng[3];
     float rfac, node_base_radius, node_radius;
     float **sand_arrays;
@@ -15983,15 +15917,11 @@ draw_free_nodes( Analysis *analy )
         {0., -1., 0.}, {0., 0., 1.}, {0., 0., -1}
     };
 
-    int  elem_qty;
-    int  fn_count = 0;
-    int  node_index, node_num, num_nodes, node_qty;
-    int  class_index, class_qty;
+    int  node_index, num_nodes, node_qty;
     int  conn_qty;
-    int  vert_cnt;
 
     int i, j, k, l;
-    int dim, obj_qty;
+    int dim;
 
     int  *connects;
 
@@ -16005,19 +15935,14 @@ draw_free_nodes( Analysis *analy )
 
     int  status;
 
-    float *nodal_data;
-
     Bool_type particle_class = FALSE,
               particle_class_found = FALSE,
               showgs = FALSE,
               particle_node_found = FALSE,
               free_node_found = FALSE;
-    int particle_count;
-    int *particle_nodes;
-    int particle_hide = 0;
 
     /* Variables related to materials */
-    unsigned char *disable_mtl,  *hide_mtl, hide_one_mat;
+    unsigned char *hide_mtl;
     unsigned char *disable_part, *hide_part;
 
     int  *mat, mat_num, elem_id;
@@ -17200,7 +17125,6 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
     Mesh_data *p_mesh;
     int class_select_index=0;
     int obj_type;
-    int i;
 
     obj_type = p_class->superclass;
 
@@ -17355,7 +17279,6 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
     Bool_type disable_elem = FALSE;
     Mesh_data *p_mesh;
     int obj_type;
-    int i;
     int class_select_index = 0;
 
     obj_type = p_class->superclass;
@@ -17457,19 +17380,16 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
 int
 get_class_label( MO_class_data *class, int object_index )
 {
-    int label_index, i;
+    int label_index;
 
-    /* If we have no labels then the index is still the label, so
-     * just return!
-    */
-
+    /* If we have no labels then the index is still the label, so just return! */
     if ( !class )
         return( object_index );
 
     if ( !class->labels_found )
         return( object_index+1 );
 
-    if ( object_index>class->qty )
+    if ( object_index > class->qty )
         return (M_INVALID_LABEL);
 
     label_index = class->labels_index[object_index];
@@ -17496,9 +17416,7 @@ dump_class_labels( MO_class_data *class )
     strcat(labelsFilename, class->short_name);
 
     fp = fopen( labelsFilename, "w" );
-    for ( i=0;
-            i<class->qty;
-            i++ )
+    for ( i = 0; i < class->qty; i++ )
     {
         label_index = class->labels_index[i];
         fprintf( fp, "\nId=%d \tLabel=%8d \tIndex=%8d",
@@ -17530,7 +17448,6 @@ label_compare( const void *in_key, const void *in_label )
 int
 get_class_label_index( MO_class_data *class, int label_num )
 {
-    int label_index;
     MO_class_labels *result_ptr;
 
     if ( !class->labels_found )
@@ -17757,7 +17674,6 @@ Bool_type
 is_brick_class( Analysis *analy, char *short_name )
 {
     char short_name_upper[M_MAX_NAME_LEN];
-    int i;
 
     /* Convert to uppercase */
     string_to_upper( short_name, short_name_upper );
@@ -17967,8 +17883,7 @@ void disable_particles( Analysis *analy,
  */
 void DrawCone(float len, float base_diam, float cols[4][4], int res )
 {
-    int i;
-    GLdouble base = .15, height=10., top_diam=0.;
+    GLdouble top_diam=0.;
     GLint    slices=2, stacks=2;
 
     float temp1=0.0;
