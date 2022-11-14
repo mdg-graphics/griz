@@ -2019,6 +2019,7 @@ extern int get_result_qty( Analysis *, int subrec_id );
 
 #ifdef HAVE_PARALLEL_READ
 /* Mili Reader Wrappers - parallel_read.c */
+extern long prec_timer();
 extern Bool_type check_running_on_login_node();
 extern int griz_python_setup( Analysis * );
 extern int mili_reader_db_open( char *, int * );

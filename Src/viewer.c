@@ -991,6 +991,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     putc( (int) '\n', stdout );
 #endif
 
+
     num_states = analy->state_count;
     if ( num_states > 0 )
     {
@@ -1231,8 +1232,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         {
             analy->ti_data_found = FALSE;
         }
-
-
     }
 
     /*
@@ -1510,8 +1509,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         /* Allocate data structures for By-Class Selections */
 
-        p_md->by_class_select = NEW_N( Class_Select, elem_class_qty,
-                                       "Class selection data" );
+        p_md->by_class_select = NEW_N( Class_Select, elem_class_qty, "Class selection data" );
 
         for ( i = 0; i < class_qty; i++ )
         {
@@ -1761,7 +1759,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 if ( is_particle_class( analy, p_mocd->superclass, p_mocd->short_name ) )
                 {
                     init_particle_visibility( p_mocd, analy );
-
                 }
                 else
                 {

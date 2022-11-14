@@ -92,8 +92,8 @@ mili_reader_db_open( char *path_root, int *p_dbid )
     /* Create tuple of arguments for mili reader */
     PyTuple_SetItem(py_Arglist, 0, py_PlotFilePath); // base_filename
     PyTuple_SetItem(py_Arglist, 1, PyList_New(0));   // procs = []
-    PyTuple_SetItem(py_Arglist, 2, Py_True);         // suppress_parallel = True
-    PyTuple_SetItem(py_Arglist, 3, Py_False);        // experimental = False
+    PyTuple_SetItem(py_Arglist, 2, Py_False);         // suppress_parallel = True
+    PyTuple_SetItem(py_Arglist, 3, Py_True);        // experimental = False
 
     /* Call open_database function */
     p_analysis->py_MiliDB = call_mili_module_function(p_analysis->py_MiliReaderModule, OPEN_DATABASE, py_Arglist);
@@ -785,6 +785,7 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
 
 #ifdef MILI_READER_TIMING
     long start, end;
+    long istart, iend;
     start = prec_timer();
 #endif
 
@@ -810,15 +811,21 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
     /* This technically breaks if reading multiple results, but that currently never happens */
     for( i = 0; i < qty; i++ )
     {
+        istart = prec_timer();
         py_QueryReturn = mili_reader_query( results[i], class_name, NULL, ipt, state, state );
+        iend = prec_timer();
+        printf("\tJust query = %ld\n", (iend-istart));
         if( py_QueryReturn == NULL )
             return NOT_OK;
 
         /* Extract/reorder the results from the Python dictionary structure */
         node_result = (p_subrec->p_object_class->superclass == G_NODE);
         elem_class_idx = p_subrec->p_object_class->elem_class_index;
+        istart = prec_timer();
         rval = mili_reader_extract_query_data( py_QueryReturn, results[i], state, subrecord_name, node_result,
                                                elem_class_idx, comp_qty, data );
+        iend = prec_timer();
+        printf("\tExtracting results = %ld\n", (iend-istart));
         
         Py_DECREF( py_QueryReturn );
     }
@@ -1166,6 +1173,7 @@ mili_reader_get_geom( Analysis * analy )
              * py_CoordsTuple;
     PyObject * py_ProcLabels, * py_ProcConns, * py_ProcNodes;
     PyObject * py_ProcMats, * py_ProcParts;
+    PyObject * py_ElemClassMats, * py_ElemClassParts;
     PyObject * py_ByteArray;
     unsigned char * bytearray;
     float * floatValues;
@@ -1183,6 +1191,7 @@ mili_reader_get_geom( Analysis * analy )
 
 #ifdef MILI_READER_TIMING
     long start, end;
+    long istart, iend;
     start = prec_timer();
 #endif
 
@@ -1195,28 +1204,26 @@ mili_reader_get_geom( Analysis * analy )
     }
 
     /* Split out data by processor for easier access later on */
+    PyObject *py_AllMeshObjectClasses = get_pyobject_attribute( py_GetGeomCallData, "mo_classes" );
+    PyObject *py_AllNodes = get_pyobject_attribute( py_GetGeomCallData, "nodes" );
+    PyObject *py_AllLabels = get_pyobject_attribute( py_GetGeomCallData, "labels" );
+    PyObject *py_AllConns = get_pyobject_attribute( py_GetGeomCallData, "connectivity" );
+    PyObject *py_AllMats = get_pyobject_attribute( py_GetGeomCallData, "materials" );
+    PyObject *py_AllParts = get_pyobject_attribute( py_GetGeomCallData, "parts" );
+
+    /* Split out data by processor for easier access later on */
     PyObject **py_MOclass_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
     PyObject **py_nodes_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
     PyObject **py_labels_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
     PyObject **py_conns_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
-    PyObject **py_mats_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
-    PyObject **py_parts_by_proc = (PyObject**) malloc(proc_count * sizeof(PyObject*));
 
     for( i = 0; i < proc_count; i++ )
     {
-        py_ProcData = PySequence_ITEM( py_GetGeomCallData, i );
-        if( py_ProcData == NULL ){
-            fprintf( stderr, "mili_reader_get_geom - Geometry data is Null for processor %d\n", i );
-            return GRIZ_FAIL;
-        }
-
         /* Get data */
-        py_MOclass_by_proc[i] = get_pyobject_attribute( py_ProcData, "mo_classes");
-        py_nodes_by_proc[i]   = get_pyobject_attribute( py_ProcData, "nodes");
-        py_labels_by_proc[i]  = get_pyobject_attribute( py_ProcData, "labels");
-        py_conns_by_proc[i]   = get_pyobject_attribute( py_ProcData, "connectivity");
-        py_mats_by_proc[i]   = get_pyobject_attribute( py_ProcData, "materials");
-        py_parts_by_proc[i]   = get_pyobject_attribute( py_ProcData, "parts");
+        py_MOclass_by_proc[i] = PySequence_ITEM( py_AllMeshObjectClasses, i);
+        py_nodes_by_proc[i]   = PySequence_ITEM( py_AllNodes, i);
+        py_labels_by_proc[i] = PySequence_ITEM( py_AllLabels, i );
+        py_conns_by_proc[i] = PySequence_ITEM( py_AllConns, i );
     }
 
     /* Get dimensions of the database */
@@ -1250,6 +1257,7 @@ mili_reader_get_geom( Analysis * analy )
             py_MOData = py_MOclass_by_proc[j];
             if ( py_MOData == NULL )
                 continue;
+            py_MOData = PyDict_Values( py_MOData );
             num_classes = PySequence_Length( py_MOData );
 
             for( k = 0; k < num_classes; k++ )
@@ -1299,6 +1307,7 @@ mili_reader_get_geom( Analysis * analy )
         Py_DECREF( py_MOData );
 
         /* ----------------------------------------------------------------------------------------- */
+        istart = prec_timer();
 
         /* Look up node class */
         rval = htable_search( p_ht, "node", FIND_ENTRY, &p_hte );
@@ -1308,8 +1317,6 @@ mili_reader_get_geom( Analysis * analy )
         p_md->index_map = NEW( ProcessorToGlobalMap, "Proc to Global index map");
         p_md->index_map->node_count = (int*) malloc( proc_count * sizeof(int));
         p_md->index_map->node_map = (int **) malloc( proc_count * sizeof(int*));
-
-
 
         /* Populate data for nodal class */
         if ( rval == OK )
@@ -1361,8 +1368,6 @@ mili_reader_get_geom( Analysis * analy )
             for( j = 0; j < proc_count; j++ )
             {
                 nodes_on_proc = p_md->index_map->node_count[j];
-                py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[j], node_class->short_name );
-
                 if( nodes_on_proc > 0 )
                 {
                     /* Store label numbers in array temporarily, will overwrite next. */
@@ -1521,7 +1526,12 @@ mili_reader_get_geom( Analysis * analy )
         /* Keep a reference to node geometry handy. */
         p_md->node_geom = node_class;
 
+        iend = prec_timer();
+        printf("Nodal class load = %ld\n", (iend-istart));
+
         /* ----------------------------------------------------------------------------------------- */
+
+        istart = prec_timer();
 
         /* For each element class load labels, connectivity, parts, materials, etc. */
         htable_get_data( p_ht, (void***) &htable_mo_classes, &elem_class_qty);
@@ -1673,6 +1683,10 @@ mili_reader_get_geom( Analysis * analy )
                 PyObject * py_M, * py_P;
                 int * class_index_map;
                 int * node_index_map;
+
+                py_ElemClassMats = PyDict_GetItemString( py_AllMats, elem_class->short_name );
+                py_ElemClassParts = PyDict_GetItemString( py_AllParts, elem_class->short_name );
+
                 for( k = 0; k < proc_count; k++ )
                 {
                     if( p_md->index_map->elem_count[j][k] > 0 )
@@ -1701,10 +1715,10 @@ mili_reader_get_geom( Analysis * analy )
                         Py_DECREF( py_ByteArray );
 
                         /* Load in element materials and part numbers */
-                        py_ProcMats = PyDict_GetItemString( py_mats_by_proc[k], elem_class->short_name );
-                        py_ProcParts = PyDict_GetItemString( py_parts_by_proc[k], elem_class->short_name );
+                        py_ProcMats  = PySequence_ITEM( py_ElemClassMats, k );
+                        py_ProcParts = PySequence_ITEM( py_ElemClassParts, k );
+
                         PyErr_Clear();
-                        
                         py_MatBytes = PyByteArray_FromObject( py_ProcMats );
                         py_PartBytes = PyByteArray_FromObject( py_ProcParts );
 
@@ -1846,6 +1860,9 @@ mili_reader_get_geom( Analysis * analy )
                 elem_labels = NULL;
             }
         }
+
+        iend = prec_timer();
+        printf("Nodal class load = %ld\n", (iend-istart));
 
         // Need to call gen_material_data on M_MAT classes after all other classes are processed.
         MO_class_data ** mat_classes = p_md->classes_by_sclass[M_MAT].list;
@@ -2184,7 +2201,8 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
     Hash_table * p_subrecord_gids_ht;
     Hash_table * p_sv_ht, * p_primal_ht;
      
-    PyObject * py_CallData, * py_Struct;
+    PyObject * py_CallData;
+    PyObject * py_ES, * py_SubrecordList;
     PyObject ** py_ESList;
     PyObject * py_Subrecords,
              * py_Subrecord,
@@ -2211,6 +2229,8 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
         fprintf(stderr, MR_DEFAULT_FAILED, "mili_reader_get_st_descriptors", GET_ST_DESCRIPTORS_CALL);
         return GRIZ_FAIL;
     }
+    py_ES = get_pyobject_attribute( py_CallData, "element_sets" );
+    py_SubrecordList = get_pyobject_attribute( py_CallData, "subrecords" );
 
     /* Get data for each processor */
     int proc_count = analy->proc_count;
@@ -2220,12 +2240,9 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
 
     /* Store data for each processor */
     for( i = 0; i < proc_count; i++ ){
-        py_Struct = PySequence_ITEM( py_CallData, i );
-        if ( py_Struct != NULL && py_Struct != Py_None ){
-            py_ESList[i] = get_pyobject_attribute( py_Struct, "element_sets");
-            py_subrecord_list_by_proc[i] = get_pyobject_attribute( py_Struct, "subrecords" );
-            subrecord_count_per_proc[i] = PySequence_Length( py_subrecord_list_by_proc[i] );
-        }
+        py_ESList[i] = PySequence_ITEM( py_ES, i );
+        py_subrecord_list_by_proc[i] = PySequence_ITEM( py_SubrecordList, i );
+        subrecord_count_per_proc[i] = PySequence_Length( py_subrecord_list_by_proc[i] );
     }
 
     /* Get Mesh id and number of state record formats */
