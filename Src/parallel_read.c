@@ -1367,6 +1367,7 @@ mili_reader_get_geom( Analysis * analy )
             /* Create per processor mapping for nodes to index in global node list */
             for( j = 0; j < proc_count; j++ )
             {
+                py_ProcLabels = PyDict_GetItemString( py_labels_by_proc[j], node_class->short_name );
                 nodes_on_proc = p_md->index_map->node_count[j];
                 if( nodes_on_proc > 0 )
                 {
@@ -2938,7 +2939,6 @@ mili_reader_read_string( int dbid, char* key, char* value)
     int status;
     Analysis * p_analysis = get_analy_ptr();
     status = mili_reader_get_string( p_analysis->py_MiliParameters, key, value);
-
     return status;
 }
 

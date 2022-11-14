@@ -1064,7 +1064,7 @@ AC_DEFUN([CONFIGURE_MILI_READER],
     # Set options for the Parallel read with Mili reader
     #
     MILI_READER_HOME="/usr/apps/mdg"
-    DEFAULT_VENV_NAME="embedded_python_c"
+    DEFAULT_VENV_NAME=".venv-mili-python-3.7.2"
     VENV_NAME=""
     MILI_READER_SUPPORT="False"
     MILI_READER_SRC=""
