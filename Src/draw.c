@@ -1982,13 +1982,7 @@ static void draw_vecs_3d( Vector_pt_obj *, float, float, float, float, float,
                           Mesh_data *,  Analysis * );
 static void draw_node_vec_2d_3d( Analysis * );
 static void load_vec_result( Analysis *, float *[3], float *, float * );
-/*
-static void find_front_faces();
-static void draw_reg_carpet();
-static void draw_vol_carpet();
-static void draw_shell_carpet();
-static void draw_ref_carpet();
-*/
+
 static void draw_traces( Analysis * );
 static void draw_trace_list( Trace_pt_obj *, Analysis * );
 static void draw_sphere( float [3], float, int);
@@ -2006,7 +2000,7 @@ static void scan_poly( int, float [4][3], float [4][3], float [4], int,
                        Mesh_data *, Analysis * );
 static void draw_poly_2d( int, float [4][3], float [4][4], float [4], int,
                           Mesh_data *, Analysis * );
-static void draw_line( int, float *, int, Mesh_data *, Analysis *, Bool_type, Bool_type * );
+static void draw_line( int, float *, float *, int, Mesh_data *, Analysis *, Bool_type, Bool_type * );
 static void draw_3d_text( float [3], char *, Bool_type );
 
 static void draw_free_nodes( Analysis * );
@@ -2062,10 +2056,6 @@ void
 loadPresetCM(char *name);
 
 void DrawCone(float len, float base_diam, float cols[4][4], int res );
-
-/*
- * SECTION_TAG( Grid window )
- */
 
 
 /*****************************************************************
@@ -4371,7 +4361,9 @@ draw_grid( Analysis *analy )
 
         glColor3fv( v_win->contour_color );
         for ( cont = analy->contours; cont != NULL; cont = cont->next )
-            draw_line( cont->cnt, cont->pts, -1, p_mesh, analy, FALSE, NULL );
+        {
+            draw_line( cont->cnt, cont->pts, NULL, -1, p_mesh, analy, FALSE, NULL );
+        }
 
         glLineWidth( (GLfloat) 1.0 );
         antialias_lines( FALSE, 0 );
@@ -4553,7 +4545,9 @@ draw_grid_2d( Analysis *analy )
 
         glColor3fv( v_win->contour_color );
         for ( cont = analy->contours; cont != NULL; cont = cont->next )
-            draw_line( cont->cnt, cont->pts, -1, p_mesh, analy, FALSE, NULL );
+        {
+            draw_line( cont->cnt, cont->pts, NULL, -1, p_mesh, analy, FALSE, NULL );
+        }
 
         glLineWidth( (GLfloat) 1.0 );
         antialias_lines( FALSE, 0 );
@@ -5862,15 +5856,18 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
     Bool_type verts_ok, show_result, showgs;
     float *data_array;
     float *activity;
-    float col[4];
+    float cols[4][4];
     float verts[2][3];
     float pts[6];
     float threshold, rmin, rmax;
     GLfloat nearfar[2];
     int matl, i, j, k, mesh_idx;
+    int (*connects)[3];
+    int nd;
     int *mtl;
     int *p_index_source;
     int beam_qty;
+    Interp_mode_type save_interp_mode;
     unsigned char *disable_mtl, *hide_mtl;
     Bool_type disable_gray = FALSE;
     Bool_type disable_flag = FALSE;
@@ -5919,13 +5916,24 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
                : NULL;
 
     p_mesh = MESH_P( analy );
+    connects = (int(*)[3]) p_beam_class->objects.elems->nodes;
     mtl = p_beam_class->objects.elems->mat;
     beam_qty = p_beam_class->qty;
     disable_mtl = p_mesh->disable_material;
     hide_mtl = p_mesh->hide_material;
 
+    /* Override interpolation mode for material and mesh results. */
+    save_interp_mode = analy->interp_mode;
+    if ( show_mat_result || show_mesh_result )
+        analy->interp_mode = NO_INTERP;
+
     /* Abstract the source array for data values and its index. */
-    if ( show_mat_result )
+    if ( analy->interp_mode == GOOD_INTERP )
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
+    }
+    else if ( show_mat_result )
     {
         data_array = ((MO_class_data **)
                       p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
@@ -5938,10 +5946,15 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else
+    else if( analy->interp_mode == NO_INTERP && (!show_node_result && ! show_particle_result))
     {
         data_array = p_beam_class->data_buffer;
         p_index_source = &i;
+    }
+    else
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
     }
 
     get_min_max( analy, TRUE, &rmin, &rmax );
@@ -5989,9 +6002,13 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
         else
             showgs = FALSE;
 
-        color_lookup( col,  data_array[*p_index_source],
-                      rmin, rmax, threshold,
-                      matl, analy->logscale, showgs );
+        for( j = 0; j < 2; j++ )
+        {
+            nd = connects[i][j];
+            color_lookup( cols[j],  data_array[*p_index_source],
+                          rmin, rmax, threshold,
+                          matl, analy->logscale, showgs );
+        }
 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
@@ -6006,9 +6023,12 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
                     if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
-                        for(j = 0; j < 4; j++)
+                        for( k = 0; k < 2; k++ )
                         {
-                            col[j] = grayval;
+                            for(j = 0; j < 4; j++)
+                            {
+                                cols[k][j] = grayval;
+                            }
                         }
                     }
                 }
@@ -6022,21 +6042,21 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
                                     || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
                 if( grayout ){
                     grayel = 1;
-                    for(j = 0; j < 4; j++)
+                    for( k = 0; k < 2; k++ )
                     {
-                        col[j] = grayval;
+                        for(j = 0; j < 4; j++)
+                        {
+                            cols[k][j] = grayval;
+                        }
                     }
                 }
             }
         }
 
-        /* Set color */
-        glColor3fv(col);
-
         for ( j = 0; j < 2; j++ )
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
-        draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, (float*)cols, matl, p_mesh, analy, FALSE, NULL );
     }
 
     grayel = 0;
@@ -6046,6 +6066,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
         glDepthRange( nearfar[0], nearfar[1] );
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+    analy->interp_mode = save_interp_mode;
 
     if(results_map != NULL)
         free(results_map);
@@ -6064,12 +6085,14 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
     Bool_type verts_ok, show_result, showgs=FALSE;
     float *data_array;
     float *activity;
-    float col[4];
+    float cols[4][4];
     float verts[2][3];
     float pts[6];
     float threshold, rmin, rmax;
     GLfloat nearfar[2];
     int matl, i, j, k, mesh_idx;
+    int (*connects)[2];
+    int nd;
     int *mtl;
     int *p_index_source;
     int truss_qty;
@@ -6125,13 +6148,19 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
                : NULL;
 
     p_mesh = MESH_P( analy );
+    connects = (int(*)[2]) p_truss_class->objects.elems->nodes;
     mtl = p_truss_class->objects.elems->mat;
     truss_qty = p_truss_class->qty;
     disable_mtl = p_mesh->disable_material;
     hide_mtl = p_mesh->hide_material;
 
     /* Abstract the source array for data values and its index. */
-    if ( show_mat_result )
+    if ( analy->interp_mode == GOOD_INTERP )
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
+    }
+    else if ( show_mat_result )
     {
         data_array = ((MO_class_data **)
                       p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
@@ -6144,10 +6173,15 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else
+    else if( analy->interp_mode == NO_INTERP && (!show_node_result && ! show_particle_result))
     {
         data_array = p_truss_class->data_buffer;
         p_index_source = &i;
+    }
+    else
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
     }
 
     get_min_max( analy, TRUE, &rmin, &rmax );
@@ -6196,9 +6230,13 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
         else
             showgs = FALSE;
 
-        color_lookup( col,  data_array[*p_index_source],
-                      rmin, rmax, threshold,
-                      matl, analy->logscale, showgs );
+        for( j = 0; j < 2; j++ )
+        {
+            nd = connects[i][j];
+            color_lookup( cols[j],  data_array[*p_index_source],
+                          rmin, rmax, threshold,
+                          matl, analy->logscale, showgs );
+        }
 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
@@ -6213,9 +6251,12 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
                     if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
-                        for(j = 0; j < 4; j++)
+                        for( k = 0; k < 2; k++ )
                         {
-                            col[j] = grayval;
+                            for(j = 0; j < 4; j++)
+                            {
+                                cols[k][j] = grayval;
+                            }
                         }
                     }
                 }
@@ -6229,21 +6270,22 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
                                     || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
                 if( grayout ){
                     grayel = 1;
-                    for(j = 0; j < 4; j++)
+                    for( k = 0; k < 2; k++ )
                     {
-                        col[j] = grayval;
+                        for(j = 0; j < 4; j++)
+                        {
+                            cols[k][j] = grayval;
+                        }
                     }
                 }
             }
         }
 
-        /* Set color */
-        glColor3fv( col );
         /* Draw Truss */
         for ( j = 0; j < 2; j++ )
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
-        draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, (float*)cols, matl, p_mesh, analy, FALSE, NULL );
     }
 
     grayel = 0;
@@ -6924,7 +6966,7 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 }
             }
 
-            draw_line( 4, pts, mtls[i], p_mesh, analy, TRUE, NULL );
+            draw_line( 4, pts, NULL, mtls[i], p_mesh, analy, TRUE, NULL );
         }
     }
 
@@ -7256,7 +7298,7 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 }
             }
 
-            draw_line( 3, pts, mtls[i], p_mesh, analy, TRUE, NULL );
+            draw_line( 3, pts, NULL, mtls[i], p_mesh, analy, TRUE, NULL );
         }
     }
 
@@ -7285,7 +7327,7 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
     Bool_type show_result, showgs=FALSE;
     float *data_array;
     float *activity;
-    float col[4];
+    float cols[4][4];
     float pts[6];
     float orig, threshold, rmin, rmax;
     unsigned char *hide_mtl, *disable_mtl;
@@ -7345,7 +7387,12 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
                : NULL;
 
     /* Abstract the source array for data values and its index. */
-    if ( show_mat_result )
+    if ( analy->interp_mode == GOOD_INTERP )
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
+    }
+    else if ( show_mat_result )
     {
         data_array = ((MO_class_data **)
                       p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
@@ -7358,10 +7405,15 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else
+    else if( analy->interp_mode == NO_INTERP && (!show_node_result && ! show_particle_result))
     {
         data_array = p_beam_class->data_buffer;
         p_index_source = &i;
+    }
+    else
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
     }
 
     get_min_max( analy, FALSE, &rmin, &rmax );
@@ -7397,9 +7449,14 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
         else
             showgs = FALSE;
 
-        color_lookup( col, data_array[*p_index_source],
-                      rmin, rmax, threshold,
-                      matl, analy->logscale, showgs );
+
+        for( j = 0; j < 2; j++ )
+        {
+            nd = connects[i][j];
+            color_lookup( cols[j],  data_array[*p_index_source],
+                          rmin, rmax, threshold,
+                          matl, analy->logscale, showgs );
+        }
 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
@@ -7414,9 +7471,12 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
                     if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
-                        for(j = 0; j < 4; j++)
+                        for( k = 0; k < 2; k++ )
                         {
-                            col[j] = grayval;
+                            for(j = 0; j < 4; j++)
+                            {
+                                cols[k][j] = grayval;
+                            }
                         }
                     }
                 }
@@ -7430,16 +7490,16 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
                                     || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
                 if( grayout ){
                     grayel = 1;
-                    for(j = 0; j < 4; j++)
+                    for( k = 0; k < 2; k++ )
                     {
-                        col[j] = grayval;
+                        for(j = 0; j < 4; j++)
+                        {
+                            cols[k][j] = grayval;
+                        }
                     }
                 }
             }
         }
-
-        /* Set color */
-        glColor3fv(col);
 
         for ( j = 0; j < 2; j++ )
         {
@@ -7461,7 +7521,7 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
                     pts[j*3+k] = nodes[nd][k];
             }
         }
-        draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, (float*)cols, matl, p_mesh, analy, FALSE, NULL );
     }
 
     antialias_lines( FALSE, 0 );
@@ -7483,14 +7543,14 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
                MO_class_data *p_truss_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
-    int (*connects)[3];
+    int (*connects)[2];
     int *p_index_source;
     Mesh_data *p_mesh;
     GVec2D *nodes, *onodes;
     Bool_type show_result, showgs=FALSE;
     float *data_array;
     float *activity;
-    float col[4];
+    float cols[4][4];
     float pts[6];
     float orig, threshold, rmin, rmax;
     unsigned char *hide_mtl, *disable_mtl;
@@ -7538,7 +7598,7 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
     }
 
     p_mesh = analy->mesh_table + p_truss_class->mesh_id;
-    connects = (int (*)[3]) p_truss_class->objects.elems->nodes;
+    connects = (int (*)[2]) p_truss_class->objects.elems->nodes;
     hide_mtl = p_mesh->hide_material;
     disable_mtl = p_mesh->disable_material;
     mtls = p_truss_class->objects.elems->mat;
@@ -7550,7 +7610,12 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
                : NULL;
 
     /* Abstract the source array for data values and its index. */
-    if ( show_mat_result )
+    if ( analy->interp_mode == GOOD_INTERP )
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
+    }
+    else if ( show_mat_result )
     {
         data_array = ((MO_class_data **)
                       p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
@@ -7563,10 +7628,15 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else
+    else if( analy->interp_mode == NO_INTERP && (!show_node_result && ! show_particle_result))
     {
         data_array = p_truss_class->data_buffer;
         p_index_source = &i;
+    }
+    else
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
     }
 
     get_min_max( analy, FALSE, &rmin, &rmax );
@@ -7602,9 +7672,13 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
         else
             showgs = FALSE;
 
-        color_lookup( col,  data_array[*p_index_source],
-                      rmin, rmax, threshold,
-                      matl, analy->logscale, showgs );
+        for( j = 0; j < 2; j++ )
+        {
+            nd = connects[i][j];
+            color_lookup( cols[j],  data_array[*p_index_source],
+                          rmin, rmax, threshold,
+                          matl, analy->logscale, showgs );
+        }
 
         /* Handle automatically graying out elements without a result */
         grayel = 0;
@@ -7619,9 +7693,12 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
                     if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
                         grayel = 1;         
-                        for(j = 0; j < 4; j++)
+                        for( k = 0; k < 2; k++ )
                         {
-                            col[j] = grayval;
+                            for(j = 0; j < 4; j++)
+                            {
+                                cols[k][j] = grayval;
+                            }
                         }
                     }
                 }
@@ -7635,16 +7712,16 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
                                     || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
                 if( grayout ){
                     grayel = 1;
-                    for(j = 0; j < 4; j++)
+                    for( k = 0; k < 2; k++ )
                     {
-                            col[j] = grayval;
+                        for(j = 0; j < 4; j++)
+                        {
+                            cols[k][j] = grayval;
+                        }
                     }
                 }
             }
         }
-
-        /* Set color */
-        glColor3fv( col );
 
         /* Draw Truss */
         for ( j = 0; j < 2; j++ )
@@ -7667,7 +7744,7 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
                     pts[j*3+k] = nodes[nd][k];
             }
         }
-        draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, cols, matl, p_mesh, analy, FALSE, NULL );
     }
 
     antialias_lines( FALSE, 0 );
@@ -8413,6 +8490,7 @@ draw_edges_3d( Analysis *analy )
     int edge_qty;
     Edge_obj *eo_array;
     int enodes[2];
+    float cols[4][4];
 
     /* Variables used for removing edges on reflection
      * planes.
@@ -8449,10 +8527,10 @@ draw_edges_3d( Analysis *analy )
     glColor3fv( v_win->edge_color  );
 
     if ( analy->reflect && analy->refl_planes )
-        for ( plane = analy->refl_planes;
-                plane != NULL;
-                plane = plane->next )
+    {
+        for ( plane = analy->refl_planes; plane != NULL; plane = plane->next )
             num_planes++;
+    }
 
     for ( i = 0; i < edge_qty; i++ )
     {
@@ -8469,8 +8547,7 @@ draw_edges_3d( Analysis *analy )
                 for ( k = 0; k < 3; k++ )
                 {
                     orig = onodes[nd][k];
-                    pts[j*3+k] = orig + analy->displace_scale[k]*
-                                 (nodes[nd][k] - orig);
+                    pts[j*3+k] = orig + analy->displace_scale[k] * (nodes[nd][k] - orig);
                 }
             }
             else
@@ -8491,16 +8568,12 @@ draw_edges_3d( Analysis *analy )
             if ( analy->refl_orig_only )
             {
                 plane_index = 0;
-                for ( plane = analy->refl_planes;
-                        plane != NULL;
-                        plane = plane->next )
+                for ( plane = analy->refl_planes; plane != NULL; plane = plane->next )
                 {
                     point_transform( &reflect_pts[0][0], &pts[0], &plane->pt_transf );
                     point_transform( &reflect_pts[0][3], &pts[3], &plane->pt_transf );
 
-                    for (index=0;
-                            index<6;
-                            index++)
+                    for (index = 0; index < 6; index++)
                     {
                         point_diff = fabs(reflect_pts[index][0]-pts[index]);
                         if ( point_diff > 1.0e-5 )
@@ -8513,7 +8586,6 @@ draw_edges_3d( Analysis *analy )
             else
             {
                 /* Cumulative reflections */
-
                 plane_index = 0;
                 plane       = analy->refl_planes;
                 point_transform( &reflect_pts[0][0], &pts[0], &plane->pt_transf );
@@ -8522,9 +8594,7 @@ draw_edges_3d( Analysis *analy )
                 point_diff_flag = FALSE;
                 draw_refl_flag  = TRUE;
 
-                for (index=0;
-                        index<6;
-                        index++)
+                for (index = 0; index < 6; index++)
                 {
                     point_diff = fabs(reflect_pts[0][index]-pts[index]);
                     if ( point_diff > 1.0e-5 )
@@ -8543,15 +8613,11 @@ draw_edges_3d( Analysis *analy )
 
                 plane_index = 1;
 
-                for ( plane = analy->refl_planes->next;
-                        plane != NULL;
-                        plane = plane->next )
+                for ( plane = analy->refl_planes->next; plane != NULL; plane = plane->next )
                 {
                     c1_index = num_planes*plane_index;
                     c2_index = 0;
-                    for ( c_index=0;
-                            c_index<plane_index;
-                            c_index++ )
+                    for ( c_index = 0; c_index < plane_index; c_index++ )
                     {
                         point_transform( &reflect_pts[c1_index][0], &reflect_pts[c2_index][0], &plane->pt_transf );
                         point_transform( &reflect_pts[c1_index][3], &reflect_pts[c2_index][3], &plane->pt_transf );
@@ -8560,9 +8626,7 @@ draw_edges_3d( Analysis *analy )
                         c2_index++;
                     }
 
-                    for (index=0;
-                            index<6;
-                            index++)
+                    for (index = 0; index < 6; index++)
                     {
                         point_diff = fabs(reflect_pts[c1_index][index]-pts[index]);
                         if ( point_diff > 1.0e-5 )
@@ -8587,7 +8651,7 @@ draw_edges_3d( Analysis *analy )
         }
 
         if ( draw_refl_flag )
-            draw_line( 2, pts, eo_array[i].mtl, p_mesh, analy, FALSE, draw_refl_edge );
+            draw_line( 2, pts, NULL, eo_array[i].mtl, p_mesh, analy, FALSE, draw_refl_edge );
     }
 
     /* Remove depth bias. */
@@ -8615,6 +8679,7 @@ draw_edges_2d( Analysis *analy )
     int edge_qty;
     Edge_obj *eo_array;
     int enodes[2];
+    float cols[4][4];
 
     p_mesh = MESH_P( analy );
 
@@ -8664,7 +8729,7 @@ draw_edges_2d( Analysis *analy )
             }
         }
 
-        draw_line( 2, pts, eo_array[i].mtl, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, NULL, eo_array[i].mtl, p_mesh, analy, FALSE, NULL );
     }
 
     /* Remove depth bias. */
@@ -8780,8 +8845,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                   ? data_array[hilite_num]
                   * analy->conversion_scale + analy->conversion_offset
                   : data_array[hilite_num];
-            sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                     val );
+            sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
         }
         else
             sprintf( label, " %s %d", cname, hilite_label );
@@ -8809,8 +8873,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                     val = analy->perform_unit_conversion ? data_array[hilite_num] * analy->conversion_scale
                                                   + analy->conversion_offset
                                                   : data_array[hilite_num];
-                    sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                             val );
+                    sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
                 } else
                 {
                     sprintf( label, " %s %d", cname, hilite_label );
@@ -8823,8 +8886,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                       + analy->conversion_offset
                       : data_array[hilite_num];
 
-                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
-                         val );
+                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
             }
         }
         else
@@ -10144,7 +10206,7 @@ draw_vecs_3d( Vector_pt_obj *vec_list, float scl_max, float vmin, float vmax,
         pts[4] = tmp[1];
         pts[5] = tmp[2];
 
-        draw_line( 2, pts, -1, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, NULL, -1, p_mesh, analy, FALSE, NULL );
     }
 
     antialias_lines( FALSE, 0 );
@@ -10320,7 +10382,7 @@ draw_vecs_2d( Vector_pt_obj *vec_list, float headpts[3][3], float scl_max,
         pts[4] = tmp[1];
         pts[5] = tmp[2];
 
-        draw_line( 2, pts, -1, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, NULL, -1, p_mesh, analy, FALSE, NULL );
 
         /* Draw the vector head. */
         if ( DEF_GT( VEC_LENGTH( pt->vec ), 0.0 ) )
@@ -10500,7 +10562,7 @@ draw_node_vec_2d_3d( Analysis *analy )
         pts[4] = tmp[1];
         pts[5] = tmp[2];
 
-        draw_line( 2, pts, -1, p_mesh, analy, FALSE, NULL );
+        draw_line( 2, pts, NULL, -1, p_mesh, analy, FALSE, NULL );
 
         /* Draw the vector head. */
         if ( draw_heads )
@@ -11259,12 +11321,12 @@ draw_trace_list( Trace_pt_obj *ptlist, Analysis *analy )
                                         &new_skip, &new_limit ) )
             {
                 init_subtrace = FALSE;
-                draw_line( new_limit, pt->pts + 3 * new_skip, -1, p_mesh, analy,
+                draw_line( new_limit, pt->pts + 3 * new_skip, NULL, -1, p_mesh, analy,
                            FALSE, NULL );
             }
         }
         else
-            draw_line( i, pt->pts + 3 * skip, -1, p_mesh, analy, FALSE, NULL );
+            draw_line( i, pt->pts + 3 * skip, NULL, -1, p_mesh, analy, FALSE, NULL );
     }
 
     glLineWidth( (GLfloat) 1.0 );
@@ -12074,7 +12136,7 @@ draw_poly_2d( int cnt, float pts[4][3], float cols[4][4], float vals[4],
  * the line.
  */
 static void
-draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
+draw_line( int cnt, float *pts, float *cols, int matl, Mesh_data *p_mesh, Analysis *analy,
            Bool_type close, Bool_type *draw_reflection_flag )
 {
     GLenum line_mode;
@@ -12123,7 +12185,15 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
     {
         glBegin( line_mode );
         for ( i = 0; i < cnt; i++ )
+        {
+            if (cols != NULL)
+            {
+                for( j = 0; j < 4; j++ )
+                    col[j] = cols[i*4+j];
+                glColor3fv( col );
+            }
             glVertex3fv( &pts[i*3] );
+        }
         glEnd();
     }
 
@@ -12131,20 +12201,15 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
         return;
 
     if ( draw_reflection_flag == NULL)
-        for ( i=0;
-                i<10;
-                i++ )
+        for ( i = 0; i < 10; i++ )
             draw_reflection_flag_temp[i] = TRUE;
     else
-        for ( i=0;
-                i<10;
-                i++ )
+        for ( i = 0; i < 10; i++ )
             draw_reflection_flag_temp[i] = draw_reflection_flag[i];
 
     if ( analy->refl_planes->next == NULL )
     {
         /* Just one reflection plane; blast it out. */
-
         if (draw_reflection_flag_temp[0])
         {
             plane = analy->refl_planes;
@@ -12159,9 +12224,7 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
     }
     else if ( analy->refl_orig_only )
     {
-        for ( plane = analy->refl_planes;
-                plane != NULL;
-                plane = plane->next )
+        for ( plane = analy->refl_planes; plane != NULL; plane = plane->next )
         {
             if (draw_reflection_flag_temp[plane_index])
             {
@@ -13070,6 +13133,7 @@ draw_foreground( Analysis *analy )
     /* Time. */
     if ( analy->show_time )
     {
+        int fractsz = analy->time_frac_size;
         char time_name[256], mode_name[32];
         char interp_name[32];
         strcpy(interp_name, "Interpolated State" );
@@ -13084,10 +13148,10 @@ draw_foreground( Analysis *analy )
         hcentertext( TRUE );
         hmove2( 0.0, -cy + 1.0 * text_height );
         if(analy->show_interp){
-            sprintf( str, "%s = %.5e [%s = %d/%d] [%s]", time_name, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1, interp_name);
+            sprintf( str, "%s = %.*e [%s = %d/%d] [%s]", time_name, fractsz, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1, interp_name);
         }
         else{
-            sprintf( str, "%s = %.5e [%s = %d/%d]", time_name, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1);
+            sprintf( str, "%s = %.*e [%s = %d/%d]", time_name, fractsz, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1);
         }
         hcharstr( str );
         hcentertext( FALSE );
@@ -15736,14 +15800,9 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
 float
 get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_type *result_defined )
 {
-    float val=0., num_nodes, *nodal_data, *activity;
-    int   node_num;
-    MO_class_data *p_node_class;
-    Bool_type nodal_result = TRUE;
-
-    int i,j;
-    int *connects_hex, *connects_particle;
-
+    float val = 0.0;
+    int num_elems;
+    float * result_data;
 
     *result_defined  = FALSE;
 
@@ -15752,44 +15811,17 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         return 0.0;
     }
 
-    p_node_class = MESH_P( analy )->node_geom;
-
-    num_nodes = p_node_class->qty;
-    if ( elem_num < 0 || elem_num > p_mo_class->qty )
+    num_elems = p_mo_class->qty;
+    if ( elem_num < 0 || elem_num > num_elems )
         return 0.0;
 
-    nodal_data = NODAL_RESULT_BUFFER( analy );
+    result_data = p_mo_class->data_buffer; /* Do not get the particle data from the nodal buffer */
+    if( result_data == NULL )
+        return 0.0;
 
-    if ( !nodal_data )
-    {
-        nodal_data = p_mo_class->data_buffer; /* Do not get the particle data from the nodal buffer */
-        nodal_result = FALSE;
-    }
+    val = result_data[elem_num];
+    *result_defined = TRUE;
 
-    if ( nodal_data != NULL )
-        *result_defined = TRUE;
-
-    if ( p_mo_class->superclass == G_HEX )
-    {
-        connects_hex = p_mo_class->objects.elems->nodes;
-        node_num     = (connects_hex+(elem_num*8))[0];
-    }
-    else
-    {
-        connects_particle = p_mo_class->objects.elems->nodes;
-        node_num          = connects_particle[elem_num];
-    }
-
-    if ( !nodal_result )
-    {
-        val = p_mo_class->data_buffer[elem_num];
-        *result_defined = TRUE;
-    }
-    else if ( nodal_data )
-    {
-        val = nodal_data[node_num];
-        *result_defined = TRUE;
-    }
     return val;
 }
 
@@ -16092,16 +16124,11 @@ draw_free_nodes( Analysis *analy )
                     data_array     = p_mo_class->data_buffer; /* Do not get the particle data from the nodal buffer */
                     part_visib     = p_mo_class->p_vis_data->visib;
 
-                    if ( analy->pn_nodal_result && analy->pn_ref_nodes[0]==NULL )
+                    if ( p_mo_class->referenced_nodes==NULL)
                     {
-                        if ( p_mo_class->referenced_nodes==NULL)
-                        {
-                            create_elem_class_node_list( analy, p_mo_class,
-                                                         &p_mo_class->referenced_node_qty,
-                                                         &p_mo_class->referenced_nodes );
-                        }
-                        analy->pn_ref_node_count[0] = p_mo_class->referenced_node_qty;
-                        analy->pn_ref_nodes[0]      = p_mo_class->referenced_nodes;
+                        create_elem_class_node_list( analy, p_mo_class,
+                                                        &p_mo_class->referenced_node_qty,
+                                                        &p_mo_class->referenced_nodes );
                     }
                 }
                 else
@@ -16233,14 +16260,6 @@ draw_free_nodes( Analysis *analy )
     /* Make a quick exit if no free nodes are to be displayed. */
     if (!free_nodes_found && !part_nodes_found)
         return;
-
-    /* If we are viewing a nodal result then map the nodal result onto the particles. */
-    if ( analy->pn_nodal_result )
-    {
-        particle_count = analy->pn_ref_node_count[0];
-        particle_nodes = analy->pn_ref_nodes[0];
-        nodal_data     = analy->pn_node_ptr[0];
-    }
 
     /* Determine a scaling range factor for the Mass/Vol data */
     mass_scale_factor = 0.5;

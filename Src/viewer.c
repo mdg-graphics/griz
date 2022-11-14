@@ -755,6 +755,30 @@ scan_args( int argc, char *argv[], Analysis *analy )
 
 
 /************************************************************
+ * TAG( load_known_mili_parameters )
+ *
+ * Check the mili database for any known parameters that Griz tries to use.
+ * Load them in and store in the analysis struct.
+ */
+void
+load_known_mili_parameters( Analysis *analy )
+{
+    int stat;
+    Bool_type particles_on;
+
+    /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
+    stat = get_particles_on_flag( analy, &particles_on );
+    // If "particles_on" paramter does not exist, default to off.
+    if(stat != OK)
+        particles_on = 0;
+    analy->particle_nodes_enabled = particles_on;
+
+    /* Check for "job_id" Mili parameter */
+    stat = get_job_id_parameter( analy, analy->job_id );
+}
+
+
+/************************************************************
  * TAG( open_analysis )
  *
  * Open a plotfile and initialize an analysis.
@@ -791,7 +815,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     int brick_qty=0, shell_qty=0, truss_qty=0, beam_qty=0;
     int particle_qty=0, tet_qty = 0;
-    Bool_type particles_on;
 
     char temp_fname[MAXPATHLENGTH];
     int dir_pos=-1;
@@ -974,6 +997,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( stat != OK )
         return FALSE;
 
+    /* Load any known mili parameters that Griz uses */
+    load_known_mili_parameters( analy );
+
 #ifdef TIME_OPEN_ANALYSIS
     printf( "Timing initial state get...\n" );
     manage_timer( 0, 0 );
@@ -1026,6 +1052,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     analy->manual_backface_cull = TRUE;
     analy->float_frac_size = DEFAULT_FLOAT_FRACTION_SIZE;
+    analy->time_frac_size = DEFAULT_TIME_FRACTION_SIZE;
     analy->auto_frac_size = TRUE;
     analy->hidden_line_width = 1.0;
     analy->show_colorscale = TRUE;
@@ -1101,13 +1128,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     set_contour_vals( 6, analy );
 
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
-
-    /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
-    stat = get_particles_on_flag( analy, &particles_on );
-    // If "particles_on" paramter does not exist, default to off.
-    if(stat != OK)
-        particles_on = 0;
-    analy->particle_nodes_enabled = particles_on;
 
     /* Load in TI TOC if TI data is found */
     if(db_type == TAURUS)
@@ -2027,7 +2047,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 								"em","emsc","emsph","emcyl","emax","emrm","clrem","tellem","crease","getedg",
 								"edgwid","edgbias","setcol","inrgb","mat","light","tlx","tly","tlz","dellit",
 								"camang","lookfr","lookat","lookup","tfx","tfy","tfz","tax","tay","taz",
-								"near","far","fracsz","bbsrc","bbox","hidwid","bufqty","copyrt","setpick","mtl",
+								"near","far","fracsz","fractsz","bbsrc","bbox","hidwid","bufqty","copyrt","setpick","mtl",
 								"vidti","vidttl"};
     	int tempcount2 = 0;
     	int tmppos2 = 0;
@@ -2247,9 +2267,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->show_sph_ghost        = TRUE;
     analy->selectonmat           = FALSE;
 
-    for ( i=0;
-            i<MAX_PATHS;
-            i++ )
+    for ( i = 0; i < MAX_PATHS; i++ )
     {
         analy->paths[i]        = NULL;
         analy->paths_set[i]    = FALSE;
@@ -2333,6 +2351,30 @@ int get_particles_on_flag( Analysis *analy, int *particles_on )
         stat = mili_reader_get_double( analy->py_MiliParameters, "particles_on", &result );
         if (stat == OK )
             *particles_on = (int) result;
+    }
+#endif
+
+    return stat;
+}
+
+/************************************************************
+ * TAG( get_job_id_parameter )
+ *
+ * Query Mili database for "job_id" parameter.
+ */
+int get_job_id_parameter( Analysis *analy, char *job_id )
+{
+    int stat;
+
+    if( !analy->parallel_read ){
+        stat = mc_read_string( analy->db_ident, "job_id", job_id );
+    }
+#ifdef HAVE_PARALLEL_READ
+    else{
+        char *result;
+        stat = mili_reader_get_double( analy->py_MiliParameters, "job_id", &result );
+        if (stat == OK )
+            job_id = result;
     }
 #endif
 

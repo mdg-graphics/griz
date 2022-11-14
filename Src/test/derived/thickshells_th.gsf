@@ -18,6 +18,7 @@ maxst 81
 
 on thsinglecol
 fracsz 10
+fractsz 10
 jpegqual 100
 
 # Set viewing 

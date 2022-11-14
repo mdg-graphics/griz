@@ -17,6 +17,7 @@ maxst 11
 # chgst // Milti-command alias is new command. Test after 13.1 release
 on thsinglecol
 fracsz 8
+fractsz 8
 switch mglob 
 
 # Append output to TH file

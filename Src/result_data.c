@@ -150,64 +150,6 @@ update_min_max( Analysis *analy )
     mm_class      = analy->state_mm_class_long_name;
     mm_sclass     = analy->state_mm_sclass;
 
-#ifdef OLD_UPDATE_MM
-    /* Get rid of these local var's on cleanup. */
-    result = analy->result;
-    cnt = MESH( analy ).node_geom->qty;
-
-    /* Update the state min/max for nodal/interpolated data. */
-    state_mm[0] = result[0];
-    mm_nodes[0] = 0;
-    state_mm[1] = result[0];
-    mm_nodes[1] = 0;
-
-    for ( i = 1; i < cnt; i++ )
-    {
-        if ( result[i] < state_mm[0] )
-        {
-            state_mm[0] = result[i];
-            mm_nodes[0] = i;
-            mm_class_long_name[0] = class_name;
-            mm_class_long_name[1] = class_name;
-            mm_sclass[0] = sclass;
-            mm_sclass[1] = sclass;
-        }
-        else if ( result[i] > state_mm[1] )
-        {
-            state_mm[1] = result[i];
-            mm_nodes[1] = i ;
-        }
-    }
-
-    /*
-     * For nodal results, save the class name and verify that the result
-     * references only one class.  This should probably always be the case,
-     * but if/when not, some re-design will be necessary to update the
-     * min/max after each subrecord is processed and save the correct
-     * class names.
-     */
-    p_r = analy->cur_result;
-    if ( p_r->origin.is_node_result && analy->result_mod )
-    {
-        p_so = analy->srec_tree[p_r->srec_id].subrecs;
-        indices = p_r->subrecs;
-        cname = p_so[indices[0]].p_object_class->class_name;
-
-        for ( i = 1; i < p_r->qty; i++ )
-            if ( strcmp( cname, p_so[indices[i]].p_object_class->class_name )
-                    != 0 )
-            {
-                popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
-                              "Result accessed multiple M_NODE classes.",
-                              "Result min/max class name may be wrong.",
-                              "Please contact the Methods Development Group." );
-                break;
-            }
-
-        analy->state_mm_class[0] = analy->state_mm_class[1] = cname;
-    }
-#endif
-
     /* Update the state min/max for element/non-interpolated data. */
     analy->elem_state_mm = analy->tmp_elem_mm;
 
@@ -458,8 +400,7 @@ update_nodal_min_max( Analysis *analy )
      * Sanity check for object classes that don't ultimately generate nodal
      * data.
      */
-    if ( superclass!=G_SURFACE && (superclass < G_NODE
-                                   || superclass > G_PARTICLE ) )
+    if ( superclass != G_SURFACE && (superclass < G_NODE || superclass > G_PARTICLE ) )
         return;
 
     indirect = p_r->indirect_flags[cur_idx];
@@ -938,7 +879,7 @@ mesh_get_minmax( float *val_mesh, Analysis *analy )
 
 
     mm_val[0] = mm_val[1] = val_mesh[0];
-    mesh_ids[0] = mesh_ids[1] = 1;
+    mesh_ids[0] = mesh_ids[1] = 0;
     classes[0] = classes[1]   = p_so->p_object_class->long_name;
     sclasses[0] = sclasses[1] = p_so->p_object_class->superclass;
 }
@@ -3068,10 +3009,6 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
         first = TRUE;
         qty = sizeof( derive_order ) / sizeof( derive_order[0] );
 
-        analy->pn_nodal_result  = FALSE;
-        analy->pn_ref_nodes[0]  = NULL;
-        analy->pn_buffer_ptr[0] = NULL;
-
         for ( i = 0; i < qty; i++ )
         {
             for ( j = 0; j < p_r->qty; j++ )
@@ -3089,23 +3026,6 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
                     p_subrec = analy->srec_tree[srec].subrecs + subrec;
 
                     p_r->result_funcs[j]( analy, data_buffer, interpolate );
-
-                    /* Get a pointer to the result buffer for the Particle object */
-                    if ( analy->particle_nodes_enabled )
-                    {
-                        subrec   = p_r->subrecs[analy->result_index];
-                        srec     = p_r->srec_id;
-                        p_subrec = analy->srec_tree[srec].subrecs + subrec;
-
-                        if ( is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
-                        {
-                            analy->pn_nodal_result = TRUE;
-                            analy->pn_node_ptr[0]  = data_buffer;
-
-                            analy->pn_ref_nodes[0]      = p_subrec->referenced_nodes;
-                            analy->pn_ref_node_count[0] = p_subrec->ref_node_qty;
-                        }
-                    }
 
                     if ( update )
                     {

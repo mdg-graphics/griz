@@ -133,6 +133,10 @@
 /* Default number of significant figures in floating point numbers. */
 #define DEFAULT_FLOAT_FRACTION_SIZE (2)
 
+/* Default number of significant figures in times. */
+#define DEFAULT_TIME_FRACTION_SIZE (5)
+#define DEFAULT_TH_TIME_FRACTION_SIZE (6)
+
 /* Number of materials with settable properties. */
 #define MAX_MATERIALS 300
 
@@ -977,8 +981,7 @@ typedef struct _Analysis
 
     void (*update_display)( struct _Analysis * );
     void (*display_mode_refresh)( struct _Analysis * );
-    Bool_type (*check_mod_required)( struct _Analysis *, Result_modifier_type,
-                                     int, int );
+    Bool_type (*check_mod_required)( struct _Analysis *, Result_modifier_type, int, int );
 
     Bool_type autoselect;
     void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */
@@ -992,6 +995,7 @@ typedef struct _Analysis
     char mili_timestamp[100];
     char mili_host[64];
     char xmilics_version[100];
+    char job_id[128];
 
     char title[G_MAX_STRING_LEN];
     Bool_type limit_max_state;
@@ -1003,7 +1007,6 @@ typedef struct _Analysis
     float *state_times;
     int * state_srec_fmt_ids;
     int reference_state;
-    //mmHisEnt previous_MM_List[50];
 
     float  *cur_ref_state_data;
     double *cur_ref_state_dataDp;
@@ -1088,6 +1091,7 @@ typedef struct _Analysis
     Bool_type use_colormap_pos;
     float hidden_line_width;
     int float_frac_size;
+    int time_frac_size;
     Bool_type auto_frac_size;
     float colormap_pos[4];
     Mouse_mode_type mouse_mode;
@@ -1310,11 +1314,6 @@ typedef struct _Analysis
      * free_nodes.
      */
     Bool_type  particle_nodes_enabled;
-    Bool_type  pn_nodal_result;
-    float     *pn_node_ptr[10];       /* Up to 10 sets of particle objects */
-    float     *pn_buffer_ptr[10];
-    int       *pn_ref_nodes[10];
-    int        pn_ref_node_count[10];
 
     /*
      * Added January 30, 2006: IRC - Variables used for RubberBand Zoom.

@@ -134,7 +134,7 @@ typedef enum
     BTN_COPYRIGHT, BTN_MTL_MGR, BTN_SURF_MGR, BTN_UTIL_PANEL, BTN_SAVE_SESSION_GLOBAL, BTN_SAVE_SESSION_PLOT, BTN_LOAD_SESSION_GLOBAL, BTN_LOAD_SESSION_PLOT, BTN_QUIT, BTN_DRAWFILLED, BTN_DRAWHIDDEN, BTN_DRAWWIREFRAME, BTN_DRAWWIREFRAMETRANS, BTN_DRAWGS, BTN_COORDSYS, BTN_TITLE, BTN_TIME, BTN_COLORMAP, BTN_MINMAX, BTN_SCALE, BTN_ALLON, BTN_ALLOFF, BTN_BBOX, BTN_EDGES, BTN_PERSPECTIVE, BTN_ORTHOGRAPHIC, BTN_ADJUSTNF, BTN_RESETVIEW, BTN_SU, BTN_HILITE, BTN_SELECT, BTN_CLEARHILITE, BTN_CLEARSELECT, BTN_CLEARALL, BTN_PICSHELL, BTN_PICBEAM, BTN_CENTERON, BTN_CENTEROFF, BTN_INFINITESIMAL, BTN_ALMANSI, BTN_GREEN, BTN_RATE, BTN_LOCAL, BTN_GLOBAL, BTN_MIDDLE, BTN_INNER, BTN_OUTER, BTN_NEXTSTATE, BTN_PREVSTATE, BTN_FIRSTSTATE, BTN_LASTSTATE, BTN_ANIMATE, BTN_STOPANIMATE, BTN_CONTANIMATE, BTN_TIMEPLOT, BTN_EI, BTN_FN,  /* Free nodes     */
     BTN_PN,  /* Particle nodes */
 
-    BTN_HELP, BTN_RELNOTES, BTN_GS
+    BTN_HELP, BTN_GS
 } Btn_type;
 
 typedef enum
@@ -1405,11 +1405,11 @@ create_menu_bar( Analysis * analy, Widget parent )
     menu_pane = add_pulldown_submenu( menu_bar, "Help" );
     static int help_btn_ids[] =
     {
-        BTN_HELP, BTN_RELNOTES
+        BTN_HELP
     };
     char * help_btn_labels[] =
     {
-        "Display Griz Manual", "Display Release Notes"
+        "Display Griz Manual"
     };
     add_menu_buttons( menu_pane, sizeof(help_btn_ids) / sizeof(help_btn_ids[0]), help_btn_labels, menu_CB, help_btn_ids );
 
@@ -4196,11 +4196,6 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
     case BTN_HELP:
         text = XmStringCreateSimple( "help\0" );
         parse_command( "help", env.curr_analy );
-        break;
-
-    case BTN_RELNOTES:
-        text = XmStringCreateSimple( "relnotes\0" );
-        parse_command( "relnotes", env.curr_analy );
         break;
 
     case BTN_FN:
@@ -8421,6 +8416,8 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 
     int status = OK;
 
+    int fractsz = analy->time_frac_size;
+
     db_ident = analy->db_ident;
     p_mesh   = MESH_P( analy );
 
@@ -8470,13 +8467,17 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
             sprintf( temp_text, "\tXmili Version: \t%s\n", analy->xmilics_version );
             start_text[cnt++] = (char *) strdup(temp_text) ;
         }
+        if( strlen(analy->job_id) > 0 )
+        {
+            sprintf( temp_text, "\tMili Database-Job ID: \t%s\n", analy->job_id );
+            start_text[cnt++] = (char *) strdup(temp_text) ;
+        }
         sprintf( temp_text, "--------------------------------------------------------------------\n\n" );
         start_text[cnt++] = (char *) strdup(temp_text) ;
     }
 
     /* Sum polygons to render by superclass. */
-    for ( i = 0; i < sizeof( traverse_order ) / sizeof( traverse_order[0] );
-            i++ )
+    for ( i = 0; i < sizeof( traverse_order ) / sizeof( traverse_order[0] ); i++ )
     {
         type = traverse_order[i];
         p_lh = p_mesh->classes_by_sclass + type;

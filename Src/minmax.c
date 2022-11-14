@@ -72,7 +72,6 @@ get_global_minmax( Analysis *analy )
         load_result( analy, TRUE, TRUE, FALSE );
     }
 
-    /* Go back to where we were before. */
     analy->elem_state_mm = mm_save;
     analy->cur_state     = cur_state;
     change_state( analy );
@@ -161,7 +160,6 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
     }
     else
     {
-        /* desired_result_id = lookup_result_id( desired_result_variable ); */
         analy->cur_state = start_idx;
         memset( (void *) &tell_result, (int) '\0', sizeof( Result ) );
         found_req = find_result( analy, ALL, TRUE, &tell_result,
