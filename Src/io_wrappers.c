@@ -362,6 +362,9 @@ mili_db_get_geom( Analysis *analy )
     int block_qty=0, block_index=0, block_range_index=0,
         *block_range=NULL, elem_sclass=0, mat_index=0;
 
+    long start, end;
+    start = prec_timer();
+
     if ( analy->mesh_table != NULL )
     {
         popup_dialog( WARNING_POPUP, "Mesh table pointer not NULL at initialization." );
@@ -1048,6 +1051,10 @@ mili_db_get_geom( Analysis *analy )
     } // for ( i = 0 i < mesh_qty; i++ )
 
     status = get_hex_volumes( dbid, analy );
+
+    end = prec_timer();
+    printf("\n[mili_db_get_geom] elapsed = %ldms\n", (end-start));
+
     return (OK);
 }
 
@@ -1496,6 +1503,9 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     State_variable *p_svar;
     Mesh_data *p_mesh;
 
+    long start, end;
+    start = prec_timer();
+
     int subrec_index=0;
 
     fid = (Famid) dbid;
@@ -1584,7 +1594,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
 
         /* Allocate a temporary working array for subrec node list creation. */
         mesh_node_qty = p_mesh->node_geom->qty;
-        node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
+        node_work_array = NEW_N( char, mesh_node_qty, "Temp node array" );
 
         /* Loop over subrecs */
         for ( j = 0; j < subrec_qty; j++ )
@@ -1740,6 +1750,9 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     analy->qty_srec_fmts = srec_qty;
     analy->st_var_table = p_sv_ht;
     analy->primal_results = p_primal_ht;
+
+    end = prec_timer();
+    printf("\n[mili_db_get_st_descriptors] elapsed = %ldms\n", (end-start));
 
     return OK;
 }
@@ -2752,6 +2765,9 @@ mili_db_load_state_data( Analysis *analy )
     int states_added;
     int start = 0;
 
+    long timestart, timeend;
+    start = prec_timer();
+
     dbid = analy->db_ident;
 
     /* Get the number of states in the database */
@@ -2812,6 +2828,10 @@ mili_db_load_state_data( Analysis *analy )
         }
         analy->state_srec_fmt_ids[i] = srec_id;
     }
+
+    timeend = prec_timer();
+    printf("\n[mili_db_load_state_data] elapsed = %ldms\n", (timeend-timestart));
+
     return OK;
 }
 
@@ -2847,6 +2867,9 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     int infoStringId=0, lenInfoString=0;
     char infoString[256];
     float *p_float;
+
+    long start, end;
+    start = prec_timer();
 
     dbid = analy->db_ident;
 
@@ -3177,6 +3200,9 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
                 free( ibuf );
         }
     }
+
+    end = prec_timer();
+    printf("\n[mili_db_get_state] elapsed = %ldms\n", (end-start));
 
     *pp_new_st = p_st;
     return OK;
@@ -4200,6 +4226,9 @@ mili_db_get_results( int dbid, int state, int subrec_id, int qty,
     int rval;
     float *vals;
 
+    long start, end;
+    start = prec_timer();
+
     rval = mc_read_results( dbid, state, subrec_id, qty, results, data );
     if ( rval != 0 )
     {
@@ -4227,6 +4256,9 @@ mili_db_get_results( int dbid, int state, int subrec_id, int qty,
             }
         }
     }
+
+    end = prec_timer();
+    printf("\n[mili_db_get_results] elapsed = %ldms\n", (end-start));
 
     return OK;
 }
