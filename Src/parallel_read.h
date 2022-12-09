@@ -255,29 +255,6 @@ integer_pointer_from_pyobject( PyObject * py_List, int size, int * values )
 }
 
 
-/* TAG( integer_pointer_from_memory_addr )
- *
- * Convert pyobject list to int array
- */
-void
-integer_pointer_from_memory_addr( PyObject * py_MemAddr, int size, int * values )
-{
-    int i;
-    int addr;
-    int * intValues;
-    void * p_addr;
-
-    p_addr = (void*) PyLong_AsLong( py_MemAddr );
-    if( size > 0 )
-    {
-        intValues = (int*) p_addr;
-        for( i = 0; i < size; i++ ){
-            values[i] = intValues[i];
-        }
-    }
-}
-
-
 /* TAG( integer_pointer_from_pytuple )
  *
  * Convert pyobject tuple to int array
