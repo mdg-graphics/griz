@@ -528,20 +528,16 @@ compute_effstress( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     for ( i = 0, stress = result_buf; i < obj_qty; i++, stress += 6 )
     {
-        pressure = -( stress[0] +
-                      stress[1] +
-                      stress[2] ) * ONETHIRD;
+        pressure = -( stress[0] + stress[1] + stress[2] ) * ONETHIRD;
 
         for ( j = 0; j < 3; j++ )
             devStress[j] = stress[j] + pressure;
 
         elem_idx = ( object_ids ) ? object_ids[i] : i;
 
-        /*
-         * Calculate effective stress from deviatoric components.
+        /* Calculate effective stress from deviatoric components.
          * Updated derivation avoids negative square root operand
-         * (UNICOS, of course).
-         */
+         * (UNICOS, of course). */
         resultElem[elem_idx] = 0.5 * ( devStress[0]*devStress[0]
                                        + devStress[1]*devStress[1]
                                        + devStress[2]*devStress[2] )

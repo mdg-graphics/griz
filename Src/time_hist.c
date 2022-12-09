@@ -3316,6 +3316,11 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
             if ( p_state_rec->series_qty == 0 )
                 continue;
             
+            /* Disable loading nodpos when plotting. Will be re-enabled if needed.
+             * Nodal positions are needed for:
+             *      - Some derived variables
+             *      - quad/tri stress/strain values when reference frame is local
+             */
             analy->load_nodpos = FALSE;
 
             /* Loop over subrecords for this state record format. */
@@ -3327,6 +3332,7 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                     if ( !p_rmlo->active )
                         continue;
 
+                    /* If derived result, re-enable loading nodpos*/
                     if( p_rmlo->result->origin.is_derived ){
                         analy->load_nodpos = TRUE;
                     }
