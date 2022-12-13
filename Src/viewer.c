@@ -986,6 +986,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->int_point_labels = TRUE;
     analy->preferred_primal_source = PRIMAL;
     analy->have_hex_strains = FALSE;
+    analy->render_particle_results_onto_bg_elements = TRUE;
 
     analy->showmat = TRUE;
     analy->result_source = ALL;
