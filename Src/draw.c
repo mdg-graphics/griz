@@ -4076,10 +4076,18 @@ draw_grid( Analysis *analy )
                 show_particle_result = TRUE;
         }
     }
+
+    /* If user has disabled rendering particles results onto the background mesh elements,
+     * then setting this flag to False stops the draw functions from doing that.
+     */
+    if( !analy->render_particle_results_onto_bg_elements )
+    {
+        show_particle_result = FALSE;
+    }
+
     /*
      * Draw iso-surfaces.
      */
-
     if ( analy->show_isosurfs )
     {
         /* Difference between result min and max. */

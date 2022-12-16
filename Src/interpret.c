@@ -663,39 +663,39 @@ parse_command( char *input_buf, Analysis *analy )
      * line number in comment [] - remove chars including and
      * between [].
      */
-    for ( i=0;
-            i<2;
-            i++ )
+    for ( i = 0; i < 2; i++ )
     {
-        for(j=first_nonspace;
-                j<strlen( buf );
-                j++ )
+        for( j = first_nonspace; j < strlen( buf ); j++ )
+		{
             if (buf[j]!=' ')
             {
                 first_nonspace = j;
                 break;
             }
-
+		}
         if (buf[first_nonspace]=='[')
         {
-            for(j = first_nonspace;
-                    j < strlen( buf );
-                    j++ )
+            for( j = first_nonspace; j < strlen( buf ); j++ )
+			{
                 if (buf[j]==']')
                 {
                     first_nonspace = j+1;
                     break;
                 }
-            for(j = first_nonspace;
-                    j < strlen( buf );
-                    j++ )
+			}
+            for(j = first_nonspace; j < strlen( buf ); j++ )
+			{
                 if (buf[j]!=' ')
                 {
                     first_nonspace = j;
                     break;
                 }
+			}
         }
-        else break;
+        else
+		{
+			break;
+		}
     }
 
     strcpy( command_buf, &buf[first_nonspace] );
@@ -716,21 +716,19 @@ parse_command( char *input_buf, Analysis *analy )
             alias_expand( buf, &token_cnt );
 
         len_buf = strlen( buf );
-        for (i = 0;
-                i < len_buf;
-                i++ )
+        for( i = 0; i < len_buf; i++ )
+		{
             if ( buf[i] == ';' )
             {
                 buf[i] = '\0';
                 next_cmd_index[num_cmds++]=i+1;
             }
+		}
     }
 
-    for (i=0;
-            i < num_cmds;
-            i++ )
+    for( i = 0; i < num_cmds; i++ )
     {
-        if (strlen(&buf[next_cmd_index[i]]) > 0)
+        if( strlen(&buf[next_cmd_index[i]]) > 0 )
             strcpy(command_buf, &buf[next_cmd_index[i]]);
 
         /* Remove file references that could be at the beginning of a command.
@@ -743,12 +741,14 @@ parse_command( char *input_buf, Analysis *analy )
          * Note that the file reference in enclosed in '[ ]'.
          */
 
-        for(j=0; j , strlen( command_buf ); j ++ )
-            if (command_buf[j]!=' ')
+        for( j = 0; j , strlen( command_buf ); j++ )
+		{
+            if( command_buf[j] != ' ' )
             {
                 first_nonspace = j;
                 break;
             }
+		}
 
         if (mtl_color_active)
             switch_opengl_win( MESH_VIEW );
@@ -2434,6 +2434,10 @@ parse_single_command( char *buf, Analysis *analy )
 				{
 					analy->fn_output_momentum = setval;
 				}
+				else if( strcmp( tokens[i], "particle_results_on_facets") == 0 )
+				{
+					analy->render_particle_results_onto_bg_elements = setval;
+				}
 				else if ( strcmp( tokens[i], "free_nodes" ) == 0 ||
 						  strcmp( tokens[i], "particle" )   == 0 ||
 						  strcmp( tokens[i], "particles" )  == 0 ||
@@ -2629,7 +2633,8 @@ parse_single_command( char *buf, Analysis *analy )
 									strcat(command, MESH(analy).by_class_select[j].p_class->short_name);
 									sprintf(command, "%s %d %d", command, analy->elem_state_mm.object_id[0], analy->elem_state_mm.object_id[1]);
 									parse_command(command, analy);
-								} else
+								} 
+								else
 								{
 									strcat(command, MESH(analy).by_class_select[j].p_class->short_name);
 									sprintf(command, "%s %d", command, analy->elem_state_mm.object_id[0]);
@@ -2651,14 +2656,15 @@ parse_single_command( char *buf, Analysis *analy )
 									}
 
 								}
-						}
+							}
 
+						}
 					}
 				}
-			 }
 				else
-					popup_dialog( INFO_POPUP,
-								  "On/Off command unrecognized: %s\n", tokens[i] );
+				{
+					popup_dialog( INFO_POPUP, "On/Off command unrecognized: %s\n", tokens[i] );
+				}
 			}
 			/* Reload the result vector. */
 			if ( analy->result_mod )

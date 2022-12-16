@@ -1477,6 +1477,8 @@ typedef struct _Analysis
 
     Bool_type old_shell_stresses;
 
+    Bool_type render_particle_results_onto_bg_elements;
+
     Bool_type load_sand;
     Bool_type load_nodpos;
 
@@ -1501,8 +1503,8 @@ typedef struct _Analysis
     int prev_query_end_state;
     int prev_query_ipt;
 #endif
-}
-Analysis;
+
+} Analysis;
 
 
 /*****************************************************************

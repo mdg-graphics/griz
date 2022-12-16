@@ -779,6 +779,53 @@ load_known_mili_parameters( Analysis *analy )
 
 
 /************************************************************
+ * TAG( generate_banned_names_list )
+ *
+ * Generate list of banned names in Griz.
+ * Banned names include existing commands and element class names
+ */
+void
+generate_banned_names_list( Analysis * analy )
+{
+    int i;
+    int qty_banned_names;
+    int qty_classes;
+    char *class_names[2000];
+    int  superclasses[2000];
+
+    //predefined names
+    int qty_predefined_names = 16;
+    char *predefined_names[] = {"vis","invis","enable","disable","include","exclude","hilite",
+                                "select","mat","all","amb","diff","spec","spotdir","spot","exp"};
+
+    /* Get all class names */
+    mili_get_class_names( analy, &qty_classes, class_names, superclasses );
+
+    qty_banned_names = qty_classes + qty_predefined_names;
+
+    /* Allocate enough space for all banned names */
+    analy->banned_names = malloc(qty_banned_names * sizeof(char*));
+    analy->num_banned_names = 0;
+
+    // Copy over predefined names
+    for( i = 0 ; i < qty_predefined_names; i++ )
+    {
+        analy->banned_names[ analy->num_banned_names ] = malloc(100 * sizeof(char));
+        strcpy( analy->banned_names[ analy->num_banned_names ], predefined_names[i] );
+        analy->num_banned_names++;
+    }
+
+    // Copy over class names
+    for( i = 0; i < qty_classes; i++ )
+    {
+        analy->banned_names[ analy->num_banned_names ] = malloc(100 * sizeof(char));
+        strcpy( analy->banned_names[ analy->num_banned_names ], class_names[i] );
+        analy->num_banned_names++;
+    }
+}
+
+
+/************************************************************
  * TAG( open_analysis )
  *
  * Open a plotfile and initialize an analysis.
@@ -1037,6 +1084,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->int_point_labels = TRUE;
     analy->preferred_primal_source = PRIMAL;
     analy->have_hex_strains = FALSE;
+    analy->render_particle_results_onto_bg_elements = TRUE;
 
     analy->showmat = TRUE;
     analy->result_source = ALL;
@@ -1886,61 +1934,39 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( face_qty > max_face_qty )
         max_face_qty = face_qty;
 
+    /* Generate list of banned names */
+    generate_banned_names_list( analy );
+
     /* Save max quantity of materials. */
     analy->max_mesh_mat_qty = mat_sz;
-
     analy->mat_labels_active = TRUE;
-
     analy->maxLabelLength = 0;
 
-    if(analy->mat_labels_active && env.ti_enable){
-		//Gen list of banned names
-    	analy->banned_names = malloc(100 * sizeof(char*));
-    	analy->num_banned_names = 0;
-    	//predefined names
-    	char *tempnames[16] = {"vis","invis","enable","disable","include","exclude","hilite",
-                               "select","mat","all","amb","diff","spec","spotdir","spot","exp"};
-    	int tempcount = 16;
-    	int tmppos = 0;
-    	for(tmppos = 0; tmppos < tempcount; tmppos++){
-    		analy->banned_names[tmppos] = malloc(100 * sizeof(char));
-    		strcpy(analy->banned_names[tmppos],tempnames[tmppos]);
-    		analy->num_banned_names++;
-    	}
-    	//command name list
+    /* Generate material name/num hash tables */
+    Hash_table *forNames;
+    Hash_table *revNames;
+    char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+    Hash_table *forNums;
+    Hash_table *revNums;
+    char** sortedNums = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+    forNames = htable_create( 1001 );
+    revNames = htable_create( 1001 );
+    forNums = htable_create( 1001 );
+    revNums = htable_create( 1001 );
 
-    	//class names
-        int  qty_classes=0;
-        char *class_names[2000];
-        int  superclasses[2000];
-    	status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
-    	for(tmppos = 0; tmppos < qty_classes; tmppos++){
-    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
-    		strcpy(analy->banned_names[analy->num_banned_names],class_names[tmppos]);
-    		analy->num_banned_names++;
-    	}
+    Htable_entry *tempEnt;
+    int pos2;
+    analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
+    analy->num_messages = 0;
+    char teststr[20];
+    char merged[label_length];
+    char temp[label_length];
+    char message[120];
 
-		Hash_table *forNames;
-		Hash_table *revNames;
-		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-		Hash_table *forNums;
-		Hash_table *revNums;
-		char** sortedNums = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-		//int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
-		forNames = htable_create( 1001 );
-		revNames = htable_create( 1001 );
-		forNums = htable_create( 1001 );
-		revNums = htable_create( 1001 );
-
-		Htable_entry *tempEnt;
-		int pos2;
-		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
-		analy->num_messages = 0;
-		char teststr[20];
-		char merged[label_length];
-		char temp[label_length];
-		char message[120];
-		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
+    if(analy->mat_labels_active && env.ti_enable)
+    {
+		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++)
+        {
 			//check if name exists
 			teststr[0] = '\0';
 			int num_items_read = 0;
@@ -1958,10 +1984,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			sprintf(str,"%d",pos2+1);//if so then print name
 			sprintf(str2,"%d",pos2+1);//if so then print name
 			sprintf(test2,"%s",str2);
-			if (status == OK){
+			if (status == OK)
+            {
 				int bpos = 0;
-				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
-				    if(strcmp(analy->banned_names[bpos],test) == 0){
+				for(bpos = 0; bpos < analy->num_banned_names; bpos ++)
+                {
+				    if(strcmp(analy->banned_names[bpos],test) == 0)
+                    {
 						merged[0]='\0';
 						temp[0]='\0';
 						message[0]='\0';
@@ -1975,7 +2004,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 					}
 				}
 			}
-			else{
+			else
+            {
 				sprintf(test,"%s",str);
 			}
 
@@ -1993,91 +2023,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			sortedNums[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNums[pos2],"%s",test2);
 		}
-
-		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
-
-		analy->sorted_names = sortedNames;
-		analy->mat_names = forNames;
-		analy->mat_names_reversed = revNames;
-
-		qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
-
-		analy->sorted_nums = sortedNums;
-		analy->mat_nums = forNums;
-		analy->mat_nums_reversed = revNums;
-
-		// Make sure we get rid of dangling pointers
-		// DO NOT free this as it is now your analy->sorted_names pointer
-		// Simply setting it to NULL makes sure w do not have a dangling
-		// pointer.
-		sortedNames = NULL;
-		sortedNums = NULL;
     }
-    //otherwise fill names with numbers
-    else{
-		//Gen list of banned names
-    	analy->banned_names = malloc(100 * sizeof(char*));
-    	analy->num_banned_names = 0;
-    	//predefined names
-    	char *tempnames[16] = {"vis","invis","enable","disable","include","exclude","hilite","select","mat","all","amb","diff","spec","spotdir","spot","exp"};
-    	int tempcount = 16;
-    	int tmppos = 0;
-    	for(tmppos = 0; tmppos < tempcount; tmppos++){
-    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
-    		strcpy(analy->banned_names[analy->num_banned_names],tempnames[tmppos]);
-    		analy->num_banned_names++;
-    	}
-    	//command name list
-    	char *tempnames2[] = {"rx","ry","rz","tx","ty","tz","scale","scalax","zf","zb",
-    							"rview","rnf","vcent","on","off","minst","maxst","stride","state","f",
-								"l","n","p","time","anim","stopan","animc","autoimg","resetimg","load",
-								"quit","switch","sw","info","r","alias","exec","show","rzero","rmin",
-								"rmax","clrthr","refstate","coordfx","dirv","dir3n","dir3p","globmm","resetmm","conv",
-								"clrconv","pref","dia","ym","numclass","title","hilite","clrhil","select","deselect",
-								"clrsel","unselect","dscal","dscalx","dscaly","dscalz","plot","oplot","outth","gather",
-								"delth","glyphqty","glyphscl","mmloc","setcol","timhis","outps","outrgb","outjpeg","outpng",
-								"jpegequal","outmm","outobj","outview","outhid","outth","outvec","outpt","outgeom","outsgeom",
-								"dumpresult","tell","lts","tellmm","telliso","tellpos","tellem","surface","traction","cutpln",
-								"cutrpln","clrcut","conwid","ison","isop","isov","clriso","vec","vgrid1","vgrid2",
-								"vgrid3","clrvgr","setcol","veccm","vecscl","vhdscl","outvec","ptrace","ptrace","aptrace",
-								"ptstat","prake","clrpar","ptlim","ptwid","ptdis","outpt","inpt","pres","pscale",
-								"fres","fscale","inref","outref","clrref","inslp","savhis","endhis","rdhis","pause",
-								"echo","loop","savtxt","endtxt","ldmap","posmap","hotmap","grmap","igrmap","invmap",
-								"conmap","chmap","cgmap","sym","clrsym","tmx","tmy","tmz","clrtm","partrad",
-								"em","emsc","emsph","emcyl","emax","emrm","clrem","tellem","crease","getedg",
-								"edgwid","edgbias","setcol","inrgb","mat","light","tlx","tly","tlz","dellit",
-								"camang","lookfr","lookat","lookup","tfx","tfy","tfz","tax","tay","taz",
-								"near","far","fracsz","fractsz","bbsrc","bbox","hidwid","bufqty","copyrt","setpick","mtl",
-								"vidti","vidttl"};
-    	int tempcount2 = 0;
-    	int tmppos2 = 0;
-    	for(tmppos2 = 0; tmppos2 < tempcount2; tmppos2++){
-    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
-    		strcpy(analy->banned_names[analy->num_banned_names], tempnames2[tmppos2]);
-    		analy->num_banned_names++;
-    	}
-
-		Hash_table *forNames;
-		Hash_table *revNames;
-		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-		Hash_table *forNums;
-		Hash_table *revNums;
-		char** sortedNums = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-		//int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
-		forNames = htable_create( 1001 );
-		revNames = htable_create( 1001 );
-		forNums = htable_create( 1001 );
-		revNums = htable_create( 1001 );
-
-		Htable_entry *tempEnt;
-		int pos2;
-		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
-		analy->num_messages = 0;
-		//char teststr[20];
-		char merged[label_length];
-		char temp[label_length];
-		char message[120];
-		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
+    else
+    {
+		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++)
+        {
+			//check if name exists
+			int num_items_read = 0;
+			int status = 0;
 			char *test;
 			char *test2;
 			test = malloc(label_length * sizeof(char));
@@ -2101,36 +2054,36 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			sortedNums[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNums[pos2],"%s",test2);
 			int curlen = strlen(test);
-			if(curlen > analy->maxLabelLength){
+			if(curlen > analy->maxLabelLength)
+            {
 				analy->maxLabelLength = curlen;
 			}
 		}
-
-		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
-
-		analy->sorted_names = sortedNames;
-		analy->mat_names = forNames;
-		analy->mat_names_reversed = revNames;
-
-		qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
-
-		analy->sorted_nums = sortedNums;
-		analy->mat_nums = forNums;
-		analy->mat_nums_reversed = revNums;
-
-		// Make sure we get rid of dangling pointers
-		// DO NOT free this as it is now your analy->sorted_names pointer
-		// Simply setting it to NULL makes sure w do not have a dangling
-		// pointer.
-		sortedNames = NULL;
-		sortedNums = NULL;
     }
+
+    /* Sort names and nums and store in analysis struct */
+    qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+    analy->sorted_names = sortedNames;
+    analy->mat_names = forNames;
+    analy->mat_names_reversed = revNames;
+
+    qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+    analy->sorted_nums = sortedNums;
+    analy->mat_nums = forNums;
+    analy->mat_nums_reversed = revNums;
+
+    // Make sure we get rid of dangling pointers
+    // DO NOT free this as it is now your analy->sorted_names pointer
+    // Simply setting it to NULL makes sure w do not have a dangling
+    // pointer.
+    sortedNames = NULL;
+    sortedNums = NULL;
     
+
     //default setting area
     analy->sorted_labels = analy->sorted_names;
     analy->mat_labels = analy->mat_names;
 	analy->mat_labels_reversed = analy->mat_names_reversed;
-
 		
     //init color storage
     analy->preview_mode = False;
