@@ -1619,9 +1619,13 @@ parse_single_command( char *buf, Analysis *analy )
                     parse_command("clrsel mat", analy);
                 }
 
-				if ( parse_show_command( tokens[1], analy ) ){
+				long s, e;
+				s = prec_timer();
+				int rval = parse_show_command( tokens[1], analy );
+				e = prec_timer();
+				printf("Show command runtime = %ld\n", (e-s));
+				if( rval )
 					redraw = BINDING_MESH_VISUAL;
-				}
 				else
 					valid_command = FALSE;
 			}
@@ -4897,6 +4901,8 @@ parse_single_command( char *buf, Analysis *analy )
 
 				Bool_type error_flag = FALSE;
 
+				long s, e;
+				s = prec_timer();
 				if((res_ptr != NULL && res_ptr->result_funcs[0] == load_primal_result) || (analy->cur_result != NULL &&
 					analy->cur_result->result_funcs[0] == load_primal_result))
 				{
@@ -4926,6 +4932,8 @@ parse_single_command( char *buf, Analysis *analy )
 				else{
 					popup_dialog( INFO_POPUP, "Unknown result name entered" );
 				}
+				e = prec_timer();
+				printf("Plot command runtime = %ld\n", (e-s));
 
 			}
 			analy->th_plotting = TRUE;

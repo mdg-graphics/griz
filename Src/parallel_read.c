@@ -832,8 +832,8 @@ mili_reader_get_results( int dbid, int state, int subrec_id, int qty, char **res
 
 #ifdef MILI_READER_TIMING
     end = prec_timer();
-    printf("[mili_reader_get_results] - [%s,%s,%s] - elapsed = %ldms\n",
-            results[0], class_name, subrecord_name, (end-start));
+    //printf("[mili_reader_get_results] - [%s,%s,%s] - elapsed = %ldms\n",
+    //        results[0], class_name, subrecord_name, (end-start));
 #endif
 
     return rval;
@@ -2766,7 +2766,7 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
 
 #ifdef MILI_READER_TIMING
     tend = prec_timer();
-    printf("[mili_reader_get_state] elapsed = %ldms\n", (tend-tstart));
+    //printf("[mili_reader_get_state] elapsed = %ldms\n", (tend-tstart));
 #endif
     return OK;
 }

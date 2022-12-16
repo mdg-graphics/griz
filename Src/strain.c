@@ -1136,7 +1136,7 @@ extract_strain_vec( double *strain, double F[9], Strain_type s_type )
  * invariant and call it.
  */
 void
-compute_strain_invariant_one( Analysis *analy,float *resultArr, Bool_type interpolate )
+compute_strain_invariant_one( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     Result* p_result;
     int index;

@@ -126,8 +126,7 @@ compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
         {
             /* Build up component specification of vector result. */
             strcpy( primal_spec, p_result->primals[index][0] );
-            sprintf( primal_spec + strlen( primal_spec ), "[%s]",
-                     p_result->name );
+            sprintf( primal_spec + strlen( primal_spec ), "[%s]", p_result->name );
             primal_list[0] = primal_spec;
 
             /* Read the database. */

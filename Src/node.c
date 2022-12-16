@@ -184,17 +184,13 @@ compute_node_displacement( Analysis *analy, float *resultArr,
         load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
                      analy->cur_state + 1, TRUE,
                      tmp_nodesDp );
-        /*
-                     (void *) analy->tmp_result[1] );
-                     */
 
         if( analy->dimension == 3 )
         {
             if (MESH_P( analy )->double_precision_nodpos)
                 nodes3dDp = (GVec3D2P *)tmp_nodesDp ;
             else
-                nodes3d = (GVec3D *)tmp_nodesDp ;/*
-            nodes3d = (GVec3D *) analy->tmp_result[1];*/
+                nodes3d = (GVec3D *)tmp_nodesDp ;
         }
         else
         {
@@ -202,8 +198,7 @@ compute_node_displacement( Analysis *analy, float *resultArr,
                 nodes2dDp = (GVec2D2P *)tmp_nodesDp ;
             else
                 nodes2d = (GVec2D *)tmp_nodesDp ;
-        }/*
-            nodes2d = (GVec2D *) analy->tmp_result[1];*/
+        }
 
     }
 
@@ -838,8 +833,7 @@ compute_node_velocity( Analysis *analy, float *resultArr,
         else if ( object_ids != NULL )
         {
             /* Not magnitude result, but data needs reordering. */
-            reorder_float_array( obj_qty, object_ids, 1, result_buf,
-                                 resultArr );
+            reorder_float_array( obj_qty, object_ids, 1, result_buf, resultArr );
         }
     }
     else
@@ -859,8 +853,7 @@ compute_node_velocity( Analysis *analy, float *resultArr,
         {
             obj_qty = MESH_P( analy )->node_geom->qty;
 
-            analy->db_get_state( analy, analy->cur_state - 1, NULL, &state_prev,
-                                 NULL );
+            analy->db_get_state( analy, analy->cur_state - 1, NULL, &state_prev, NULL );
             delta_t = analy->state_p->time - state_prev->time;
 
             if ( dim == 2 )

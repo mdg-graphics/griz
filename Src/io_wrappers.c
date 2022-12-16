@@ -2923,6 +2923,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     /* Read node position array if it exists, re-ordering if necessary. */
     if ( analy->stateDB )
     {
+        printf("Loading nodpos\n");
         rval = load_nodpos( analy, p_sro, p_md, dims, st, TRUE, p_st->nodes.nodes );
         /* If unable to get first state, then no state files exist */
         if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
@@ -3202,7 +3203,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     }
 
     end = prec_timer();
-    printf("\n[mili_db_get_state] elapsed = %ldms\n", (end-start));
+    //printf("\n[mili_db_get_state] elapsed = %ldms\n", (end-start));
 
     *pp_new_st = p_st;
     return OK;
@@ -4258,7 +4259,7 @@ mili_db_get_results( int dbid, int state, int subrec_id, int qty,
     }
 
     end = prec_timer();
-    printf("\n[mili_db_get_results] elapsed = %ldms\n", (end-start));
+    //printf("\n[mili_db_get_results] elapsed = %ldms\n", (end-start));
 
     return OK;
 }

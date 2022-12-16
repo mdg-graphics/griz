@@ -3256,6 +3256,128 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
 
 
 #ifdef HAVE_PARALLEL_READ
+
+/*****************************************************************
+ * TAG( is_stress_strain )
+ *
+ * Return True if string is a stress or strain result.
+ */
+Bool_type check_stress_strain( char* name )
+{
+    int len = strlen( name );
+
+    if( len == 2 )
+    {
+        if( strncmp(name, "s", 1) == 0 || strncmp(name, "e", 1) == 0 )
+        {
+            if( strncmp(name+1, "x", 1) == 0 || strncmp(name+1, "y", 1) == 0 || strncmp(name+1, "z", 1) == 0 )
+                return TRUE;
+        }
+    }
+    else if( len == 3 )
+    {
+        if( strncmp(name, "s", 1) == 0 || strncmp(name, "e", 1) == 0 )
+        {
+            if( strncmp(name+1, "xy", 2) == 0 || strncmp(name+1, "yz", 2) == 0 || strncmp(name+1, "zx", 2) == 0 )
+                return TRUE;
+        }
+    }
+    else
+    {
+        if( strncmp(name, "stress", 6) == 0 || strncmp(name, "strain", 6) == 0 )
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*****************************************************************
+ * TAG( check_plot_requires_updated_nodpos )
+ *
+ * For many plot commands, we do not need to update the nodal positions
+ * as we iterate through the states. Return True if updated nodal positions
+ * are needed, False if not.
+ *
+ * Updated nodal positions are needed for
+ *      - quad/tri (shell) stress/strain values when reference frame is LOCAL.
+ */
+Bool_type check_plot_requires_updated_nodpos( Analysis *p_analysis, Result_mo_list_obj *p_rmlo )
+{
+    Result *p_result;
+    Series_ref_obj *p_sro;
+    Time_series_obj *p_tso;
+    Bool_type is_shell_result = FALSE;
+    Bool_type is_stress_strain = FALSE;
+    Bool_type primal_result;
+    Bool_type nodpos_primals;
+    int index;
+    char ** primals;
+
+
+    /* Check for QUAD or TRI Element class. */
+    for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
+    {
+        if ( !p_sro->active )
+            continue;
+
+        p_tso = p_sro->series;
+        switch( p_tso->mo_class->superclass )
+        {
+            case M_TRI:
+            case M_QUAD:
+                is_shell_result = TRUE;
+                break;
+            default:
+                break;
+        }
+    }
+
+    /* Check if result is stress or strain value */
+    p_result = p_rmlo->result;
+    is_stress_strain = check_stress_strain( p_result->name );
+    
+    /* Check if result is primal or derived */
+    primal_result = p_result->origin.is_primal;
+
+    if( primal_result )
+    {
+        /* If Quad/Tri PRIMAL Stress/Strain is LOCAL coordinate system, then need Nodal positions*/
+        if( p_analysis->ref_frame == LOCAL && is_shell_result && is_stress_strain )
+        {
+            return TRUE;
+        }
+        else
+        {
+            /* All other primals do not need Nodal positions */
+            return FALSE;
+        }
+    }
+
+    /* If we get here, then the result must be derived.
+     * Check if this derived result needs Nodal positions. */
+    index = p_analysis->result_index;
+    primals = p_result->primals[index];
+    nodpos_primals = !strcmp( primals[0], "nodpos" );
+
+    if( nodpos_primals )
+    {
+        return TRUE;
+    }
+    else if( !primal_result && is_stress_strain )
+    {
+        /* If derived stress/strain value, we need the nodal positions */
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    /* Default to Needing nodal positions if we get to the end */
+    return TRUE;
+}
+
+
 /*****************************************************************
  * TAG( gather_parallel_read_time_series )
  *
@@ -3280,6 +3402,7 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
     int tmp_state, st_qty;
     float value, rot_value;
     Bool_type need_to_load_nodpos;
+    Bool_type is_primal_quad_strain;
     int lbl_idx, lbl_num, obj_id;
     int * queried_labels;
     int * object_ids;
@@ -3316,13 +3439,6 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
             if ( p_state_rec->series_qty == 0 )
                 continue;
             
-            /* Disable loading nodpos when plotting. Will be re-enabled if needed.
-             * Nodal positions are needed for:
-             *      - Some derived variables
-             *      - quad/tri stress/strain values when reference frame is local
-             */
-            analy->load_nodpos = FALSE;
-
             /* Loop over subrecords for this state record format. */
             for( j = 0; j < p_state_rec->qty; j++ )
             {
@@ -3332,11 +3448,6 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                     if ( !p_rmlo->active )
                         continue;
 
-                    /* If derived result, re-enable loading nodpos*/
-                    if( p_rmlo->result->origin.is_derived ){
-                        analy->load_nodpos = TRUE;
-                    }
-
                     /*
                      * Gather p_rmlo result on this subrecord.
                      * Shouldn't need to zero result array prior to each load.
@@ -3344,6 +3455,9 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                     p_rmlo->result->modifiers.use_flags.use_ref_surface = 1;
                     p_rmlo->result->modifiers.use_flags.use_ref_frame = 1;
                     analy->cur_result = p_rmlo->result;
+
+                    /* Check if we need to update nodal positions for each state for this result. */
+                    analy->load_nodpos = check_plot_requires_updated_nodpos( analy, p_rmlo );
 
                     /* Gather list of requested elements and query only those */
                     obj_cnt = 0;
@@ -3371,7 +3485,9 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                         obj_cnt++;
                     }
 
+                    long s, e;
                     /* Query all states initially */
+                    s = prec_timer();
                     analy->py_PreloadedResult = NULL;
                     if( p_rmlo->result->origin.is_primal )
                     {
@@ -3387,29 +3503,36 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                             analy->py_PreloadedResult = NULL;
                         }
                     }
+                    e = prec_timer();
+                    printf("preload time = %ldms\n", (e-s));
+
+                    is_primal_quad_strain = is_primal_quad_strain_result( p_rmlo->result->name );
 
                     /* For each state... */
                     for( k = first_st; k <= last_st; k++ )
                     {
+                        s = prec_timer();
                         analy->cur_state = k;
                         analy->db_get_state( analy, k, analy->state_p, &analy->state_p, &st_qty );
+                        e = prec_timer();
+                        printf("get_state = %ldms\n", (e-s));
 
+                        s = prec_timer();
                         /* Call load_subrecord_result variant */
                         load_subrecord_result( analy, j, TRUE, FALSE );
+                        e = prec_timer();
+                        printf("load_subrecord_result = %ldms\n", (e-s));
 
                         /* Store result value for each object in list. */
-                        obj_cnt=0;
                         for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )
                         {
                             if ( !p_sro->active )
                                 continue;
 
                             p_tso = p_sro->series;
-
                             value = p_tso->mo_class->data_buffer[p_tso->ident];
 
-                            obj_cnt++;
-                            if (is_primal_quad_strain_result( p_rmlo->result->name ))
+                            if( is_primal_quad_strain )
                             {
                                 rot_value = value;
                                 rotate_quad_result( analy, p_rmlo->result->name, p_tso->ident, &rot_value );
