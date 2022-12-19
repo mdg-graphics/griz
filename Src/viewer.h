@@ -978,6 +978,7 @@ typedef struct _Analysis
     int (*ti_htable_wildcard_search)();
     int (*ti_read_array)();
     int (*get_param_array)();
+    void (*print_error)();
 
     void (*update_display)( struct _Analysis * );
     void (*display_mode_refresh)( struct _Analysis * );
@@ -2042,6 +2043,7 @@ extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
 extern int mili_reader_load_stress_strain_components( int, int, Bool_type, Bool_type, float** );
 extern int mili_reader_preload_primal_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
 extern int mili_reader_preload_derived_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
+extern void generic_error_print(char*, int);
 #endif
 
 /* Mili wrappers. */

@@ -197,6 +197,7 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
             analy->ti_htable_wildcard_search = mc_ti_htable_search_wildcard;
             analy->ti_read_array = mc_ti_read_array;
             analy->get_param_array = mili_db_get_param_array;
+            analy->print_error= mc_print_error;
         }
 #ifdef HAVE_PARALLEL_READ
         else{
@@ -213,6 +214,7 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
             analy->ti_htable_wildcard_search = mili_reader_search_param_wildcard;
             analy->ti_read_array = mili_reader_read_ti_array;
             analy->get_param_array = mili_reader_read_param_array;
+            analy->print_error = generic_error_print;
         }
 #endif
         break;
@@ -241,6 +243,7 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
         analy->ti_htable_wildcard_search = mc_ti_htable_search_wildcard;
         analy->ti_read_array = mc_ti_read_array;
         analy->get_param_array = mili_db_get_param_array;
+        analy->print_error = mc_print_error;
         break;
 
 #ifdef EXO_SUPPORT

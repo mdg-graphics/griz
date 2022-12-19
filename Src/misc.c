@@ -2078,15 +2078,8 @@ set_ref_state( Analysis *analy, int new_ref_state )
                                  "Tmp DP node cache" );
             }
 
-            if( !analy->parallel_read ){
-                load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
-                            FALSE, (void *) analy->cur_ref_state_dataDp );
-            }
-            #ifdef HAVE_PARALLEL_READ
-            else{
-                combine_nodpos( analy, 1, (void*) analy->cur_ref_state_dataDp);
-            }
-            #endif
+            load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
+                        FALSE, (void *) analy->cur_ref_state_dataDp );
 
         }
     }
@@ -2133,18 +2126,10 @@ set_ref_state( Analysis *analy, int new_ref_state )
 
         /* Go get it... */
         analy->reference_state = new_ref_state;
-        if( !analy->parallel_read ){
-            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                        TRUE, analy->cur_ref_state_data );
-        }
-        #ifdef HAVE_PARALLEL_READ
-        else{
-            combine_nodpos( analy, new_ref_state, (void*) analy->cur_ref_state_data );
-        }
-        #endif
+        load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+                    TRUE, analy->cur_ref_state_data );
 
         /* Assign the reference pointer to the data that was just read in. */
-
         if (MESH_P( analy )->double_precision_nodpos)
         {
             if ( !analy->cur_ref_state_dataDp )
@@ -2153,15 +2138,8 @@ set_ref_state( Analysis *analy, int new_ref_state )
                                  "Tmp DP node cache" );
             }
 
-            if( !analy->parallel_read ){
-                load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                            FALSE, analy->cur_ref_state_dataDp );
-            }
-            #ifdef HAVE_PARALLEL_READ
-            else{
-                combine_nodpos( analy, new_ref_state, (void*) analy->cur_ref_state_dataDp );
-            }
-            #endif
+            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+                        FALSE, analy->cur_ref_state_dataDp );
         }
 
     }

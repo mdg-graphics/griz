@@ -92,8 +92,7 @@ create_node_array( Analysis *analy)
  * and initial configuration.
  */
 void
-compute_node_displacement( Analysis *analy, float *resultArr,
-                           Bool_type interpolate )
+compute_node_displacement( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     int i, node_qty;
     GVec3D *nodes3d, *onodes3d;
@@ -141,7 +140,7 @@ compute_node_displacement( Analysis *analy, float *resultArr,
     p_node_class = MESH_P( analy )->node_geom;
     num_nodes    = p_node_class->qty;
 
-    if (analy->stateDB)
+    if( analy->stateDB )
     {
         node_qty = MESH( analy ).node_geom->qty;
 
@@ -641,24 +640,21 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
     /* Read the database. */
     primal_list[0] = strdup(primals[0]);
 
-    result_buf = NEW_N( double, node_qty*sv.vec_size*2,
-                        "Current Nodal Results" );
+    result_buf = NEW_N( double, node_qty*sv.vec_size*2, "Current Nodal Results" );
 
     analy->db_get_results( analy->db_ident, analy->cur_state+1, subrec, 1,
                            primal_list, (void *) result_buf );
 
     if ( sv.vec_size==3 )
-        if ( sv.num_type==M_FLOAT )
-        {
-            modedisp     = (float (*)[3]) result_buf;
-        }
-        else
-        {
-            modedisp_dp     = (double (*)[3]) result_buf;
-        }
-    else if ( sv.num_type==M_FLOAT )
     {
-        modedispscalar    = (float *) result_buf;
+        if ( sv.num_type == M_FLOAT )
+            modedisp = (float (*)[3]) result_buf;
+        else
+            modedisp_dp = (double (*)[3]) result_buf;
+    }
+    else if ( sv.num_type == M_FLOAT )
+    {
+        modedispscalar = (float *) result_buf;
     }
     else
     {
@@ -667,11 +663,10 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
 
     free( primal_list[0] );
 
-    for ( i = 0;
-            i < node_qty;
-            i++ )
+    for( i = 0; i < node_qty; i++ )
     {
         if ( sv.vec_size==3 )
+        {
             if ( sv.num_type==M_FLOAT )
             {
                 dx =  modedisp[i][0];
@@ -684,13 +679,14 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
                 dy =  modedisp_dp[i][1];
                 dz =  modedisp_dp[i][2];
             }
+        }
         else if ( sv.num_type==M_FLOAT )
         {
-            dx =  modedispscalar[i];
+            dx = modedispscalar[i];
         }
         else
         {
-            dx =  modedispscalar_dp[i];
+            dx = modedispscalar_dp[i];
         }
 
         if ( sv.vec_size==3 )

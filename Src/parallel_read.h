@@ -53,6 +53,13 @@ extern long prec_timer()
 }
 
 
+extern void
+generic_error_print( char * message, int rval )
+{
+    fprintf( stderr, "%s - Return value = %d\n", message, rval );
+}
+
+
 /*****************************************************************
  * TAG( check_running_on_login_node )
  *

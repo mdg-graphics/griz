@@ -2541,49 +2541,6 @@ mili_reader_get_st_descriptors( Analysis *analy, int dbid )
 }
 
 
-/* TAG( combine_nodpos )
- *
- * Combine the nodal positions from multiple processors
- */
-extern int 
-combine_nodpos( Analysis *analy, int state_no, void * out_buffer ){
-    int i, j;
-    int out_idx;
-    int dims;
-    int node_qty;
-    char *nodpos = "nodpos";
-    char *data = "data";
-    char *node = "node";
-    PyObject * py_ProcNodes;
-    PyObject * py_Nodes;
-    PyObject * py_Coords;
-
-    float* out_buf = (float*) out_buffer;
-
-    dims = analy->dimension;
-
-    for( i = 0; i < analy->proc_count; i++ ){
-        py_ProcNodes = PySequence_ITEM( analy->py_Nodpos, i);
-
-        py_Nodes = PyDict_GetItemString( py_ProcNodes, nodpos );
-        py_Nodes = PyDict_GetItemString( py_Nodes, data );
-        py_Nodes = PyDict_GetItemString( py_Nodes, node );
-
-        /* Single state, so remove state array */
-        py_Nodes = PySequence_ITEM( py_Nodes, state_no );
-        node_qty = MESH_P(analy)->index_map->node_count[i];
-
-        /* Get coordinates for each element */
-        for( j = 0; j < node_qty; j++ ){
-            py_Coords = PySequence_ITEM( py_Nodes, j );
-            out_idx = MESH_P(analy)->index_map->node_map[i][j] * dims;
-            float_pointer_from_pyobject( py_Coords, dims, out_buf+out_idx);
-        }
-    }
-    return OK;
-}
-
-
 /* TAG( mili_reader_get_state )
  *
  * Move to a particular state in the Mili database and update
@@ -2673,7 +2630,6 @@ mili_reader_get_state( Analysis *analy, int state_no, State2 *p_st, State2 **pp_
     /* Read node position array if it exists, re-ordering if necessary. */
     if ( analy->stateDB && analy->load_nodpos)
     {
-        //rval = combine_nodpos( analy, state_no, p_st->nodes.nodes );
         primal = "nodpos";
         rval = mili_reader_get_results( analy->db_ident, state_no+1, p_sro->node_pos_subrec, 1, &primal, p_st->nodes.nodes );
 

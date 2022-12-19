@@ -1619,12 +1619,7 @@ parse_single_command( char *buf, Analysis *analy )
                     parse_command("clrsel mat", analy);
                 }
 
-				long s, e;
-				s = prec_timer();
-				int rval = parse_show_command( tokens[1], analy );
-				e = prec_timer();
-				printf("Show command runtime = %ld\n", (e-s));
-				if( rval )
+				if( parse_show_command( tokens[1], analy ) )
 					redraw = BINDING_MESH_VISUAL;
 				else
 					valid_command = FALSE;
@@ -5462,7 +5457,7 @@ parse_single_command( char *buf, Analysis *analy )
 			if ( token_cnt > 2 )
 				sscanf( tokens[2], "%f", &vec[1] );
 			else
-				vec[1] = analy->state_times[analy->state_count-1];
+				vec[1] = analy->state_times[ get_max_state( analy ) ];
 
 			/* Time step size. */
 			if ( token_cnt > 3 )

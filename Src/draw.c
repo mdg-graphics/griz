@@ -2437,21 +2437,8 @@ create_color_prop_arrays( Color_property *p_color_property, int size)
 
     /* Put gray level in range of (.40 - .90/size) */
     gslevel_increment = (0.90 - 0.40)/size;
-    for ( i=0;
-            i<size;
-            i++ )
+    for( i = 0; i < size; i++ )
     {
-        /* allocate memory and read in the label names */
-        /*int num_items_read = 0;
-        GLfloat* rgbList;
-        char searchString[20];
-        sprintf(searchString, "SetRGB_%d",i);
-        rgbList = (GLfloat *) malloc(3 * sizeof(GLfloat));
-        int status = 0;
-        status = mc_ti_read_array(analy->db_ident, searchString, (void**)& rgbList, &num_items_read );
-        if(status != NULL){
-            printf("default color for material: %d , exists and contains: R: %s, G: %s, B: %s \n",i,rgbList[0],rgbList[1],rgbList[2]);
-        }*/
         p_color_property->gslevel[i] = gslevel;
         gslevel+=gslevel_increment;
     }

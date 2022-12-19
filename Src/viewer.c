@@ -1184,56 +1184,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
     if ( env.ti_enable )
     {
-        /* RHATHAW
-         * This appears to be unnecessary, analy->ti_vars is only used by a single function
-         * that is currently commented out. Need to talk to Kevin about this.
-         */
-        //num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-        //              "*", "NULL", "NULL",
-        //              NULL );
-
-        //wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-
-        //if(wildcard_list == NULL)
-        //{
-        //    return ALLOC_FAILED;
-        //}
-
-        //num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-        //              "M_", "NULL", "NULL",
-        //              wildcard_list );
-
-        //analy->ti_vars      = NULL;
-        //analy->ti_var_count = num_entries;
-        //analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
-
-        //for ( i = 0; i < num_entries; i++ )
-        //{
-        //    /* Extract the long name (with class info in name)
-        //     * and short name of the TI variable.
-        //     */
-        //    status = mc_ti_get_metadata_from_name( wildcard_list[i],
-        //                                           class, &meshid, &state,
-        //                                           &matid, &superclass,
-        //                                           &isMeshvar, &isNodal);
-
-        //    status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-        //                                 &datatype, &datalength );
-
-        //    analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
-        //    analy->ti_vars[i].short_name = (char *) strdup( class );
-        //    analy->ti_vars[i].superclass = superclass;
-        //    analy->ti_vars[i].type       = datatype;
-        //    analy->ti_vars[i].length     = datalength;
-        //    analy->ti_vars[i].nodal      = isNodal;
-        //}
-
-        //analy->ti_data_found = TRUE;
-
-        //htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-        //free(wildcard_list);
-        //wildcard_list = NULL;
-
         /* Get particle element names count */
         num_entries = analy->ti_htable_wildcard_search(analy->db_ident, 0, FALSE,
                       "particle_element", "NULL", "NULL",

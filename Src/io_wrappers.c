@@ -362,9 +362,6 @@ mili_db_get_geom( Analysis *analy )
     int block_qty=0, block_index=0, block_range_index=0,
         *block_range=NULL, elem_sclass=0, mat_index=0;
 
-    long start, end;
-    start = prec_timer();
-
     if ( analy->mesh_table != NULL )
     {
         popup_dialog( WARNING_POPUP, "Mesh table pointer not NULL at initialization." );
@@ -1052,9 +1049,6 @@ mili_db_get_geom( Analysis *analy )
 
     status = get_hex_volumes( dbid, analy );
 
-    end = prec_timer();
-    printf("\n[mili_db_get_geom] elapsed = %ldms\n", (end-start));
-
     return (OK);
 }
 
@@ -1503,9 +1497,6 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     State_variable *p_svar;
     Mesh_data *p_mesh;
 
-    long start, end;
-    start = prec_timer();
-
     int subrec_index=0;
 
     fid = (Famid) dbid;
@@ -1516,12 +1507,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     analy->old_shell_stresses = FALSE;
 
     /* Get state record format count for this database. */
-    rval = mc_query_family( fid, QTY_SREC_FMTS, NULL, NULL,
-                            (void *) &srec_qty );
+    rval = mc_query_family( fid, QTY_SREC_FMTS, NULL, NULL, (void *) &srec_qty );
     if ( rval != 0 )
     {
-        mc_print_error( "mili_db_get_st_descriptors() call mc_query_family()",
-                        rval );
+        mc_print_error( "mili_db_get_st_descriptors() call mc_query_family()", rval );
         return GRIZ_FAIL;
     }
 
@@ -1532,8 +1521,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     rval = mc_query_family( fid, QTY_SVARS, NULL, NULL, (void *) &svar_qty );
     if ( rval != 0 )
     {
-        mc_print_error( "mili_db_get_st_descriptors() call mc_query_family()",
-                        rval );
+        mc_print_error( "mili_db_get_st_descriptors() call mc_query_family()", rval );
         return GRIZ_FAIL;
     }
 
@@ -1560,8 +1548,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     for ( i = 0; i < srec_qty; i++ )
     {
         /* Get subrecord count for this state record. */
-        rval = mc_query_family( fid, QTY_SUBRECS, (void *) &i, NULL,
-                                (void *) &subrec_qty );
+        rval = mc_query_family( fid, QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty );
         if ( rval != 0 )
         {
             mc_print_error( "mili_db_get_st_descriptors() call "
@@ -1580,8 +1567,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
         p_sro[i].particle_pos_subrec = -1;
 
         /* Get mesh_id & mesh for this srec. */
-        rval = mc_query_family( fid, SREC_MESH, (void *) &i, NULL,
-                                (void *) &mesh_id );
+        rval = mc_query_family( fid, SREC_MESH, (void *) &i, NULL, (void *) &mesh_id );
         if ( rval != 0 )
         {
             mc_print_error( "mili_db_get_st_descriptors() call "
@@ -1628,8 +1614,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
             p_subrecs[subrec_index].p_object_class = p_mocd;
 
             /* Create list of nodes referenced by objects bound to subrecord. */
-            create_subrec_node_list( node_work_array, mesh_node_qty,
-                                     p_subrecs + subrec_index );
+            create_subrec_node_list( node_work_array, mesh_node_qty, p_subrecs+subrec_index );
 
             /*
              * Create ident array if indexing is required.
@@ -1750,9 +1735,6 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     analy->qty_srec_fmts = srec_qty;
     analy->st_var_table = p_sv_ht;
     analy->primal_results = p_primal_ht;
-
-    end = prec_timer();
-    printf("\n[mili_db_get_st_descriptors] elapsed = %ldms\n", (end-start));
 
     return OK;
 }
@@ -2765,9 +2747,6 @@ mili_db_load_state_data( Analysis *analy )
     int states_added;
     int start = 0;
 
-    long timestart, timeend;
-    start = prec_timer();
-
     dbid = analy->db_ident;
 
     /* Get the number of states in the database */
@@ -2828,9 +2807,6 @@ mili_db_load_state_data( Analysis *analy )
         }
         analy->state_srec_fmt_ids[i] = srec_id;
     }
-
-    timeend = prec_timer();
-    printf("\n[mili_db_load_state_data] elapsed = %ldms\n", (timeend-timestart));
 
     return OK;
 }
@@ -2923,7 +2899,6 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     /* Read node position array if it exists, re-ordering if necessary. */
     if ( analy->stateDB )
     {
-        printf("Loading nodpos\n");
         rval = load_nodpos( analy, p_sro, p_md, dims, st, TRUE, p_st->nodes.nodes );
         /* If unable to get first state, then no state files exist */
         if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
@@ -3203,7 +3178,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     }
 
     end = prec_timer();
-    //printf("\n[mili_db_get_state] elapsed = %ldms\n", (end-start));
+    printf("\n[mili_db_get_state] elapsed = %ldms\n", (end-start));
 
     *pp_new_st = p_st;
     return OK;
@@ -3242,14 +3217,12 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
              * double precision is OK, just use the caller's data buffer and
              * get the data and we're done.
              */
-
-            rval = mc_read_results( analy->db_ident, db_state,
-                                    p_sro->node_pos_subrec, 1, &primal,
-                                    node_buf );
-            if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
+            rval = analy->db_get_results( analy->db_ident, db_state,
+                                          p_sro->node_pos_subrec, 1, &primal,
+                                          node_buf );
+            if ( rval == OPEN_FAILED )
             {
                 return OPEN_FAILED;
-                //return NON_STATE_FILE;
             }
             if ( rval != 0 )
             {
@@ -3265,26 +3238,25 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
             subrec_size = p_subrec->subrec.qty_objects * dimensions;
 
             /* Get an input buffer. */
-            input_buf = get_st_input_buffer( analy, subrec_size, TRUE,
-                                             &ibuf );
+            input_buf = get_st_input_buffer( analy, subrec_size, TRUE, &ibuf );
 
             /* Read in the data. */
-            rval = mc_read_results( analy->db_ident, db_state,
-                                    p_sro->node_pos_subrec, 1, &primal,
-                                    (void *) input_buf );
+            rval = analy->db_get_results( analy->db_ident, db_state,
+                                          p_sro->node_pos_subrec, 1, &primal,
+                                          (void *) input_buf );
 
-            if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
+            if ( rval == OPEN_FAILED )
             {
                 if ( ibuf != NULL )
                     free( ibuf );
 
                 return OPEN_FAILED;
-                //return NON_STATE_FILE;
             }
+
             if ( rval != 0 )
             {
-                mc_print_error( "load_nodpos() call mc_read_results()"
-                                " for double precision \"nodpos\"", rval );
+                analy->print_error( "load_nodpos() call mc_read_results()"
+                                    " for double precision \"nodpos\"", rval );
                 if ( ibuf != NULL )
                     free( ibuf );
 
@@ -3309,21 +3281,21 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
                                          p_md->double_precision_nodpos,
                                          &ibuf );
 
-        rval = mc_read_results( analy->db_ident, db_state,
-                                p_sro->node_pos_subrec, 1, &primal, input_buf );
+        rval = analy->db_get_results( analy->db_ident, db_state,
+                                      p_sro->node_pos_subrec, 1, &primal, input_buf );
 
-        if ( rval == OPEN_FAILED/*|| rval == NON_STATE_FILE*/)
+        if ( rval == OPEN_FAILED )
         {
            if ( ibuf != NULL )
                 free( ibuf );
 
             return OPEN_FAILED;
-            //return NON_STATE_FILE;
         }
+
         if ( rval != 0 )
         {
-            mc_print_error( "load_nodpos() call mc_read_results()"
-                            " for \"nodpos\"", rval );
+            analy->print_error( "load_nodpos() call mc_read_results()"
+                                " for \"nodpos\"", rval );
             if ( ibuf != NULL )
                 free( ibuf );
 
@@ -3396,7 +3368,8 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
     Subrec_obj    *p_subr_obj;
     Subrecord     *p_subr;
     State_variable *p_stvar;
-    Famid fid;
+    Htable_entry *p_hte;
+
     int matnum=1;
     int ordering;
 
@@ -3409,12 +3382,9 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
     int      *obj_map_tmp;
     GVec3D2P *new_nodes_tmp;
 
-    fid = analy->db_ident;
     p_state_rec = analy->srec_tree;
 
-    for ( j = 0;
-            j < p_state_rec->qty;
-            j++ )
+    for ( j = 0; j < p_state_rec->qty; j++ )
     {
         p_subr = &p_state_rec->subrecs[j].subrec;
 
@@ -3426,58 +3396,45 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
         }
     }
 
-    if (!hexcoord_found)
+    if( !hexcoord_found )
     {
         *obj_map = NULL;
-        return (!OK);
+        return !OK;
     }
-
 
     p_subr      = &p_state_rec->subrecs[subrec_coord_index].subrec;
     ordering    = p_subr->organization;
     object_ids  = p_state_rec->subrecs[subrec_coord_index].object_ids;
     subrec_size = p_subr->qty_objects;
-    p_stvar = NEW( State_variable, "New state var" );
-    rval = mc_get_svar_def( fid, "hx", p_stvar );
+
+    rval = htable_search( analy->st_var_table, "hx", FIND_ENTRY, &p_hte );
     if ( rval != 0 )
     {
-        mc_print_error( "mc_get_svar_def()", rval );
+        analy->print_error( "load_hex_nodpos_timehist call htable_search for 'hx'", rval );
         return GRIZ_FAIL;
     }
+    p_stvar = (State_variable*) p_hte->data;
 
     if (p_stvar->num_type != M_FLOAT8 )
-        input_buf_flt = get_st_input_buffer( analy, subrec_size,
-                                             FALSE, &ibuf );
+        input_buf_flt = get_st_input_buffer( analy, subrec_size, FALSE, &ibuf );
     else
-        input_buf_dbl = get_st_input_buffer( analy, subrec_size,
-                                             TRUE, &ibuf );
+        input_buf_dbl = get_st_input_buffer( analy, subrec_size, TRUE, &ibuf );
 
     class_qty = MESH( analy ).classes_by_sclass[G_HEX].qty;
     node_qty  = MESH_P( analy )->node_geom->qty;
 
     /* Allocate space for new coordinates */
-    new_nodes_tmp  = NEW_N_MALLOC( GVec3D2P,
-                                   node_qty,
-                                   "new nodes 3d" );
-
-    obj_map_tmp    = NEW_N( int,
-                            subrec_size+2,
-                            "new nodes - object map" );
+    new_nodes_tmp = NEW_N_MALLOC( GVec3D2P, node_qty, "new nodes 3d" );
+    obj_map_tmp = NEW_N( int, subrec_size+2, "new nodes - object map" );
 
     *obj_cnt = subrec_size;
 
-    for ( i = 0;
-            i < subrec_size+2;
-            i++ )
+    for ( i = 0; i < subrec_size+2; i++ )
         obj_map_tmp[i] = -1;
 
-    for ( j = 0;
-            j < class_qty;
-            j++ )
+    for ( j = 0; j < class_qty; j++ )
     {
-        p_hex_class = ((MO_class_data **)
-                       MESH( analy ).classes_by_sclass[G_HEX].list)[j];
-
+        p_hex_class = ((MO_class_data **) MESH( analy ).classes_by_sclass[G_HEX].list)[j];
         connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
     }
 
@@ -3485,51 +3442,39 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
 
     /* Object Ordered Results */
     /* X Coordinates */
-
     if ( ordering == OBJECT_ORDERED )
-        for (axis_index = 0;
-                axis_index < 3;
-                axis_index++)
-            for (j = 0;
-                    j < 8;
-                    j++)
+    {
+        for( axis_index = 0; axis_index < 3; axis_index++ )
+        {
+            for( j = 0; j < 8; j++)
             {
                 sprintf(primal_coord,"hexcoord[%s,%1d]", axis_string[axis_index], j+1);
 
                 if (p_stvar->num_type != M_FLOAT8 )
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_flt );
                 else
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_dbl );
 
-                if ( rval != 0 )
+                if ( rval != OK )
                 {
-                    mc_print_error( "load_nodpos_timehist() call mc_read_results()"
-                                    " for \"hexcoord[hx,1]\"", rval );
+                    analy->print_error( "load_nodpos_timehist() call mc_read_results()"
+                                        " for \"hexcoord[hx,1]\"", rval );
                     return GRIZ_FAIL;
                 }
 
-                for ( i = 0;
-                        i < subrec_size;
-                        i++ )
-
+                for( i = 0; i < subrec_size; i++ )
                 {
-                    if( object_ids )
-                        idnum = object_ids[i];
-                    else
-                        idnum = i;
-
+                    idnum = (object_ids) ? object_ids[i] : i;
                     obj_map_tmp[i] = idnum;
-
                     nd = connects[idnum][j];
 
                     if ( nd >= node_qty )
                     {
-                        mc_print_error( "load_nodpos_timehist() node qty exceeded for nd ", nd);
+                        analy->print_error( "load_nodpos_timehist() node qty exceeded for nd ", nd);
                         return GRIZ_FAIL;
                     }
-
 
                     if (p_stvar->num_type != M_FLOAT8 )
                         new_nodes_tmp[nd][axis_index] = input_buf_flt[i];
@@ -3537,66 +3482,54 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
                         new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
                 }
             }
-
+        }
+    }
     /* RESULT_ORDERED */
     else
-        for (axis_index = 0;
-                axis_index < 3;
-                axis_index++)
+    {
+        for( axis_index = 0; axis_index < 3; axis_index++ )
         {
             sprintf(primal_coord,"hexcoord[%s]", axis_string[axis_index]);
 
             if (p_stvar->num_type != M_FLOAT8 )
-                rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                         (void *) input_buf_flt );
             else
-                rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                         (void *) input_buf_dbl );
 
-
-            if ( rval != 0 )
+            if ( rval != OK )
             {
                 sprintf(primal_coord, "%s", axis_string[axis_index]);
 
                 if (p_stvar->num_type != M_FLOAT8 )
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_flt );
                 else
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_dbl );
             }
 
-            if ( rval != 0 )
+            if ( rval != OK )
             {
-                mc_print_error( "load_nodpos_timehist() call mc_read_results()"
-                                " for \"hexcoord[hx]\"", rval );
+                analy->print_error( "load_nodpos_timehist() call mc_read_results()"
+                                    " for \"hexcoord[hx]\"", rval );
                 return GRIZ_FAIL;
             }
 
             obj_index = 0;
-            for ( i = 0;
-                    i < subrec_size;
-                    i++ )
-
+            for ( i = 0; i < subrec_size; i++ )
             {
-                if( object_ids )
-                {
-                    idnum = object_ids[i];
-                }
-                else
-                    idnum = i;
-
+                idnum = (object_ids) ? object_ids[i] : i;
                 obj_map_tmp[i] = idnum;
 
-                for (j = 0;
-                        j < 8;
-                        j++)
+                for (j = 0; j < 8; j++)
                 {
                     nd = connects[idnum][j];
 
                     if ( nd >= node_qty )
                     {
-                        mc_print_error( "load_hex_nodpos_timehist() node qty exceeded for nd ", nd);
+                        analy->print_error( "load_hex_nodpos_timehist() node qty exceeded for nd ", nd);
                         return GRIZ_FAIL;
                     }
 
@@ -3605,9 +3538,10 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
                     else
                         new_nodes_tmp[nd][axis_index] = input_buf_dbl[obj_index+j];
                 }
-                obj_index+=8;
+                obj_index += 8;
             }
         }
+    }
 
     *obj_map   = obj_map_tmp;
     *new_nodes = new_nodes_tmp;
@@ -3648,7 +3582,7 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     Subrec_obj    *p_subr_obj;
     Subrecord     *p_subr;
     State_variable *p_stvar;
-    Famid fid;
+    Htable_entry *p_hte;
     int ordering;
 
     char *axis_string[3] = {"shlx", "shly", "shlz"};
@@ -3661,12 +3595,9 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     int      *obj_map_tmp;
     GVec3D2P *new_nodes_tmp;
 
-    fid = analy->db_ident;
     p_state_rec = analy->srec_tree;
 
-    for ( j = 0;
-            j < p_state_rec->qty;
-            j++ )
+    for ( j = 0; j < p_state_rec->qty; j++ )
     {
         p_subr = &p_state_rec->subrecs[j].subrec;
 
@@ -3682,55 +3613,42 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     if (!quadcoord_found)
     {
         *obj_map = NULL;
-        return (!OK);
+        return !OK;
     }
 
     p_subr      = &p_state_rec->subrecs[subrec_coord_index].subrec;
     ordering    = p_subr->organization;
     object_ids  = p_state_rec->subrecs[subrec_coord_index].object_ids;
     subrec_size = p_subr->qty_objects;
-    p_stvar = NEW( State_variable, "New state var" );
 
-    rval = mc_get_svar_def( fid, "shlx", p_stvar );
+    rval = htable_search( analy->st_var_table, "shlx", FIND_ENTRY, &p_hte );
     if ( rval != 0 )
     {
-        mc_print_error( "mc_get_svar_def()", rval );
+        analy->print_error( "load_quad_nodpos_timehist call htable_search for 'hx'", rval );
         return GRIZ_FAIL;
     }
+    p_stvar = (State_variable*) p_hte->data;
 
     if (p_stvar->num_type != M_FLOAT8 )
-        input_buf_flt = get_st_input_buffer( analy, subrec_size,
-                                             FALSE, &ibuf );
+        input_buf_flt = get_st_input_buffer( analy, subrec_size, FALSE, &ibuf );
     else
-        input_buf_dbl = get_st_input_buffer( analy, subrec_size,
-                                             TRUE, &ibuf );
+        input_buf_dbl = get_st_input_buffer( analy, subrec_size, TRUE, &ibuf );
 
     class_qty = MESH( analy ).classes_by_sclass[G_QUAD].qty;
     node_qty  = MESH_P( analy )->node_geom->qty;
 
     /* Allocate space for new coordinates */
-    new_nodes_tmp = NEW_N_MALLOC( GVec3D2P,
-                                  node_qty,
-                                  "new nodes 3d" );
-
-    obj_map_tmp = NEW_N( int,
-                         subrec_size+2,
-                         "new nodes - object map" );
+    new_nodes_tmp = NEW_N_MALLOC( GVec3D2P, node_qty, "new nodes 3d" );
+    obj_map_tmp = NEW_N( int, subrec_size+2, "new nodes - object map" );
 
     *obj_cnt =  subrec_size;
 
-    for ( i = 0;
-            i < subrec_size+2 ;
-            i++ )
+    for( i = 0; i < subrec_size+2; i++ )
         obj_map_tmp[i] = -1;
 
-    for ( j = 0;
-            j < class_qty;
-            j++ )
+    for( j = 0; j < class_qty; j++ )
     {
-        p_quad_class = ((MO_class_data **)
-                        MESH( analy ).classes_by_sclass[G_QUAD].list)[j];
-
+        p_quad_class = ((MO_class_data **) MESH( analy ).classes_by_sclass[G_QUAD].list)[j];
         connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
     }
 
@@ -3740,49 +3658,38 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     /* X Coordinates */
 
     if ( ordering == OBJECT_ORDERED )
-        for (axis_index = 0;
-                axis_index < 3;
-                axis_index++)
-            for (j = 0;
-                    j < 8;
-                    j++)
+    {
+        for( axis_index = 0; axis_index < 3; axis_index++ )
+        {
+            for( j = 0; j < 8; j++ )
             {
                 sprintf(primal_coord,"shlcoord[%s,%1d]", axis_string[axis_index], j+1);
 
                 if (p_stvar->num_type != M_FLOAT8 )
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_flt );
                 else
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_dbl );
 
-                if ( rval != 0 )
+                if ( rval != OK )
                 {
-                    mc_print_error( "load_quad_nodpos_timehist() call mc_read_results()"
+                    analy->print_error( "load_quad_nodpos_timehist() call mc_read_results()"
                                     " for \"quadcoord[hx,1]\"", rval );
                     return GRIZ_FAIL;
                 }
 
-                for ( i = 0;
-                        i < subrec_size;
-                        i++ )
-
+                for ( i = 0; i < subrec_size; i++ )
                 {
-                    if( object_ids )
-                        idnum = object_ids[i];
-                    else
-                        idnum = i;
-
+                    idnum = (object_ids) ? object_ids[i] : i;
                     obj_map_tmp[i] = idnum;
-
                     nd = connects[idnum][j];
 
                     if ( nd >= node_qty )
                     {
-                        mc_print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
+                        analy->print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
                         return GRIZ_FAIL;
                     }
-
 
                     if (p_stvar->num_type != M_FLOAT8 )
                         new_nodes_tmp[nd][axis_index] = input_buf_flt[i];
@@ -3790,63 +3697,53 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
                         new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
                 }
             }
+        }
+    }
     /* RESULT_ORDERED */
     else
-        for (axis_index = 0;
-                axis_index < 3;
-                axis_index++)
+    {
+        for (axis_index = 0; axis_index < 3; axis_index++)
         {
             sprintf(primal_coord,"shlcoord[%s]", axis_string[axis_index]);
-
             if (p_stvar->num_type != M_FLOAT8 )
-                rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                         (void *) input_buf_flt );
             else
-                rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                         (void *) input_buf_dbl );
 
 
-            if ( rval != 0 )
+            if ( rval != OK )
             {
                 sprintf(primal_coord, "%s", axis_string[axis_index]);
-
                 if (p_stvar->num_type != M_FLOAT8 )
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_flt );
                 else
-                    rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal,
+                    rval = analy->db_get_results( dbid, state, subrec_coord_index, 1, primal,
                                             (void *) input_buf_dbl );
             }
 
-            if ( rval != 0 )
+            if ( rval != OK )
             {
-                mc_print_error( "load_quad_nodpos_timehist() call mc_read_results()"
-                                " for \"shlcoord[shlx]\"", rval );
+                analy->print_error( "load_quad_nodpos_timehist() call mc_read_results()"
+                                    " for \"shlcoord[shlx]\"", rval );
                 return GRIZ_FAIL;
             }
 
             obj_index = 0;
-            for ( i = 0;
-                    i < subrec_size;
-                    i++ )
-
+            for ( i = 0; i < subrec_size; i++ )
             {
-                if( object_ids )
-                    idnum = object_ids[i];
-                else
-                    idnum = i;
-
+                idnum = (object_ids) ? object_ids[i] : i; 
                 obj_map_tmp[i] = idnum;
 
-                for (j = 0;
-                        j < 4;
-                        j++)
+                for( j = 0; j < 4; j++ )
                 {
                     nd = connects[idnum][j];
 
                     if ( nd >= node_qty )
                     {
-                        mc_print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
+                        analy->print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
                         return GRIZ_FAIL;
                     }
 
@@ -3858,11 +3755,12 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
                 obj_index+=4;
             }
         }
+    }
 
     *obj_map   = obj_map_tmp;
     *new_nodes = new_nodes_tmp;
 
-    return (OK);
+    return OK;
 }
 
 /************************************************************
@@ -3890,9 +3788,7 @@ load_quad_objids_timehist( Analysis *analy, int *obj_cnt, int **obj_ids )
 
     p_state_rec = analy->srec_tree;
 
-    for ( i = 0;
-            i < p_state_rec->qty;
-            i++ )
+    for ( i = 0; i < p_state_rec->qty; i++ )
     {
         p_subr = &p_state_rec->subrecs[i].subrec;
 
@@ -3928,8 +3824,7 @@ load_quad_objids_timehist( Analysis *analy, int *obj_cnt, int **obj_ids )
  * NULL or non-NULL depending on whether the caller is to free() or not).
  */
 void *
-get_st_input_buffer( Analysis *analy, int size, Bool_type double_precision,
-                     void **new_buf )
+get_st_input_buffer( Analysis *analy, int size, Bool_type double_precision, void **new_buf )
 {
     double *dbuf;
     float *fbuf;

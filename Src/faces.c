@@ -5561,9 +5561,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
             && p_mo_class->labels_found && analy->particle_nodes_enabled )
         {
             p_mesh = MESH_P( analy );
-            select_meshless_elem( analy, p_mesh,
-                                p_mo_class, node_near_num,
-                                &p_near );
+            select_meshless_elem( analy, p_mesh, p_mo_class, node_near_num, &p_near );
             near_num = p_near;
 
             if ( p_near<=0 )
