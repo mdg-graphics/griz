@@ -799,6 +799,7 @@ generate_banned_names_list( Analysis * analy )
                                 "select","mat","all","amb","diff","spec","spotdir","spot","exp"};
 
     /* Get all class names */
+    qty_classes = 0;
     mili_get_class_names( analy, &qty_classes, class_names, superclasses );
 
     qty_banned_names = qty_classes + qty_predefined_names;

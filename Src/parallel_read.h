@@ -80,7 +80,8 @@ check_running_on_login_node()
  *
  * Binary search to find index of the target element in an array.
  */
-int bin_search_index(int target, int* array, int size, int guess){
+int bin_search_index(int target, int* array, int size, int guess)
+{
     int low = 0;
     int high = size - 1;
     int mid;
@@ -115,7 +116,8 @@ int bin_search_index(int target, int* array, int size, int guess){
  *
  */
 PyObject*
-call_mili_module_function(PyObject * mili_reader_module, const char *function_name, PyObject *py_Arglist){
+call_mili_module_function(PyObject * mili_reader_module, const char *function_name, PyObject *py_Arglist)
+{
     PyObject *py_Dict,
              *py_Func;
     PyObject *py_ReturnValue = Py_None;
@@ -125,10 +127,12 @@ call_mili_module_function(PyObject * mili_reader_module, const char *function_na
     if(mili_reader_module != NULL){
         /* Get __dict__ for mili reader module */
         py_Dict = PyModule_GetDict(mili_reader_module);
-        if(py_Dict != NULL){
+        if(py_Dict != NULL)
+        {
             /* Check for requested function and call it */
             py_Func = PyDict_GetItemString(py_Dict, function_name);
-            if(py_Func != NULL && PyCallable_Check(py_Func)){
+            if(py_Func != NULL && PyCallable_Check(py_Func))
+            {
                 py_ReturnValue = PyObject_CallObject(py_Func, py_Arglist);
                 Py_DECREF(Py_None);
             }
@@ -143,7 +147,8 @@ call_mili_module_function(PyObject * mili_reader_module, const char *function_na
  * Converts a string to a PyObject representation of string.
  */
 PyObject*
-string_to_pyobject(const char *str){
+string_to_pyobject(const char *str)
+{
     int length = strlen(str);
     PyObject * py_Str = PyUnicode_Decode(str, length, "ascii", "ignore");
     return py_Str;
@@ -189,7 +194,8 @@ get_pyobject_attribute( PyObject* object, char* attr )
 {
     PyObject * py_Attribute = Py_None;
     Py_INCREF(Py_None);
-    if( PyObject_HasAttrString(object, attr) ){
+    if( PyObject_HasAttrString(object, attr) )
+    {
         py_Attribute = PyObject_GetAttrString( object, attr );
         Py_DECREF(Py_None);
     }
@@ -253,7 +259,8 @@ integer_pointer_from_pyobject( PyObject * py_List, int size, int * values )
         bytearray = PyByteArray_AsString( py_ByteArray );
         intValues = (int*) bytearray;
 
-        for( i = 0; i < size; i++ ){
+        for( i = 0; i < size; i++ )
+        {
             values[i] = intValues[i];
         }
 
@@ -272,7 +279,8 @@ integer_pointer_from_pytuple( PyObject * py_tuple, int size, int * values )
     int i;
     PyObject * py_LongValue;
     int value;
-    for( i = 0; i < size; i++ ){
+    for( i = 0; i < size; i++ )
+    {
         py_LongValue = PySequence_GetItem(py_tuple, i);
         value = PyLong_AsLong(py_LongValue);
         values[i] = value;
@@ -293,7 +301,8 @@ float_pointer_from_pyobject( PyObject * py_List, int size, float * values )
     PyErr_Clear();
     py_SequenceFast = PySequence_Fast( py_List, "Object must be iterable" );
     py_FloatList = PySequence_Fast_ITEMS( py_SequenceFast );
-    for( i = 0; i < size; i++ ){
+    for( i = 0; i < size; i++ )
+    {
         values[i] = (float) PyFloat_AsDouble( py_FloatList[i] );
     }
 }
@@ -311,10 +320,12 @@ mili_reader_get_string(PyObject * py_Parameters, char *parameter_name, char *str
 
     /* Lookup parameter in mili and convert to string */
     py_Name = string_to_pyobject(parameter_name);
-    if( PyDict_Contains( py_Parameters, py_Name) ){
+    if( PyDict_Contains( py_Parameters, py_Name) )
+    {
         py_Parameter = PyDict_GetItem( py_Parameters, py_Name );
         /* Get string representation of parameter */
-        if(py_Parameter != NULL){
+        if(py_Parameter != NULL)
+        {
             res = pyobject_as_string( py_Parameter );
             if ( res == NULL )
                 return NOT_OK;
@@ -336,10 +347,12 @@ mili_reader_get_double(PyObject * py_Parameters, char *parameter_name, double *r
     PyObject * py_Name;
     /* Lookup parameter in mili and convert to double */
     py_Name = string_to_pyobject(parameter_name);
-    if( PyDict_Contains( py_Parameters, py_Name) ){
+    if( PyDict_Contains( py_Parameters, py_Name) )
+    {
         py_MiliParameter = PyDict_GetItem( py_Parameters, py_Name );
         /* Get double representation of parameter */
-        if(py_MiliParameter != NULL){
+        if(py_MiliParameter != NULL)
+        {
             double value = PyFloat_AsDouble(py_MiliParameter);
             *result = value;
             return OK;

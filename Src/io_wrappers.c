@@ -5711,27 +5711,21 @@ mili_db_reload_states()
  * Get a pointer to the specified class .
  */
 extern MO_class_data *
-mili_get_class_ptr( Analysis *analy, int superclass,
-                    char *class_name )
+mili_get_class_ptr( Analysis *analy, int superclass, char *class_name )
 {
-
+    int i;
     int class_qty;
     MO_class_data **mo_classes;
-    int i;
 
     class_qty = MESH_P( analy )->classes_by_sclass[superclass].qty;
 
     if ( class_qty==0 )
         return ( NULL );
 
-    mo_classes = (MO_class_data **)
-                 MESH_P( analy )->classes_by_sclass[superclass].list;
+    mo_classes = (MO_class_data **) MESH_P( analy )->classes_by_sclass[superclass].list;
 
-    for ( i=0;
-            i<class_qty;
-            i++)
-        if ( !strcmp( class_name, mo_classes[i]->long_name  ) ||
-                !strcmp( class_name, mo_classes[i]->short_name ) )
+    for ( i = 0; i < class_qty; i++)
+        if ( !strcmp( class_name, mo_classes[i]->long_name  ) || !strcmp( class_name, mo_classes[i]->short_name ) )
             return ( mo_classes[i] );
 
     return ( NULL );
@@ -5744,41 +5738,37 @@ mili_get_class_ptr( Analysis *analy, int superclass,
  * Get full list of classes names in the Mili database.
  */
 extern int
-mili_get_class_names( Analysis *analy, int *qty_classes,
-                      char **class_names, int *superclasses )
+mili_get_class_names( Analysis *analy, int *qty_classes, char **class_names, int *superclasses )
 {
-
-    int class_qty=0, sclass=0;
-    MO_class_data **mo_classes;
     int i, j;
-    int class_names_index=0, class_found_index=0;
-    Bool_type class_found=FALSE;
+    int class_qty = 0,
+        sclass = 0;
+    int class_names_index = 0,
+        class_found_index = 0;
+    Bool_type class_found = FALSE;
+    MO_class_data **mo_classes;
 
+    *qty_classes = 0;
 
-    for ( sclass=0;
-            sclass<QTY_SCLASS;
-            sclass++ )
+    for( sclass = 0; sclass < QTY_SCLASS; sclass++ )
     {
-
         class_qty = MESH_P( analy )->classes_by_sclass[sclass].qty;
-
-        if ( class_qty>0 )
+        if ( class_qty > 0 )
         {
             mo_classes = (MO_class_data **) MESH_P( analy )->classes_by_sclass[sclass].list;
             class_found=FALSE;
-            for ( i=0;
-                    i<class_qty;
-                    i++ )
+            for( i = 0; i < class_qty; i++ )
             {
-                for ( j=0;
-                        j<class_names_index;
-                        j++ )
+                for( j = 0; j < class_names_index; j++ )
+                {
                     if ( !strcmp( mo_classes[i]->short_name, class_names[j]) )
                     {
                         class_found=TRUE;
                         break;
                     }
-                if ( !class_found )
+                }
+
+                if( !class_found )
                 {
                     class_names[class_names_index]  = strdup( mo_classes[i]->short_name );
                     superclasses[class_names_index] = mo_classes[i]->superclass;

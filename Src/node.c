@@ -600,8 +600,7 @@ compute_node_displacement_mag( Analysis *analy, float *resultArr,
  * analysis at nodes given the current geometry.
  */
 void
-compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
-                                    Bool_type interpolate )
+compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float (*modedisp)[3];
     double (*modedisp_dp)[3];
@@ -618,11 +617,12 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
     int node_qty;
     int  node_idx;
     int *object_ids;
-    State_variable sv;
+    State_variable *p_sv;
+    Htable_entry *p_hte;
     Subrec_obj *p_subrec;
     MO_class_data *p_node_class;
     char *primal_list[1];
-    int rval=0;
+    int rval = 0;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -635,24 +635,30 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
 
     node_qty = MESH( analy ).node_geom->qty;
 
-    rval = mc_get_svar_def( analy->db_ident, primals[0], &sv );
+    rval = htable_search( analy->st_var_table, primals[0], FIND_ENTRY, &p_hte );
+    if( rval != OK )
+    {
+        analy->print_error("compute_node_modaldisplacement_mag call htable_search", rval);
+        return;
+    }
+    p_sv = (State_variable*) p_hte->data;
 
     /* Read the database. */
     primal_list[0] = strdup(primals[0]);
 
-    result_buf = NEW_N( double, node_qty*sv.vec_size*2, "Current Nodal Results" );
+    result_buf = NEW_N( double, node_qty*p_sv->vec_size*2, "Current Nodal Results" );
 
     analy->db_get_results( analy->db_ident, analy->cur_state+1, subrec, 1,
                            primal_list, (void *) result_buf );
 
-    if ( sv.vec_size==3 )
+    if ( p_sv->vec_size == 3 )
     {
-        if ( sv.num_type == M_FLOAT )
+        if ( p_sv->num_type == M_FLOAT )
             modedisp = (float (*)[3]) result_buf;
         else
             modedisp_dp = (double (*)[3]) result_buf;
     }
-    else if ( sv.num_type == M_FLOAT )
+    else if ( p_sv->num_type == M_FLOAT )
     {
         modedispscalar = (float *) result_buf;
     }
@@ -665,9 +671,9 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
 
     for( i = 0; i < node_qty; i++ )
     {
-        if ( sv.vec_size==3 )
+        if ( p_sv->vec_size==3 )
         {
-            if ( sv.num_type==M_FLOAT )
+            if ( p_sv->num_type==M_FLOAT )
             {
                 dx =  modedisp[i][0];
                 dy =  modedisp[i][1];
@@ -680,7 +686,7 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
                 dz =  modedisp_dp[i][2];
             }
         }
-        else if ( sv.num_type==M_FLOAT )
+        else if ( p_sv->num_type == M_FLOAT )
         {
             dx = modedispscalar[i];
         }
@@ -689,7 +695,7 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
             dx = modedispscalar_dp[i];
         }
 
-        if ( sv.vec_size==3 )
+        if ( p_sv->vec_size==3 )
             resultArr[i] = sqrt( (double) dx * dx + dy * dy + dz * dz );
         else
             resultArr[i] = sqrt( (double) dx * dx );

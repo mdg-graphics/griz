@@ -2041,8 +2041,8 @@ extern int mili_reader_read_ti_array( int, char*, void**, int* );
 extern int mili_reader_read_param_array( int, char*, void** );
 extern int mili_reader_get_free_node_data( Analysis*, float**, float** );
 extern int mili_reader_load_stress_strain_components( int, int, Bool_type, Bool_type, float** );
-extern int mili_reader_preload_primal_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
-extern int mili_reader_preload_derived_th( Analysis*, Result_mo_list_obj*, Subrec_obj*, int, int*, int, int );
+extern int mili_reader_preload_primal_th( Analysis*, char*, Subrec_obj*, int, int*, int, int );
+extern int mili_reader_preload_derived_th( Analysis*, Result*, Subrec_obj*, int, int*, int, int );
 extern void generic_error_print(char*, int);
 #endif
 

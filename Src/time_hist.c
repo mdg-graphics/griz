@@ -3485,43 +3485,34 @@ gather_parallel_read_time_series( Gather_segment *ctl_list, Analysis *analy )
                         obj_cnt++;
                     }
 
-                    long s, e;
                     /* Query all states initially */
-                    s = prec_timer();
                     analy->py_PreloadedResult = NULL;
                     if( p_rmlo->result->origin.is_primal )
                     {
-                        if( mili_reader_preload_primal_th( analy, p_rmlo, p_subrec, obj_cnt, queried_labels, first_st+1, last_st+1 ) != OK )
+                        if( mili_reader_preload_primal_th( analy, p_rmlo->result->name, p_subrec, obj_cnt,
+                                                           queried_labels, first_st+1, last_st+1 ) != OK )
                         {
                             analy->py_PreloadedResult = NULL;
                         }
                     } 
                     else if( p_rmlo->result->origin.is_derived )
                     {
-                        if( mili_reader_preload_derived_th( analy, p_rmlo, p_subrec, obj_cnt, queried_labels, first_st+1, last_st+1 ) != OK )
+                        if( mili_reader_preload_derived_th( analy, p_rmlo->result, p_subrec, obj_cnt, queried_labels, first_st+1, last_st+1 ) != OK )
                         {
                             analy->py_PreloadedResult = NULL;
                         }
                     }
-                    e = prec_timer();
-                    printf("preload time = %ldms\n", (e-s));
 
                     is_primal_quad_strain = is_primal_quad_strain_result( p_rmlo->result->name );
 
                     /* For each state... */
                     for( k = first_st; k <= last_st; k++ )
                     {
-                        s = prec_timer();
                         analy->cur_state = k;
                         analy->db_get_state( analy, k, analy->state_p, &analy->state_p, &st_qty );
-                        e = prec_timer();
-                        printf("get_state = %ldms\n", (e-s));
 
-                        s = prec_timer();
                         /* Call load_subrecord_result variant */
                         load_subrecord_result( analy, j, TRUE, FALSE );
-                        e = prec_timer();
-                        printf("load_subrecord_result = %ldms\n", (e-s));
 
                         /* Store result value for each object in list. */
                         for ( p_sro = p_rmlo->mo_list; p_sro != NULL; NEXT( p_sro ) )

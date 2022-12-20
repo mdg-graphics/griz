@@ -1562,10 +1562,10 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
      */
     if (analy->free_nodes_enabled || analy->particle_nodes_enabled)
     {
-        status = analy->get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
-        if (status==0)
+        if( analy->free_nodes_vol )
         {
             fn_vol_found = TRUE;
+            free_nodes_vol = analy->free_nodes_vol;
         }
     }
 
@@ -1582,6 +1582,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
     /* Loop over the active materials. */
 
     if ( !particle_class )
+    {
         for ( m = 0; m < active_mat_qty; m++ )
         {
             cur_mat = active_mats[m];
@@ -1655,6 +1656,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                 } /* for hex element in element block */
             } /* for element block */
         } /* for active material */
+    }
 
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
@@ -2933,10 +2935,9 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
     int idcnt=0;
     int num_nodes=0;
 
-    int        particle_count, *particle_nodes;
-    int        subrec=0, srec=0;
+    int particle_count, *particle_nodes;
+    int subrec=0, srec=0;
     Subrec_obj *p_subrec;
-    long s, e;
 
     if ( extreme_result == FALSE && analy->extreme_result == TRUE )
         return;
